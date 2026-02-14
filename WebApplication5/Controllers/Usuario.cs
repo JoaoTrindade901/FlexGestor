@@ -40,7 +40,7 @@ namespace WebApplication5.Controllers
             try
             {
 
-                //verifica se o retorno não é nulo, se não for, guarda o retorno da procedure de atualização em uma variavel do tipo Usuario.
+                //verifica se o retorno não é nulo, se não for, guarda o retorno da procedure de atualização em uma variavel do tipo Usuario..
                 if (user != null)
                 {
 
