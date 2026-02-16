@@ -5,16 +5,62 @@ namespace WebApplication5.Controllers
     public class Usuario
     {
         //Pesquisa Usuário
-        public Usuario BuscaUsuarios()
+        public List<Usuario> BuscaUsuarios(int? idUsuario, string nomeUsuario, bool fAtivo, string login, string senha, string email)
         {
-            return null;
+            try
+            {
+
+                Usuario ret = spBuscaUsuario(
+                    idUsuario,
+                    nomeUsuario,
+                    fAtivo
+                    );
+
+                return ret;
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                throw;
+            }
 
         }
 
         //Cria Usuário 
-        public Usuario CriarUsuario()
+        public Usuario CriarUsuario(string nomeUsuario,bool fAtivo, string login, string senha, string email, DateTime dthCriacao)
         {
-            return null;
+            List<Usuario> usuarios = new List<Usuario>();
+
+            try
+            {
+
+                    Usuario ret = spCriaUsuario(
+                        idUsuario,
+                        nomeUsuario,
+                        fAtivo,
+                        dthCriacao,
+                        login,
+                        senha,
+                        email
+                        );
+
+                    usuarios.Add(ret);
+                    GravaLogUsuario(ret);
+                    return ret;
+
+
+            }
+            catch (Exception ex)
+        {
+                GravaLogUsuario(ex);
+                Console.WriteLine(ex.Message);
+
+                throw;
+            }
+
 
         }
 
