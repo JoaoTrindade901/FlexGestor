@@ -20,9 +20,43 @@ namespace WebApplication5.Controllers
 
 
         //Inativa Usuário 
-        public Usuario InativarUsuario()
+        public Usuario InativarUsuario(List<int> idUsuario, bool fAtivo, DateTime dthInativacao)
         {
-            return null;
+            //a ideia é permitir inativar multiplos usuarios
+            List<Usuario> usuarios = new List<Usuario>();
+
+
+            var user = usuarios.FirstOrDefault(u => u.idusuario == idUsuario);
+
+
+            try
+            {
+
+                if (user == null)
+                {
+                    Usuario ret = spInativaUsuario(
+                        idUsuario,
+                        dthInativacao,
+                        fAtivo
+                        );
+
+                    user.fAtivo = fAtivo;
+                    user.dthInativacao = dthInativacao;
+
+                    GravaLogUsuario(user);
+                    return user;
+                }
+
+                else
+                {
+                    throw new Exception("Usuario não pode ser deletado");
+                }
+
+            }
+            catch (Exception ex)
+        {
+                GravaLogUsuario(ex);
+                Console.WriteLine(ex.Message);
 
         }
 
@@ -61,7 +95,7 @@ namespace WebApplication5.Controllers
                     user.email = email;
                     user.dthAtualizacao = dthAtualizacao;
 
-                    //atualiza info no banco e logo em seguida retorna info fresquinha dedepois de a
+                    GravaLogUsuario();
 
 
                     //adicionar dth de atualização depois
