@@ -19,10 +19,16 @@ namespace WebApplication5.Services
             var user = _repo.BuscarPorLogin(login);
 
             if (user == null)
+            {
                 return null;
+            }
+                
 
             if (!_password.Verify(senha, user.Senha))
-                return user;
+            {
+                return null;
+            }
+                
 
             return user;
         }
