@@ -16,12 +16,15 @@ namespace WebApplication5.Controllers
                     fAtivo
                     );
 
+                //GravaLog(ret);
                 return ret;
 
 
             }
             catch (Exception ex)
             {
+
+                //GravaLog(ret);
                 Console.WriteLine(ex.Message);
 
                 throw;
@@ -38,7 +41,6 @@ namespace WebApplication5.Controllers
             {
 
                     Usuario ret = spCriaUsuario(
-                        idUsuario,
                         nomeUsuario,
                         fAtivo,
                         dthCriacao,
@@ -48,14 +50,13 @@ namespace WebApplication5.Controllers
                         );
 
                     usuarios.Add(ret);
-                    GravaLogUsuario(ret);
+                    //GravaLog(ret);
                     return ret;
-
 
             }
             catch (Exception ex)
-        {
-                GravaLogUsuario(ex);
+            {
+                //GravaLog(ret);
                 Console.WriteLine(ex.Message);
 
                 throw;
@@ -66,98 +67,53 @@ namespace WebApplication5.Controllers
 
 
         //Inativa Usuário 
-        public Usuario InativarUsuario(List<int> idUsuario, bool fAtivo, DateTime dthInativacao)
+        public Usuario InativarUsuario(List<int> idUsuario, bool fAtivo)
         {
-            //a ideia é permitir inativar multiplos usuarios
-            List<Usuario> usuarios = new List<Usuario>();
-
-
-            var user = usuarios.FirstOrDefault(u => u.idusuario == idUsuario);
-
 
             try
             {
-
-                if (user == null)
-                {
-                    Usuario ret = spInativaUsuario(
-                        idUsuario,
-                        dthInativacao,
-                        fAtivo
-                        );
-
-                    user.fAtivo = fAtivo;
-                    user.dthInativacao = dthInativacao;
-
-                    GravaLogUsuario(user);
-                    return user;
-                }
-
-                else
-                {
-                    throw new Exception("Usuario não pode ser deletado");
-                }
-
+                spInativaUsuario(idsUsuarios, fAtivo);
+                return true;
             }
-            catch (Exception ex)
-        {
-                GravaLogUsuario(ex);
-                Console.WriteLine(ex.Message);
+            catch (Exception)
+            {
+                throw;
+            }
+
 
         }
 
         //Atualiza Usuário 
-        public Usuario AtualizarUsuario(int idUsuario, string nomeUsuario, string login, string senha, string email, DateTime dthAtualizacao)
+        public Usuario AtualizarUsuario(int idUsuario, string login, string senha, string nomeUsuario,string cpf, string genero, string telefone,DateTime dthNascimento, string email, DateTime dthAdmissao, DateTime dthDemissao, float salario, bool fAtivo)
         {
-            //cria uma lista de usuarios para armazenar varios objetos do tipo usuario.
-            List<Usuario> usuarios = new List<Usuario>();
-
-
-            //guarda na variavel user o primeiro registro onde o idusuario é o mesmo passado como parametro.
-            var user = usuarios.FirstOrDefault(u => u.idusuario == idUsuario);
-
-
             try
             {
-
-                //verifica se o retorno não é nulo, se não for, guarda o retorno da procedure de atualização em uma variavel do tipo Usuario..
-                if (user != null)
-                {
-
                     // atualiza o registro no banco de dados através da sp
                     Usuario ret = spAtualizaUsuario(
                         idUsuario,
-                        nomeUsuario,
                         login,
                         senha,
+                        nomeUsuario,
+                        cpf,
+                        genero,
+                        dthNascimento,
                         email,
-                        dthAtualizacao
+                        dthAdmissao,
+                        telefone,
+                        dthDemissao,
+                        salario,
+                        fAtivo
                         );
-
-                    // sincroniza o objeto em memória com os novos valores
-                    user.nomeUsuario = nomeUsuario;
-                    user.login = login;
-                    user.senha = senha;
-                    user.email = email;
-                    user.dthAtualizacao = dthAtualizacao;
-
-                    GravaLogUsuario();
-
-
-                    //adicionar dth de atualização depois
-
-                    return user;
-                }
-
-            else
-                {
-                    throw new Exception("Usuario não encontrado");
-                }
+                //GravaLog(ret);
+                return ret; 
 
             }
             catch (Exception ex)
             {
+                //GravaLog(ret);
                 Console.WriteLine(ex.Message);
+
+                throw;
             }
         }
     }

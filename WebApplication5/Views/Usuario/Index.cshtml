@@ -1,0 +1,32 @@
+﻿@model IEnumerable<WebApplication5.Models.Usuario>
+
+<h2>Usuários</h2>
+
+<a asp-action="Create">Novo Usuário</a>
+
+<table border="1">
+
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Login</th>
+            <th>Email</th>
+            <th>Ativo</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Nome</td>
+                <td>@u.Login</td>
+                <td>@u.Email</td>
+                <td>@u.fAtivo</td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>
