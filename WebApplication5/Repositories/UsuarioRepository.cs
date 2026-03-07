@@ -23,13 +23,13 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public Usuario? BuscarPorLogin(string login)
+        public Usuario? BuscarPorEmail(string email)
         {
             using var conn = new SqlConnection(_connectionString);
 
             return conn.QueryFirstOrDefault<Usuario>(
                 "sp_BuscarLogin",
-                new { Login = login },
+                new { Login = login,  cnpj = CNPJ } ,
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -38,8 +38,20 @@ namespace WebApplication5.Repositories
             using var conn = new SqlConnection(_connectionString);
 
             conn.Execute(
-                "sp_CriarUsuario",
-                usuario,
+                "sp_EditarUsuario",
+                new
+                {
+                    usuario.IdUsuario,
+                    usuario.Nome,
+                    usuario.CPF,
+                    usuario.Genero,
+                    usuario.Email,
+                    usuario.Telefone,
+                    usuario.dthNascimento,
+                    usuario.dthAdmissao,
+                    usuario.dthDemissao,
+                    cargo_id = usuario.cargo_id
+                },
                 commandType: CommandType.StoredProcedure);
         }
     }

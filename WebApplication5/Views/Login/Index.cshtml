@@ -15,7 +15,8 @@
 
             <div class="campo">
                 <label for="doc">CNPJ</label>
-                <input type="number" id="doc" name="cnpj" required autofocus placeholder="Digite o seu CNPJ">
+                <input maxlength="14" type="text" id="doc" name="cnpj" required autofocus placeholder="Digite o seu CNPJ">
+
             </div>
 
             <div class="campo">
@@ -27,10 +28,7 @@
                 <label for="pass">Senha</label>
                 <input type="password" id="pass" name="senha" required placeholder="Digite a sua Senha">
             </div>
-
-    <input type="text" name="login" />
-    <input type="password" name="senha" />
-
+            <a href="/Login/EsqueciSenha">Esqueceu a senha?</a>
     <button type="submit">Entrar</button>
-
+        </fieldset>
 </form>

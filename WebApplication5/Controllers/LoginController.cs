@@ -7,7 +7,7 @@ namespace WebApplication5.Controllers
     {
         private readonly LoginService _service;
 
-        public LoginController(LoginService service)
+        public LoginController(LoginService service, SenhaResetService senhaResetService)
         {
             _service = service;
         }
@@ -30,7 +30,55 @@ namespace WebApplication5.Controllers
                 return View("Index");
             }
 
-            return RedirectToAction("Index", "Usuario");
+        [HttpGet]
+        public IActionResult EsqueciSenha() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> EsqueciSenha(string email)
+        {
+            await _senhaResetService.SolicitarReset(email);
+            ViewBag.Mensagem = "Se o email existir, você receberá as instruções em breve.";
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult RedefinirSenha(string token, string novaSenha, string confirmarSenha)
+        {
+            if (novaSenha != confirmarSenha)
+            {
+                ViewBag.Erro = "As senhas não conferem.";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            var sucesso = _senhaResetService.RedefinirSenha(token, novaSenha);
+            if (!sucesso)
+            {
+                ViewBag.Erro = "Link inválido ou expirado.";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            return RedirectToAction("Index", "Login");
+        }
+
+        [HttpPost]
+        public IActionResult RedefinirSenha(string token, string novaSenha)
+        {
+            var sucesso = _senhaResetService.RedefinirSenha(token, novaSenha);
+            if (!sucesso)
+            {
+                ViewBag.Erro = "Link inválido ou expirado.";
+                return View();
+            }
+            return RedirectToAction("Index", "Login");
+        }
+
+
+        public IActionResult Sair()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Login");
         }
     }
 }

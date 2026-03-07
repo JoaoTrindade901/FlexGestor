@@ -8,7 +8,7 @@ namespace WebApplication5.Controllers
     {
         private readonly UsuarioService _service;
 
-        public UsuarioController(UsuarioService service)
+    public UsuarioController(UsuarioService service, CargoRepository cargoRepository)
         {
             _service = service;
         }
@@ -16,21 +16,21 @@ namespace WebApplication5.Controllers
         public IActionResult Index()
         {
             var lista = _service.Listar();
-            return View(lista);
+        return Json(lista);
         }
 
-
-        public IActionResult Create()
+    public IActionResult ListarCargos()
         {
-            return View();
+        var cargos = _cargoRepository.Listar();
+        return Json(cargos);
         }
 
 
         [HttpPost]
-        public IActionResult Create(Usuario usuario)
+    public IActionResult Criar([FromBody] Usuario usuario)
         {
             _service.Criar(usuario);
-            return RedirectToAction("Index");
+        return Ok();
         }
     }
 }

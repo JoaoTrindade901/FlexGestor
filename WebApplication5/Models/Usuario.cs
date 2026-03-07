@@ -12,8 +12,7 @@
         public string? Genero { get; set; }
         public string? Email { get; set; }
         public string? Telefone { get; set; }
-
-        public DateTime dthNascimento { get; set; }
+    public DateTime? dthNascimento { get; set; }  // era DateTime, agora nullable
         public DateTime dthCriacao { get; set; }
 
         public DateTime? dthAdmissao { get; set; }
@@ -21,5 +20,5 @@
 
         public byte cargo_id { get; set; }
         public bool fAtivo { get; set; }
-    }
+    public int idEmpresa { get; set; }
 }
