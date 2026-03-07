@@ -20,13 +20,13 @@ namespace WebApplication5.Controllers
         }
 
         [HttpPost]
-        public IActionResult Entrar(string login, string senha)
+        public IActionResult Entrar(string login, string senha, string cnpj)
         {
-            var user = _service.Autenticar(login, senha);
+            var user = _service.Autenticar(login, senha, cnpj);
 
             if (user == null)
             {
-                ViewBag.Erro = "Login ou senha inválidos";
+                ModelState.AddModelError(string.Empty, "Login ou senha inválidos");
                 return View("Index");
             }
 

@@ -14,9 +14,9 @@ namespace WebApplication5.Services
             _password = password;
         }
 
-        public Usuario? Autenticar(string login, string senha)
+        public Usuario? Autenticar(string login, string senha, string cnpj)
         {
-            var user = _repo.BuscarPorLogin(login);
+            var user = _repo.BuscarPorLogin(login, cnpj);
 
             if (user == null)
             {
