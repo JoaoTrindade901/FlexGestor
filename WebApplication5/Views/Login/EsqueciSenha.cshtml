@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/login.css">
+    <title>Esqueci minha senha</title>
+</head>
+<body>
+    <form action="/Login/EsqueciSenha" method="POST">
+        @Html.AntiForgeryToken()
+        <fieldset>
+            <h1>FlexGestor</h1>
+            <p style="font-size:0.85rem;margin-bottom:16px;opacity:0.7">
+                Informe seu email e enviaremos um link para redefinir sua senha.
+            </p>
+
+            @if (ViewBag.Mensagem != null)
+            {
+                <div class="erro" style="color:#34d399">@ViewBag.Mensagem</div>
+            }
+
+            <div class="campo">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autofocus placeholder="Digite seu email">
+            </div>
+
+            <button type="submit">Enviar link</button>
+            <a href="/Login" style="display:block;text-align:center;margin-top:12px">Voltar ao login</a>
+        </fieldset>
+    </form>
+</body>
+</html>

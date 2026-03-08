@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/login.css">
+    <title>Redefinir senha</title>
+</head>
+<body>
+    <form action="/Login/RedefinirSenha" method="POST">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="token" value="@ViewBag.Token">
+        <fieldset>
+            <h1>FlexGestor</h1>
+            <p style="font-size:0.85rem;margin-bottom:16px;opacity:0.7">
+                Digite sua nova senha abaixo.
+            </p>
+
+            @if (ViewBag.Erro != null)
+            {
+                <div class="erro">@ViewBag.Erro</div>
+            }
+
+            <div class="campo">
+                <label for="novaSenha">Nova senha</label>
+                <input type="password" id="novaSenha" name="novaSenha" required autofocus placeholder="••••••••">
+            </div>
+            <div class="campo">
+                <label for="confirmarSenha">Confirmar senha</label>
+                <input type="password" id="confirmarSenha" name="confirmarSenha" required placeholder="••••••••">
+            </div>
+
+            <button type="submit">Redefinir senha</button>
+            <a href="/Login" style="display:block;text-align:center;margin-top:12px">Voltar ao login</a>
+        </fieldset>
+    </form>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const nova = document.getElementById('novaSenha').value;
+            const confirmar = document.getElementById('confirmarSenha').value;
+            if (nova !== confirmar) {
+                e.preventDefault();
+                alert('As senhas não conferem.');
+            }
+        });
+    </script>
+</body>
+</html>

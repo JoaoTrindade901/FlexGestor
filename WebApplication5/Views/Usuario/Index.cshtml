@@ -1,32 +1,1105 @@
-﻿@model IEnumerable<WebApplication5.Models.Usuario>
-
-<h2>Usuários</h2>
-
-<a asp-action="Create">Novo Usuário</a>
-
-<table border="1">
-
-    <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Login</th>
-            <th>Email</th>
-            <th>Ativo</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        @foreach (var u in Model)
-        {
-            <tr>
-                <td>@u.Nome</td>
-                <td>@u.Login</td>
-                <td>@u.Email</td>
-                <td>@u.fAtivo</td>
-            </tr>
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexGestor — Usuários</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-    </tbody>
+        :root {
+            --bg: #0d0f14;
+            --surface: #151820;
+            --surface2: #1c2030;
+            --accent: #4f8eff;
+            --accent2: #a78bfa;
+            --text: #e8ecf4;
+            --muted: #6b7491;
+            --border: #242840;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
 
-</table>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* SIDEBAR — igual à Home */
+        .sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+            .sidebar-logo h1 {
+                font-family: 'Syne', sans-serif;
+                font-weight: 800;
+                font-size: 1.3rem;
+                background: linear-gradient(135deg, var(--accent), var(--accent2));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .sidebar-logo span {
+                font-size: 0.72rem;
+                color: var(--muted);
+                font-weight: 300;
+                letter-spacing: 0.05em;
+            }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 8px 12px 6px;
+            font-weight: 500;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+
+            .nav-item:hover {
+                background: var(--surface2);
+                color: var(--text);
+            }
+
+            .nav-item.active {
+                background: rgba(79,142,255,0.12);
+                color: var(--accent);
+            }
+
+            .nav-item svg {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+            }
+
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--surface2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.68rem;
+            color: var(--muted);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 4px;
+            display: flex;
+            transition: color 0.15s;
+        }
+
+            .logout-btn:hover {
+                color: var(--danger);
+            }
+
+            .logout-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+        .main {
+            margin-left: 240px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 60px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        .content {
+            padding: 32px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .page-header-left h2 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .page-header-left p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+
+            .btn svg {
+                width: 15px;
+                height: 15px;
+            }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #3a7aee;
+                transform: translateY(-1px);
+            }
+
+        .btn-ghost {
+            background: var(--surface2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+            .btn-ghost:hover {
+                color: var(--text);
+                border-color: var(--text);
+            }
+
+        .btn-warning {
+            background: rgba(251,191,36,0.15);
+            color: var(--warning);
+            border: 1px solid rgba(251,191,36,0.3);
+        }
+
+            .btn-warning:hover {
+                background: rgba(251,191,36,0.25);
+            }
+
+        .btn-success {
+            background: rgba(52,211,153,0.15);
+            color: var(--success);
+            border: 1px solid rgba(52,211,153,0.3);
+        }
+
+            .btn-success:hover {
+                background: rgba(52,211,153,0.25);
+            }
+
+        .grid-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            flex: 1;
+            animation: fadeUp 0.4s ease 0.1s both;
+            min-height: 480px;
+        }
+
+        .grid-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            flex: 1;
+            max-width: 300px;
+            transition: border-color 0.15s;
+        }
+
+            .search-box:focus-within {
+                border-color: var(--accent);
+            }
+
+            .search-box svg {
+                width: 14px;
+                height: 14px;
+                color: var(--muted);
+                flex-shrink: 0;
+            }
+
+            .search-box input {
+                background: none;
+                border: none;
+                outline: none;
+                color: var(--text);
+                font-family: 'DM Sans', sans-serif;
+                font-size: 0.85rem;
+                width: 100%;
+            }
+
+                .search-box input::placeholder {
+                    color: var(--muted);
+                }
+
+        .filter-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+
+            .filter-badge.active, .filter-badge:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: rgba(79,142,255,0.08);
+            }
+
+        .grid-count {
+            margin-left: auto;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .ag-theme-quartz {
+            --ag-background-color: transparent;
+            --ag-foreground-color: #e8ecf4;
+            --ag-border-color: #242840;
+            --ag-header-background-color: #1c2030;
+            --ag-header-foreground-color: #6b7491;
+            --ag-row-hover-color: rgba(79,142,255,0.05);
+            --ag-selected-row-background-color: rgba(79,142,255,0.1);
+            --ag-font-family: 'DM Sans', sans-serif;
+            --ag-font-size: 13px;
+            --ag-cell-horizontal-padding: 16px;
+            --ag-row-border-color: #1c2030;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
+
+            .status-badge.ativo {
+                background: rgba(52,211,153,0.12);
+                color: #34d399;
+            }
+
+            .status-badge.inativo {
+                background: rgba(248,113,113,0.12);
+                color: #f87171;
+            }
+
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+            .action-btn svg {
+                width: 13px;
+                height: 13px;
+            }
+
+            .action-btn.edit {
+                background: rgba(79,142,255,0.1);
+                color: var(--accent);
+            }
+
+                .action-btn.edit:hover {
+                    background: rgba(79,142,255,0.25);
+                }
+
+            .action-btn.deactivate {
+                background: rgba(251,191,36,0.1);
+                color: var(--warning);
+            }
+
+                .action-btn.deactivate:hover {
+                    background: rgba(251,191,36,0.25);
+                }
+
+            .action-btn.activate {
+                background: rgba(52,211,153,0.1);
+                color: var(--success);
+            }
+
+                .action-btn.activate:hover {
+                    background: rgba(52,211,153,0.25);
+                }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+            .modal-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 28px;
+            transform: translateY(16px) scale(0.97);
+            transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+        }
+
+        .modal-overlay.open .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .modal-subtitle {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 4px;
+            display: flex;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+            .modal-close:hover {
+                color: var(--text);
+                background: var(--surface2);
+            }
+
+            .modal-close svg {
+                width: 16px;
+                height: 16px;
+            }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+            .form-input:focus {
+                border-color: var(--accent);
+            }
+
+            .form-input::placeholder {
+                color: var(--muted);
+            }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .confirm-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+            .confirm-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .confirm-icon.warning {
+                background: rgba(251,191,36,0.12);
+                color: var(--warning);
+            }
+
+            .confirm-icon.success {
+                background: rgba(52,211,153,0.12);
+                color: var(--success);
+            }
+
+        .confirm-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .confirm-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .confirm-name {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* TOAST */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 260px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            animation: toastIn 0.3s cubic-bezier(.34,1.56,.64,1) both;
+        }
+
+            .toast.out {
+                animation: toastOut 0.25s ease forwards;
+            }
+
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+            .toast-icon svg {
+                width: 13px;
+                height: 13px;
+            }
+
+            .toast-icon.success {
+                background: rgba(52,211,153,0.15);
+                color: var(--success);
+            }
+
+            .toast-icon.error {
+                background: rgba(248,113,113,0.15);
+                color: var(--danger);
+            }
+
+        .toast-message {
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        @@keyframes fadeUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+        @@keyframes toastIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        }
+        @@keyframes toastOut {
+            from
+
+        {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <h1>FlexGestor</h1>
+            <span>Painel de Gestão</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Principal</div>
+            <a href="/Home" class="nav-item">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                Home
+            </a>
+            <div class="nav-label" style="margin-top:8px">Cadastros</div>
+            <a href="/Usuario" class="nav-item active">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                Usuários
+            </a>
+            <a href="/Empresa" class="nav-item">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                Empresas
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">@(ViewBag.NomeUsuario?.ToString().Substring(0, 1).ToUpper() ?? "U")</div>
+                <div class="user-info">
+                    <div class="user-name">@(ViewBag.NomeUsuario ?? "Usuário")</div>
+                    <div class="user-role">Administrador</div>
+                </div>
+                <a href="/Login/Sair" class="logout-btn" title="Sair">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">Usuários</div>
+        </div>
+        <div class="content">
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h2>Gerenciar Usuários</h2>
+                    <p>Cadastre, edite e inative usuários do sistema.</p>
+                </div>
+                <button class="btn btn-primary" onclick="abrirModalCriar()">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    Novo Usuário
+                </button>
+            </div>
+
+            <div class="grid-wrapper">
+                <div class="grid-toolbar">
+                    <div class="search-box">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <input type="text" placeholder="Buscar usuário..." oninput="filtrarGrid(this.value)">
+                    </div>
+                    <div class="filter-badge active" id="filtroTodos" onclick="aplicarFiltro('todos')">Todos</div>
+                    <div class="filter-badge" id="filtroAtivos" onclick="aplicarFiltro('ativos')">Ativos</div>
+                    <div class="filter-badge" id="filtroInativos" onclick="aplicarFiltro('inativos')">Inativos</div>
+                    <div class="grid-count" id="gridCount">0 registros</div>
+                </div>
+                <div id="gridUsuarios" class="ag-theme-quartz" style="height: 440px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CRIAR/EDITAR -->
+    <div class="modal-overlay" id="modalForm">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modalFormTitulo">Novo Usuário</div>
+                    <div class="modal-subtitle" id="modalFormSubtitulo">Preencha os dados do novo usuário.</div>
+                </div>
+                <button class="modal-close" onclick="fecharModal('modalForm')">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <input type="hidden" id="formIdUsuario">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" class="form-input" id="formNome" placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Login</label>
+                    <input type="text" class="form-input" id="formLogin" placeholder="Ex: joao.silva">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input type="password" class="form-input" id="formSenha" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CPF</label>
+                    <input type="text" class="form-input" id="formCPF" placeholder="000.000.000-00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Perfil</label>
+                    <select class="form-input" id="formCargo">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="formEmail" placeholder="email@exemplo.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" class="form-input" id="formTelefone" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="fecharModal('modalForm')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarUsuario()">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAR INATIVAR -->
+    <div class="modal-overlay" id="modalConfirmInativar">
+        <div class="modal" style="max-width:400px">
+            <div class="confirm-icon warning">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+            </div>
+            <div class="confirm-title">Inativar Usuário</div>
+            <p class="confirm-text">Tem certeza que deseja inativar <span class="confirm-name" id="nomeInativar"></span>? O usuário perderá o acesso ao sistema.</p>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="fecharModal('modalConfirmInativar')">Cancelar</button>
+                <button class="btn btn-warning" onclick="confirmarInativar()">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    Inativar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAR ATIVAR -->
+    <div class="modal-overlay" id="modalConfirmAtivar">
+        <div class="modal" style="max-width:400px">
+            <div class="confirm-icon success">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <div class="confirm-title">Reativar Usuário</div>
+            <p class="confirm-text">Deseja reativar <span class="confirm-name" id="nomeAtivar"></span>? O usuário voltará a ter acesso ao sistema.</p>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="fecharModal('modalConfirmAtivar')">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmarAtivar()">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Reativar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    @Html.AntiForgeryToken()
+
+    <script>
+        let gridApi, idPendente = null, filtroAtual = 'todos', todosUsuarios = [];
+
+        // GRID
+        const columnDefs = [
+            { field: 'nome',   headerName: 'Nome',   flex: 2, sortable: true, filter: true },
+            { field: 'login',  headerName: 'Login',  flex: 1.5, sortable: true, filter: true },
+            { field: 'nomeCargo', headerName: 'Perfil', flex: 1, sortable: true },
+            {
+                field: 'fAtivo', headerName: 'Status', flex: 1,
+                cellRenderer: p => `<span class="status-badge ${p.value ? 'ativo' : 'inativo'}">
+                    <span class="status-dot"></span>${p.value ? 'Ativo' : 'Inativo'}</span>`
+            },
+            {
+                headerName: 'Ações', flex: 1, sortable: false, filter: false,
+                cellRenderer: p => {
+                    const u = p.data;
+                    const toggle = u.fAtivo
+                        ? `<button class="action-btn deactivate" title="Inativar" onclick="abrirModalInativar(${u.idUsuario},'${u.nome}')">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>`
+                        : `<button class="action-btn activate" title="Reativar" onclick="abrirModalAtivar(${u.idUsuario},'${u.nome}')">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>`;
+                    return `<div class="action-btns">
+                        <button class="action-btn edit" title="Editar" onclick="abrirModalEditar(${u.idUsuario})">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>${toggle}</div>`;
+                }
+            }
+        ];
+
+        agGrid.createGrid(document.getElementById('gridUsuarios'), {
+            columnDefs,
+            rowData: [],
+            rowHeight: 48,
+            suppressCellFocus: true,
+            onGridReady: p => { gridApi = p.api; carregarUsuarios(); },
+            onModelUpdated: () => {
+                if (gridApi) {
+                    const c = gridApi.getDisplayedRowCount();
+                    document.getElementById('gridCount').textContent = `${c} registro${c !== 1 ? 's' : ''}`;
+                }
+            }
+        });
+
+        async function carregarUsuarios() {
+            try {
+                const res = await fetch('/Usuario/Listar');
+                if (!res.ok) throw new Error();
+                todosUsuarios = await res.json();
+                aplicarFiltro(filtroAtual);
+                carregarCargos();
+            } catch { mostrarToast('Erro ao carregar usuários.', 'error'); }
+        }
+
+        function aplicarFiltro(tipo) {
+            filtroAtual = tipo;
+            document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
+            document.getElementById(`filtro${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
+            let dados = todosUsuarios;
+            if (tipo === 'ativos')   dados = todosUsuarios.filter(u => u.fAtivo);
+            if (tipo === 'inativos') dados = todosUsuarios.filter(u => !u.fAtivo);
+            gridApi.setGridOption('rowData', dados);
+        }
+
+        function filtrarGrid(v) { gridApi.setGridOption('quickFilterText', v); }
+
+        // MODALS
+        function abrirModal(id)  { document.getElementById(id).classList.add('open'); }
+        function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open')); });
+
+        function abrirModalCriar() {
+            document.getElementById('modalFormTitulo').textContent = 'Novo Usuário';
+            document.getElementById('modalFormSubtitulo').textContent = 'Preencha os dados do novo usuário.';
+            document.getElementById('formIdUsuario').value = '';
+            document.getElementById('formNome').value = '';
+            document.getElementById('formLogin').value = '';
+            document.getElementById('formSenha').value = '';
+            document.getElementById('formCargo').value = 'Operador';
+            abrirModal('modalForm');
+        }
+
+                function abrirModalEditar(id) {
+            const u = todosUsuarios.find(u => u.idUsuario === parseInt(id));
+            if (!u) return;
+            document.getElementById('modalFormTitulo').textContent = 'Editar Usuário';
+            document.getElementById('modalFormSubtitulo').textContent = `Editando: ${u.nome}`;
+            document.getElementById('formIdUsuario').value = u.idUsuario;
+            document.getElementById('formNome').value = u.nome;
+            document.getElementById('formLogin').value = u.login;
+            document.getElementById('formSenha').value = '';
+            document.getElementById('formCargo').value = u.cargo_id;
+            abrirModal('modalForm');
+        }
+
+        function abrirModalInativar(id, nome) {
+            idPendente = id;
+            document.getElementById('nomeInativar').textContent = nome;
+            abrirModal('modalConfirmInativar');
+        }
+
+        function abrirModalAtivar(id, nome) {
+            idPendente = id;
+            document.getElementById('nomeAtivar').textContent = nome;
+            abrirModal('modalConfirmAtivar');
+        }
+
+        // CRUD
+        async function salvarUsuario() {
+            const id = document.getElementById('formIdUsuario').value;
+            console.log('ID capturado:', id);
+            const payload = {
+            idUsuario:     id ? parseInt(id) : 0,
+            nome:          document.getElementById('formNome').value,
+            login:         document.getElementById('formLogin').value,
+            senha:         document.getElementById('formSenha').value,
+            cpf:           document.getElementById('formCPF').value,
+            email:         document.getElementById('formEmail').value || null,
+            telefone:      document.getElementById('formTelefone').value || null,
+            cargo_id:       parseInt(document.getElementById('formCargo').value)
+        };
+        console.log('Payload:', JSON.stringify(payload)); //
+            if (!payload.nome || !payload.login) { mostrarToast('Preencha todos os campos.', 'error'); return; }
+            try {
+                const res = await fetch(id ? '/Usuario/Editar' : '/Usuario/Criar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error();
+                fecharModal('modalForm');
+                await carregarUsuarios();
+                mostrarToast(id ? 'Usuário atualizado!' : 'Usuário criado!', 'success');
+            } catch { mostrarToast('Erro ao salvar.', 'error'); }
+        }
+
+        async function confirmarInativar() {
+            try {
+                const res = await fetch(`/Usuario/AlterarStatus/${idPendente}`, { method: 'POST', headers: { 'RequestVerificationToken': getToken() } });
+                if (!res.ok) throw new Error();
+                fecharModal('modalConfirmInativar');
+                await carregarUsuarios();
+                mostrarToast('Usuário inativado.', 'success');
+            } catch { mostrarToast('Erro ao inativar.', 'error'); }
+        }
+
+
+
+        async function confirmarAtivar() {
+            try {
+                const res = await fetch(`/Usuario/AlterarStatus/${idPendente}`, { method: 'POST', headers: { 'RequestVerificationToken': getToken() } });
+                if (!res.ok) throw new Error();
+                fecharModal('modalConfirmAtivar');
+                await carregarUsuarios();
+                mostrarToast('Usuário reativado.', 'success');
+            } catch { mostrarToast('Erro ao reativar.', 'error'); }
+        }
+
+                async function carregarCargos() {
+            try {
+                const res = await fetch('/Usuario/ListarCargos');
+                if (!res.ok) throw new Error();
+                const cargos = await res.json();
+                const select = document.getElementById('formCargo');
+                select.innerHTML = '<option value="">Selecione um cargo</option>';
+                cargos.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.idCargo;
+                    opt.textContent = c.nome;
+                    select.appendChild(opt);
+                });
+            } catch {
+                mostrarToast('Erro ao carregar cargos.', 'error');
+            }
+        }
+
+        // TOAST
+        function mostrarToast(msg, tipo = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast';
+            const ico = tipo === 'success'
+                ? '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+                : '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+            t.innerHTML = `<div class="toast-icon ${tipo}">${ico}</div><div class="toast-message">${msg}</div>`;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        function getToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        }
+    </script>
+</body>
+</html>
