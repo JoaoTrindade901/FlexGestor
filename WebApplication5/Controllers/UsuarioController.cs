@@ -1,36 +1,52 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
+using WebApplication5.Repositories;
 using WebApplication5.Services;
 
-namespace WebApplication5.Controllers
+public class UsuarioController : BaseController
 {
-    public class UsuarioController : Controller
-    {
-        private readonly UsuarioService _service;
+    private readonly UsuarioService _service;
+    private readonly CargoRepository _cargoRepository;
 
     public UsuarioController(UsuarioService service, CargoRepository cargoRepository)
-        {
-            _service = service;
-        }
+    {
+        _service = service;
+        _cargoRepository = cargoRepository;
+    }
 
-        public IActionResult Index()
-        {
-            var lista = _service.Listar();
-        return Json(lista);
-        }
+    public IActionResult Index()
+    {
+        if (HttpContext.Session.GetInt32("idUsuario") == null)
+            return RedirectToAction("Index", "Login");
+
+        return View();
+    }
+
+    public IActionResult Listar()
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.Listar());
+    }
 
     public IActionResult ListarCargos()
-        {
-        var cargos = _cargoRepository.Listar();
-        return Json(cargos);
-        }
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_cargoRepository.Listar());
+    }
 
-
-        [HttpPost]
+    [HttpPost]
     public IActionResult Criar([FromBody] Usuario usuario)
-        {
-            _service.Criar(usuario);
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.Criar(usuario);
         return Ok();
-        }
+    }
+
+    [HttpPost]
+    public IActionResult Editar([FromBody] Usuario usuario)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.Editar(usuario);
+        return Ok();
     }
 }

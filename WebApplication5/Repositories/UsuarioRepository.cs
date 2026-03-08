@@ -14,16 +14,25 @@ namespace WebApplication5.Repositories
             _connectionString = config.GetConnectionString("Default");
         }
 
-        public IEnumerable<Usuario> Listar()
+        public IEnumerable<UsuarioListaGridDto> Listar()
         {
             using var conn = new SqlConnection(_connectionString);
 
-            return conn.Query<Usuario>(
+            return conn.Query<UsuarioListaGridDto>(
                 "sp_ListarUsuario",
                 commandType: CommandType.StoredProcedure);
         }
 
+        //usado na SenhaResetService
         public Usuario? BuscarPorEmail(string email)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return conn.QueryFirstOrDefault<Usuario>(
+                "SELECT idUsuario, Nome, Email FROM Usuario WHERE Email = @email AND fAtivo = 1",
+                new { email });
+        }
+
+        public Usuario? BuscarPorLogin(string login, string CNPJ)
         {
             using var conn = new SqlConnection(_connectionString);
 
@@ -36,20 +45,37 @@ namespace WebApplication5.Repositories
         public void Inserir(Usuario usuario)
         {
             using var conn = new SqlConnection(_connectionString);
+            conn.Execute(
+                "sp_CriarUsuario",
+                new
+                {
+                    usuario.Login,
+                    usuario.Senha,
+                    usuario.Nome,
+                    usuario.CPF,
+                    usuario.Email,
+                    usuario.Telefone,
+                    dthCriacao = DateTime.Now,
+                    cargo_id = usuario.cargo_id,
+                    usuario.fAtivo
+                },
+                commandType: CommandType.StoredProcedure);
+        }
 
+        public void Atualizar(Usuario usuario)
+        {
+            using var conn = new SqlConnection(_connectionString);
             conn.Execute(
                 "sp_EditarUsuario",
                 new
                 {
                     usuario.IdUsuario,
                     usuario.Nome,
+                    usuario.Login,
+                    usuario.Senha,
                     usuario.CPF,
-                    usuario.Genero,
                     usuario.Email,
                     usuario.Telefone,
-                    usuario.dthNascimento,
-                    usuario.dthAdmissao,
-                    usuario.dthDemissao,
                     cargo_id = usuario.cargo_id
                 },
                 commandType: CommandType.StoredProcedure);

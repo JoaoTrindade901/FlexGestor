@@ -14,7 +14,7 @@ namespace WebApplication5.Services
             _password = password;
         }
 
-        public IEnumerable<Usuario> Listar()
+        public IEnumerable<UsuarioListaGridDto> Listar()
         {
             return _repo.Listar();
         }
@@ -25,7 +25,13 @@ namespace WebApplication5.Services
             usuario.dthCriacao = DateTime.Now;
             usuario.fAtivo = true;
 
-            _repo.Inserir(usuario);
+            _repo.Inserir(usuario); 
+        }
+
+        public void Editar(Usuario usuario)
+        {
+            usuario.Senha = _password.Hash(usuario.Senha);
+            _repo.Atualizar(usuario);
         }
     }
 }

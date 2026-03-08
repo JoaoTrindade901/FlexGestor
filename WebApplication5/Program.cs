@@ -18,12 +18,26 @@ builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<SenhaService>();
 
+builder.Services.AddScoped<TokenResetRepository>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<SenhaResetService>();
+
+builder.Services.AddSession();
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthorization();
 

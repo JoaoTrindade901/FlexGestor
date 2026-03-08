@@ -6,10 +6,12 @@ namespace WebApplication5.Controllers
     public class LoginController : Controller
     {
         private readonly LoginService _service;
+        private readonly SenhaResetService _senhaResetService;
 
         public LoginController(LoginService service, SenhaResetService senhaResetService)
         {
             _service = service;
+            _senhaResetService = senhaResetService;
         }
 
         // GET: /Login
@@ -23,12 +25,17 @@ namespace WebApplication5.Controllers
         public IActionResult Entrar(string login, string senha, string cnpj)
         {
             var user = _service.Autenticar(login, senha, cnpj);
-
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Login ou senha inválidos");
                 return View("Index");
             }
+
+            HttpContext.Session.SetInt32("idUsuario", user.IdUsuario);
+            HttpContext.Session.SetString("nomeUsuario", user.Nome);
+
+            return RedirectToAction("Index", "Home");
+        }
 
         [HttpGet]
         public IActionResult EsqueciSenha() => View();
@@ -41,6 +48,15 @@ namespace WebApplication5.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult RedefinirSenha(string token)  // 👈 renomeia de GetRedefinirSenha para RedefinirSenha
+        {
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Index", "Login");
+            ViewBag.Token = token;
+            return View();
+        }
+
         [HttpPost]
         public IActionResult RedefinirSenha(string token, string novaSenha, string confirmarSenha)
         {
@@ -50,25 +66,11 @@ namespace WebApplication5.Controllers
                 ViewBag.Token = token;
                 return View();
             }
-
             var sucesso = _senhaResetService.RedefinirSenha(token, novaSenha);
             if (!sucesso)
             {
                 ViewBag.Erro = "Link inválido ou expirado.";
                 ViewBag.Token = token;
-                return View();
-            }
-
-            return RedirectToAction("Index", "Login");
-        }
-
-        [HttpPost]
-        public IActionResult RedefinirSenha(string token, string novaSenha)
-        {
-            var sucesso = _senhaResetService.RedefinirSenha(token, novaSenha);
-            if (!sucesso)
-            {
-                ViewBag.Erro = "Link inválido ou expirado.";
                 return View();
             }
             return RedirectToAction("Index", "Login");
