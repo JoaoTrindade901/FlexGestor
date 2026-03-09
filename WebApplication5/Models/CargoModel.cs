@@ -1,6 +1,6 @@
 ﻿namespace WebApplication5.Models
 {
-    public class Cargo
+    public class CargoModel
     {
         public byte IdCargo { get; set; }
 

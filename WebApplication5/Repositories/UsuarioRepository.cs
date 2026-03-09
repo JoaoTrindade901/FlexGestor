@@ -24,25 +24,25 @@ namespace WebApplication5.Repositories
         }
 
         //usado na SenhaResetService
-        public Usuario? BuscarPorEmail(string email)
+        public UsuarioModel? BuscarPorEmail(string email)
         {
             using var conn = new SqlConnection(_connectionString);
-            return conn.QueryFirstOrDefault<Usuario>(
+            return conn.QueryFirstOrDefault<UsuarioModel>(
                 "SELECT idUsuario, Nome, Email FROM Usuario WHERE Email = @email AND fAtivo = 1",
                 new { email });
         }
 
-        public Usuario? BuscarPorLogin(string login, string CNPJ)
+        public UsuarioModel? BuscarPorLogin(string login, string CNPJ)
         {
             using var conn = new SqlConnection(_connectionString);
 
-            return conn.QueryFirstOrDefault<Usuario>(
+            return conn.QueryFirstOrDefault<UsuarioModel>(
                 "sp_BuscarLogin",
                 new { Login = login,  cnpj = CNPJ } ,
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void Inserir(Usuario usuario)
+        public void Inserir(UsuarioModel usuario)
         {
             using var conn = new SqlConnection(_connectionString);
             conn.Execute(
@@ -62,7 +62,7 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void Atualizar(Usuario usuario)
+        public void Atualizar(UsuarioModel usuario)
         {
             using var conn = new SqlConnection(_connectionString);
             conn.Execute(

@@ -1,0 +1,1430 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Clientes";
+}
+
+@section styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeUp .4s ease both
+        }
+
+            .page-header h2 {
+                font-family: 'Syne',sans-serif;
+                font-weight: 800;
+                font-size: 1.4rem
+            }
+
+            .page-header p {
+                font-size: .8rem;
+                color: var(--muted);
+                margin-top: 3px
+            }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border-radius: 7px;
+            font-family: 'DM Sans',sans-serif;
+            font-size: .82rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all .15s
+        }
+
+            .btn svg {
+                width: 14px;
+                height: 14px
+            }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff
+        }
+
+            .btn-primary:hover {
+                background: #3a7aee;
+                transform: translateY(-1px)
+            }
+
+        .btn-ghost {
+            background: var(--surface2);
+            color: var(--muted);
+            border: 1px solid var(--border)
+        }
+
+            .btn-ghost:hover {
+                color: var(--text);
+                border-color: var(--text)
+            }
+
+        .btn-warning {
+            background: rgba(251,191,36,.12);
+            color: var(--warning);
+            border: 1px solid rgba(251,191,36,.25)
+        }
+
+            .btn-warning:hover {
+                background: rgba(251,191,36,.22)
+            }
+
+        .btn-success {
+            background: rgba(52,211,153,.12);
+            color: var(--success);
+            border: 1px solid rgba(52,211,153,.25)
+        }
+
+            .btn-success:hover {
+                background: rgba(52,211,153,.22)
+            }
+
+        .grid-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            animation: fadeUp .4s ease .08s both
+        }
+
+        .grid-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 7px 12px;
+            flex: 1;
+            max-width: 280px;
+            transition: border-color .15s
+        }
+
+            .search-box:focus-within {
+                border-color: var(--accent)
+            }
+
+            .search-box svg {
+                width: 13px;
+                height: 13px;
+                color: var(--muted);
+                flex-shrink: 0
+            }
+
+            .search-box input {
+                background: none;
+                border: none;
+                outline: none;
+                color: var(--text);
+                font-family: 'DM Sans',sans-serif;
+                font-size: .82rem;
+                width: 100%
+            }
+
+                .search-box input::placeholder {
+                    color: var(--muted)
+                }
+
+        .filter-pill {
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: .72rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--muted);
+            transition: all .15s
+        }
+
+            .filter-pill.active, .filter-pill:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: rgba(79,142,255,.07)
+            }
+
+        .grid-count {
+            margin-left: auto;
+            font-size: .75rem;
+            color: var(--muted)
+        }
+
+        .ag-theme-quartz {
+            --ag-background-color: transparent;
+            --ag-foreground-color: #e8ecf4;
+            --ag-border-color: #242840;
+            --ag-header-background-color: #1c2030;
+            --ag-header-foreground-color: #6b7491;
+            --ag-row-hover-color: rgba(79,142,255,.04);
+            --ag-font-family: 'DM Sans',sans-serif;
+            --ag-font-size: 13px;
+            --ag-cell-horizontal-padding: 16px;
+            --ag-row-border-color: #1c2030
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 500
+        }
+
+            .status-badge.ativo {
+                background: rgba(52,211,153,.1);
+                color: #34d399
+            }
+
+            .status-badge.inativo {
+                background: rgba(248,113,113,.1);
+                color: #f87171
+            }
+
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            align-items: center
+        }
+
+        .action-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s
+        }
+
+            .action-btn svg {
+                width: 12px;
+                height: 12px
+            }
+
+            .action-btn.edit {
+                background: rgba(79,142,255,.08);
+                color: var(--accent)
+            }
+
+                .action-btn.edit:hover {
+                    background: rgba(79,142,255,.2)
+                }
+
+            .action-btn.deactivate {
+                background: rgba(251,191,36,.08);
+                color: var(--warning)
+            }
+
+                .action-btn.deactivate:hover {
+                    background: rgba(251,191,36,.2)
+                }
+
+            .action-btn.activate {
+                background: rgba(52,211,153,.08);
+                color: var(--success)
+            }
+
+                .action-btn.activate:hover {
+                    background: rgba(52,211,153,.2)
+                }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+            .modal-overlay.open {
+                opacity: 1;
+                pointer-events: all
+            }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 560px;
+            padding: 26px;
+            transform: translateY(14px) scale(.97);
+            transition: transform .22s cubic-bezier(.34,1.56,.64,1);
+            max-height: 90vh;
+            overflow-y: auto
+        }
+
+        .modal-overlay.open .modal {
+            transform: translateY(0) scale(1)
+        }
+
+        .modal-hd {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px
+        }
+
+        .modal-title {
+            font-family: 'Syne',sans-serif;
+            font-weight: 700;
+            font-size: 1rem
+        }
+
+        .modal-sub {
+            font-size: .75rem;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 3px;
+            border-radius: 5px;
+            transition: all .15s;
+            display: flex
+        }
+
+            .modal-close:hover {
+                color: var(--text);
+                background: var(--surface2)
+            }
+
+            .modal-close svg {
+                width: 15px;
+                height: 15px
+            }
+
+        .form-section {
+            font-size: .65rem;
+            color: var(--accent);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin: 16px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px
+        }
+
+        .form-group {
+            margin-bottom: 12px
+        }
+
+        .form-label {
+            display: block;
+            font-size: .74rem;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 5px
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: 'DM Sans',sans-serif;
+            font-size: .85rem;
+            outline: none;
+            transition: border-color .15s
+        }
+
+            .form-input:focus {
+                border-color: var(--accent)
+            }
+
+            .form-input::placeholder {
+                color: var(--muted)
+            }
+
+        .modal-ft {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border)
+        }
+
+        .confirm-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px
+        }
+
+            .confirm-icon svg {
+                width: 22px;
+                height: 22px
+            }
+
+            .confirm-icon.warning {
+                background: rgba(251,191,36,.1);
+                color: var(--warning)
+            }
+
+            .confirm-icon.success {
+                background: rgba(52,211,153,.1);
+                color: var(--success)
+            }
+
+        .confirm-title {
+            font-family: 'Syne',sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 6px
+        }
+
+        .confirm-text {
+            font-size: .82rem;
+            color: var(--muted);
+            line-height: 1.5
+        }
+
+        .confirm-name {
+            color: var(--text);
+            font-weight: 500
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 240px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+            animation: toastIn .3s cubic-bezier(.34,1.56,.64,1) both
+        }
+
+            .toast.out {
+                animation: toastOut .22s ease forwards
+            }
+
+        .toast-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+            .toast-icon svg {
+                width: 12px;
+                height: 12px
+            }
+
+            .toast-icon.success {
+                background: rgba(52,211,153,.12);
+                color: var(--success)
+            }
+
+            .toast-icon.error {
+                background: rgba(248,113,113,.12);
+                color: var(--danger)
+            }
+
+        .toast-msg {
+            font-size: .8rem;
+            color: var(--text)
+        }
+
+        @@keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(16px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0)
+            }
+        }
+
+        @@keyframes toastOut {
+            from {
+                opacity: 1
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(16px)
+            }
+        }
+
+        /* ===================== FILTER DRAWER ===================== */
+
+        .filter-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s
+        }
+
+            .filter-overlay.open {
+                opacity: 1;
+                pointer-events: all
+            }
+
+        .filter-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 360px;
+            z-index: 950;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .26s cubic-bezier(.4,0,.2,1);
+            box-shadow: -12px 0 40px rgba(0,0,0,.35)
+        }
+
+            .filter-drawer.open {
+                transform: translateX(0)
+            }
+
+        .filter-drawer-hd {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0
+        }
+
+        .filter-drawer-title {
+            font-family: 'Syne',sans-serif;
+            font-weight: 700;
+            font-size: .95rem
+        }
+
+        .filter-drawer-sub {
+            font-size: .72rem;
+            color: var(--muted);
+            margin-top: 3px
+        }
+
+        .filter-drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent
+        }
+
+        .filter-group {
+            margin-bottom: 20px
+        }
+
+        .filter-group-label {
+            font-size: .67rem;
+            color: var(--accent);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 9px
+        }
+
+        .filter-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+
+        .filter-preset-btn {
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: .72rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: 'DM Sans',sans-serif;
+            transition: all .15s;
+            white-space: nowrap
+        }
+
+            .filter-preset-btn:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: rgba(79,142,255,.07)
+            }
+
+            .filter-preset-btn.active {
+                border-color: var(--accent);
+                color: #fff;
+                background: var(--accent)
+            }
+
+        .filter-radio-group {
+            display: flex;
+            gap: 6px
+        }
+
+        .filter-radio {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 7px 8px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            font-size: .78rem;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: 'DM Sans',sans-serif;
+            transition: all .15s
+        }
+
+            .filter-radio input[type="radio"] {
+                display: none
+            }
+
+            .filter-radio.checked {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: rgba(79,142,255,.09)
+            }
+
+        .filter-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .filter-date-label {
+            font-size: .7rem;
+            color: var(--muted);
+            margin-bottom: 4px
+        }
+
+        .filter-drawer-ft {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0
+        }
+
+        .filter-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            flex-shrink: 0
+        }
+
+        .filter-badge {
+            background: var(--accent);
+            color: #fff;
+            border-radius: 10px;
+            padding: 0px 6px;
+            font-size: .64rem;
+            font-weight: 700;
+            font-family: 'DM Sans',sans-serif;
+            line-height: 1.6;
+            min-width: 16px;
+            text-align: center
+        }
+
+        /* ===================== CHIPS ===================== */
+
+        .chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 8px 16px 4px;
+            align-items: center
+        }
+
+        .chips-label {
+            font-size: .68rem;
+            color: var(--muted);
+            margin-right: 2px
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px 3px 10px;
+            border-radius: 20px;
+            font-size: .71rem;
+            font-family: 'DM Sans',sans-serif;
+            background: rgba(79,142,255,.1);
+            border: 1px solid rgba(79,142,255,.25);
+            color: var(--accent);
+            animation: chipIn .18s ease both
+        }
+
+        @@keyframes chipIn {
+            from {
+                opacity: 0;
+                transform: scale(.85)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .chip-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--accent);
+            display: flex;
+            padding: 0;
+            opacity: .65;
+            transition: opacity .15s;
+            line-height: 0
+        }
+
+            .chip-remove:hover {
+                opacity: 1
+            }
+
+            .chip-remove svg {
+                width: 10px;
+                height: 10px
+            }
+
+        .clear-all-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .71rem;
+            font-family: 'DM Sans',sans-serif;
+            background: rgba(248,113,113,.08);
+            border: 1px solid rgba(248,113,113,.2);
+            color: var(--danger);
+            cursor: pointer;
+            transition: all .15s
+        }
+
+            .clear-all-chip:hover {
+                background: rgba(248,113,113,.16)
+            }
+
+        /* ===================== BTN FILTROS ===================== */
+
+        .btn-filter-active {
+            border-color: var(--accent) !important;
+            color: var(--accent) !important;
+            background: rgba(79,142,255,.07) !important
+        }
+    </style>
+}
+
+<div class="page-header">
+    <div><h2>Gerenciar Clientes</h2><p>Cadastre, edite e inative clientes do sistema.</p></div>
+    <button class="btn btn-primary" onclick="abrirModalCriar()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+        Novo Cliente
+    </button>
+</div>
+
+<div class="grid-wrap">
+    <div class="grid-toolbar">
+        <div class="search-box">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input type="text" placeholder="Buscar cliente..." oninput="filtrarGrid(this.value)">
+        </div>
+        <div class="filter-pill active" id="filtroTodos" onclick="aplicarFiltro('todos')">Todos</div>
+        <div class="filter-pill" id="filtroAtivos" onclick="aplicarFiltro('ativos')">Ativos</div>
+        <div class="filter-pill" id="filtroInativos" onclick="aplicarFiltro('inativos')">Inativos</div>
+        <span class="filter-divider"></span>
+        <button class="btn btn-ghost" style="padding:6px 13px;font-size:.78rem" id="btnFiltros" onclick="abrirFiltros()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" /></svg>
+            Filtros
+            <span class="filter-badge" id="filterBadge" style="display:none">0</span>
+        </button>
+        <div class="grid-count" id="gridCount">0 registros</div>
+    </div>
+    <!-- Chips de filtros ativos -->
+    <div class="chips-row" id="chipsRow" style="display:none"></div>
+    <div id="gridClientes" class="ag-theme-quartz" style="height:420px;width:100%"></div>
+</div>
+
+<!-- MODAL FORM -->
+<div class="modal-overlay" id="modalForm">
+    <div class="modal">
+        <div class="modal-hd">
+            <div><div class="modal-title" id="modalTitulo">Novo Cliente</div><div class="modal-sub" id="modalSub">Preencha os dados.</div></div>
+            <button class="modal-close" onclick="fecharModal('modalForm')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        </div>
+        <input type="hidden" id="formId">
+        <input type="hidden" id="formIdEndereco">
+
+        <div class="form-section">Dados do Cliente</div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Nome completo *</label><input type="text" class="form-input" id="formNome" placeholder="João da Silva"></div>
+            <div class="form-group"><label class="form-label">Nome Fantasia</label><input type="text" class="form-input" id="formNomeFantasia" placeholder="João Comercial"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Razão Social</label><input type="text" class="form-input" id="formRazaoSocial" placeholder="João da Silva ME"></div>
+            <div class="form-group"><label class="form-label">CPF / CNPJ *</label><input type="text" class="form-input" id="formCpfCnpj" placeholder="000.000.000-00"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="formEmail" placeholder="email@exemplo.com"></div>
+            <div class="form-group"><label class="form-label">Telefone</label><input type="text" class="form-input" id="formTelefone" placeholder="(00) 00000-0000"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Tipo de Cliente</label><select class="form-input" id="formTipoCliente"><option value="1">Pessoa Física</option><option value="2">Pessoa Jurídica</option></select></div>
+            <div class="form-group"><label class="form-label">Gênero</label><select class="form-input" id="formGenero"><option value="">Não informado</option><option value="M">Masculino</option><option value="F">Feminino</option><option value="O">Outro</option></select></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Data de Nascimento</label><input type="date" class="form-input" id="formDthNascimento"></div>
+            <div class="form-group"><label class="form-label">Observação</label><input type="text" class="form-input" id="formObservacao" placeholder="Observações adicionais"></div>
+        </div>
+
+        <div class="form-section">Endereço</div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">CEP *</label><input type="text" class="form-input" id="formCep" placeholder="00000-000" oninput="buscarCep(this.value)"></div>
+            <div class="form-group"><label class="form-label">Tipo</label><select class="form-input" id="formTipoEndereco"><option value="1">Residencial</option><option value="2">Comercial</option><option value="3">Outro</option></select></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label class="form-label">Logradouro *</label><input type="text" class="form-input" id="formLogradouro" placeholder="Rua, Av..."></div>
+            <div class="form-group"><label class="form-label">Número *</label><input type="text" class="form-input" id="formNumero" placeholder="123"></div>
+            <div class="form-group"><label class="form-label">Complemento</label><input type="text" class="form-input" id="formComplemento" placeholder="Apto..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Bairro *</label><input type="text" class="form-input" id="formBairro" placeholder="Centro"></div>
+            <div class="form-group"><label class="form-label">Cidade *</label><input type="text" class="form-input" id="formCidade" placeholder="São Paulo"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Estado *</label>
+                <select class="form-input" id="formEstado">
+                    <option value="">Selecione</option>
+                    @foreach (var uf in new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" })
+                    {
+                        <option value="@uf">@uf</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">País</label><input type="text" class="form-input" id="formPais" value="Brasil"></div>
+        </div>
+
+        <div class="modal-ft">
+            <button class="btn btn-ghost" onclick="fecharModal('modalForm')">Cancelar</button>
+            <button class="btn btn-primary" onclick="salvarCliente()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL INATIVAR -->
+<div class="modal-overlay" id="modalInativar">
+    <div class="modal" style="max-width:380px">
+        <div class="confirm-icon warning"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg></div>
+        <div class="confirm-title">Inativar Cliente</div>
+        <p class="confirm-text">Tem certeza que deseja inativar <span class="confirm-name" id="nomeInativar"></span>?</p>
+        <div class="modal-ft"><button class="btn btn-ghost" onclick="fecharModal('modalInativar')">Cancelar</button><button class="btn btn-warning" onclick="confirmarInativar()">Inativar</button></div>
+    </div>
+</div>
+
+<!-- MODAL REATIVAR -->
+<div class="modal-overlay" id="modalAtivar">
+    <div class="modal" style="max-width:380px">
+        <div class="confirm-icon success"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+        <div class="confirm-title">Reativar Cliente</div>
+        <p class="confirm-text">Deseja reativar <span class="confirm-name" id="nomeAtivar"></span>?</p>
+        <div class="modal-ft"><button class="btn btn-ghost" onclick="fecharModal('modalAtivar')">Cancelar</button><button class="btn btn-success" onclick="confirmarAtivar()">Reativar</button></div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- =================== FILTER OVERLAY + DRAWER =================== -->
+<div class="filter-overlay" id="filterOverlay" onclick="fecharFiltros()"></div>
+
+<div class="filter-drawer" id="filterDrawer">
+    <div class="filter-drawer-hd">
+        <div>
+            <div class="filter-drawer-title">Filtros Avançados</div>
+            <div class="filter-drawer-sub">Refine a lista de clientes</div>
+        </div>
+        <button class="modal-close" onclick="fecharFiltros()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+
+    <div class="filter-drawer-body">
+
+        <!-- Presets Rápidos -->
+        <div class="filter-group">
+            <div class="filter-group-label">⚡ Presets Rápidos</div>
+            <div class="filter-presets">
+                <button class="filter-preset-btn" id="preset-aniversariantes" onclick="aplicarPreset('aniversariantes',this)">🎂 Aniversariantes do Mês</button>
+                <button class="filter-preset-btn" id="preset-novos" onclick="aplicarPreset('novos',this)">📅 Novos este Mês</button>
+                <button class="filter-preset-btn" id="preset-semEmail" onclick="aplicarPreset('semEmail',this)">📧 Sem E-mail</button>
+                <button class="filter-preset-btn" id="preset-pjAtivas" onclick="aplicarPreset('pjAtivas',this)">🏢 PJ Ativas</button>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="filter-group">
+            <div class="filter-group-label">Status</div>
+            <div class="filter-radio-group" id="statusRadioGroup">
+                <label class="filter-radio checked" data-val="">
+                    <input type="radio" name="fStatus" value="" checked> Todos
+                </label>
+                <label class="filter-radio" data-val="true">
+                    <input type="radio" name="fStatus" value="true"> Ativos
+                </label>
+                <label class="filter-radio" data-val="false">
+                    <input type="radio" name="fStatus" value="false"> Inativos
+                </label>
+            </div>
+        </div>
+
+        <!-- Tipo de Cliente -->
+        <div class="filter-group">
+            <div class="filter-group-label">Tipo de Cliente</div>
+            <select class="form-input" id="fTipoCliente">
+                <option value="">Todos</option>
+                <option value="1">Pessoa Física</option>
+                <option value="2">Pessoa Jurídica</option>
+            </select>
+        </div>
+
+        <!-- Gênero -->
+        <div class="filter-group">
+            <div class="filter-group-label">Gênero</div>
+            <select class="form-input" id="fGenero">
+                <option value="">Todos</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+                <option value="O">Outro</option>
+            </select>
+        </div>
+
+        <!-- Localização -->
+        <div class="filter-group">
+            <div class="filter-group-label">📍 Localização</div>
+            <div class="filter-row-2">
+                <div>
+                    <div class="filter-date-label">Estado</div>
+                    <select class="form-input" id="fEstado">
+                        <option value="">Todos</option>
+                        @foreach (var uf in new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" })
+                        {
+                            <option value="@uf">@uf</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <div class="filter-date-label">Cidade</div>
+                    <input type="text" class="form-input" id="fCidade" placeholder="Ex: São Paulo">
+                </div>
+            </div>
+        </div>
+
+        <!-- Período de Cadastro -->
+        <div class="filter-group">
+            <div class="filter-group-label">📅 Período de Cadastro</div>
+            <div class="filter-row-2">
+                <div>
+                    <div class="filter-date-label">De</div>
+                    <input type="date" class="form-input" id="fCadastroInicio">
+                </div>
+                <div>
+                    <div class="filter-date-label">Até</div>
+                    <input type="date" class="form-input" id="fCadastroFim">
+                </div>
+            </div>
+        </div>
+
+        <!-- Data de Nascimento -->
+        <div class="filter-group">
+            <div class="filter-group-label">🎂 Nascimento</div>
+            <div class="filter-row-2">
+                <div>
+                    <div class="filter-date-label">De</div>
+                    <input type="date" class="form-input" id="fNascimentoInicio">
+                </div>
+                <div>
+                    <div class="filter-date-label">Até</div>
+                    <input type="date" class="form-input" id="fNascimentoFim">
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end body -->
+
+    <div class="filter-drawer-ft">
+        <button class="btn btn-ghost" onclick="limparFiltros()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            Limpar Tudo
+        </button>
+        <button class="btn btn-primary" onclick="aplicarFiltrosAvancados()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            Aplicar Filtros
+        </button>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section scripts {
+    <script>
+        let gridApi, idPendente = null, filtroAtual = 'todos', todos = [];
+        let presetAtivo = null, filtrosState = {};
+
+        const cols = [
+            { field: 'nome',     headerName: 'Nome',     flex: 2,   sortable: true, filter: true },
+            { field: 'cpfCNPJ',  headerName: 'CPF/CNPJ', flex: 1.5, sortable: true },
+            { field: 'email',    headerName: 'Email',    flex: 1.8, sortable: true },
+            { field: 'telefone', headerName: 'Telefone', flex: 1,   sortable: true },
+            { field: 'cidade',   headerName: 'Cidade',   flex: 1,   sortable: true },
+            { field: 'estado',   headerName: 'UF',       flex: .5,  sortable: true },
+            { field: 'fAtivo', headerName: 'Status', flex: 1, cellRenderer: p => `<span class="status-badge ${p.value ? 'ativo' : 'inativo'}"><span class="status-dot"></span>${p.value ? 'Ativo' : 'Inativo'}</span>` },
+            {
+                headerName: 'Ações', flex: 1, sortable: false, filter: false, cellRenderer: p => {
+                    const c = p.data;
+                    const tog = c.fAtivo
+                        ? `<button class="action-btn deactivate" onclick="abrirInativar(${c.idCliente},'${c.nome}')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>`
+                        : `<button class="action-btn activate" onclick="abrirAtivar(${c.idCliente},'${c.nome}')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>`;
+                    return `<div class="action-btns"><button class="action-btn edit" onclick="abrirEditar(${c.idCliente})"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>${tog}</div>`;
+                }
+            }
+        ];
+
+        agGrid.createGrid(document.getElementById('gridClientes'), {
+            columnDefs: cols, rowData: [], rowHeight: 46, suppressCellFocus: true,
+            onGridReady: p => { gridApi = p.api; carregar(); },
+            onModelUpdated: () => { if (gridApi) { const c = gridApi.getDisplayedRowCount(); document.getElementById('gridCount').textContent = `${c} registro${c !== 1 ? 's' : ''}`; } }
+        });
+
+        async function carregar() {
+            try {
+                const r = await fetch('/Cliente/Listar');
+                if (!r.ok) throw 0;
+                todos = await r.json();
+                aplicarFiltro(filtroAtual);
+            } catch {
+                toast('Erro ao carregar clientes.', 'error');
+            }
+        }
+
+        function aplicarFiltro(t) {
+            filtroAtual = t;
+            document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById(`filtro${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('active');
+            gridApi.setGridOption('rowData', t === 'ativos' ? todos.filter(c => c.fAtivo) : t === 'inativos' ? todos.filter(c => !c.fAtivo) : todos);
+        }
+
+        function filtrarGrid(v) { gridApi.setGridOption('quickFilterText', v); }
+
+        function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+        function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+                fecharFiltros();
+            }
+        });
+
+        function limpar() {
+            ['formId', 'formIdEndereco', 'formNome', 'formNomeFantasia', 'formRazaoSocial', 'formCpfCnpj', 'formEmail', 'formTelefone', 'formObservacao', 'formDthNascimento', 'formCep', 'formLogradouro', 'formNumero', 'formComplemento', 'formBairro', 'formCidade']
+                .forEach(i => document.getElementById(i).value = '');
+            document.getElementById('formGenero').value = '';
+            document.getElementById('formTipoCliente').value = '1';
+            document.getElementById('formTipoEndereco').value = '1';
+            document.getElementById('formEstado').value = 'SP';
+            document.getElementById('formPais').value = 'Brasil';
+        }
+        function abrirModalCriar() { limpar(); document.getElementById('modalTitulo').textContent = 'Novo Cliente'; document.getElementById('modalSub').textContent = 'Preencha os dados do novo cliente.'; abrirModal('modalForm'); }
+        function abrirEditar(id) {
+            const c = todos.find(c => c.idCliente === parseInt(id)); if (!c) return;
+            document.getElementById('modalTitulo').textContent = 'Editar Cliente';
+            document.getElementById('modalSub').textContent = `Editando: ${c.nome}`;
+            document.getElementById('formId').value = c.idCliente;
+            document.getElementById('formIdEndereco').value = c.enderecoId;
+            document.getElementById('formNome').value = c.nome ?? '';
+            document.getElementById('formNomeFantasia').value = c.nomeFantasia ?? '';
+            document.getElementById('formRazaoSocial').value = c.razaoSocial ?? '';
+            document.getElementById('formCpfCnpj').value = c.cpfCNPJ ?? '';
+            document.getElementById('formEmail').value = c.email ?? '';
+            document.getElementById('formTelefone').value = c.telefone ?? '';
+            document.getElementById('formObservacao').value = c.observacao ?? '';
+            document.getElementById('formGenero').value = c.genero ?? '';
+            document.getElementById('formTipoCliente').value = c.tipoCliente_id ?? '1';
+            document.getElementById('formDthNascimento').value = c.dthNascimento ? c.dthNascimento.substring(0, 10) : '';
+            document.getElementById('formTipoEndereco').value = c.tipoEndereco ?? '1';
+            document.getElementById('formCep').value = c.cep ?? '';
+            document.getElementById('formLogradouro').value = c.logradouro ?? '';
+            document.getElementById('formNumero').value = c.numero ?? '';
+            document.getElementById('formComplemento').value = c.complemento ?? '';
+            document.getElementById('formBairro').value = c.bairro ?? '';
+            document.getElementById('formCidade').value = c.cidade ?? '';
+            document.getElementById('formEstado').value = c.estado ?? 'SP';
+            document.getElementById('formPais').value = c.pais ?? 'Brasil';
+            abrirModal('modalForm');
+        }
+        function abrirInativar(id, nome) { idPendente = id; document.getElementById('nomeInativar').textContent = nome; abrirModal('modalInativar'); }
+        function abrirAtivar(id, nome) { idPendente = id; document.getElementById('nomeAtivar').textContent = nome; abrirModal('modalAtivar'); }
+
+        async function buscarCep(v) {
+            const cep = v.replace(/\D/g, ''); if (cep.length !== 8) return;
+            try {
+                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`); const d = await r.json(); if (d.erro) return;
+                document.getElementById('formLogradouro').value = d.logradouro ?? ''; document.getElementById('formBairro').value = d.bairro ?? '';
+                document.getElementById('formCidade').value = d.localidade ?? ''; document.getElementById('formEstado').value = d.uf ?? 'SP';
+                document.getElementById('formNumero').focus();
+            } catch { }
+        }
+
+        async function salvarCliente() {
+            const id = document.getElementById('formId').value;
+            const ie = document.getElementById('formIdEndereco').value;
+            const p = {
+                cliente: { idCliente: id ? parseInt(id) : 0, idEmpresa: 1, nome: document.getElementById('formNome').value, nomeFantasia: document.getElementById('formNomeFantasia').value || null, razaoSocial: document.getElementById('formRazaoSocial').value || null, cpfCNPJ: document.getElementById('formCpfCnpj').value, email: document.getElementById('formEmail').value || null, telefone: document.getElementById('formTelefone').value || null, tipoCliente_id: parseInt(document.getElementById('formTipoCliente').value), observacao: document.getElementById('formObservacao').value || null, genero: document.getElementById('formGenero').value || null, dthNascimento: document.getElementById('formDthNascimento').value || null, enderecoId: ie ? parseInt(ie) : 0, fAtivo: true },
+                endereco: { idEndereco: ie ? parseInt(ie) : 0, tipoEndereco: parseInt(document.getElementById('formTipoEndereco').value), cep: document.getElementById('formCep').value.replace(/\D/g, ''), logradouro: document.getElementById('formLogradouro').value, numero: document.getElementById('formNumero').value, complemento: document.getElementById('formComplemento').value || null, bairro: document.getElementById('formBairro').value, cidade: document.getElementById('formCidade').value, estado: document.getElementById('formEstado').value, pais: document.getElementById('formPais').value || 'Brasil', fAtivo: 1 }
+            };
+            if (!p.cliente.nome || !p.cliente.cpfCNPJ) { toast('Preencha os campos obrigatórios.', 'error'); return; }
+            try {
+                const r = await fetch(id ? '/Cliente/Editar' : '/Cliente/Criar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() }, body: JSON.stringify(p) });
+                if (!r.ok) throw 0;
+                fecharModal('modalForm');
+                await carregar();
+                toast(id ? 'Cliente atualizado!' : 'Cliente criado!');
+            } catch { toast('Erro ao salvar cliente.', 'error'); }
+        }
+
+        async function confirmarInativar() {
+            try {
+                const r = await fetch('/Cliente/Deletar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() }, body: JSON.stringify(idPendente) });
+                if (!r.ok) throw 0; fecharModal('modalInativar'); await carregar(); toast('Cliente inativado.');
+            } catch { toast('Erro ao inativar.', 'error'); }
+        }
+
+        async function confirmarAtivar() {
+            try {
+                const r = await fetch('/Cliente/Reativar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() }, body: JSON.stringify(idPendente) });
+                if (!r.ok) throw 0; fecharModal('modalAtivar'); await carregar(); toast('Cliente reativado.');
+            } catch { toast('Erro ao reativar.', 'error'); }
+        }
+
+        function toast(msg, tipo = 'success') {
+            const c = document.getElementById('toastContainer'), t = document.createElement('div'); t.className = 'toast';
+            const ico = tipo === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>' : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
+            t.innerHTML = `<div class="toast-icon ${tipo}"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">${ico}</svg></div><div class="toast-msg">${msg}</div>`;
+            c.appendChild(t); setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+        }
+
+        function getToken() { return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''; }
+
+        // ====================== FILTER DRAWER ======================
+
+        // Radio visual state
+        document.querySelectorAll('.filter-radio').forEach(label => {
+            label.addEventListener('click', () => {
+                document.querySelectorAll('.filter-radio').forEach(l => l.classList.remove('checked'));
+                label.classList.add('checked');
+                label.querySelector('input').checked = true;
+            });
+        });
+
+        function abrirFiltros() {
+            document.getElementById('filterDrawer').classList.add('open');
+            document.getElementById('filterOverlay').classList.add('open');
+        }
+
+        function fecharFiltros() {
+            document.getElementById('filterDrawer').classList.remove('open');
+            document.getElementById('filterOverlay').classList.remove('open');
+        }
+
+        async function aplicarFiltrosAvancados() {
+            const statusVal = document.querySelector('input[name="fStatus"]:checked')?.value ?? '';
+            const tipoCliente = document.getElementById('fTipoCliente').value;
+            const genero     = document.getElementById('fGenero').value;
+            const estado     = document.getElementById('fEstado').value;
+            const cidade     = document.getElementById('fCidade').value.trim();
+            const cadIni     = document.getElementById('fCadastroInicio').value;
+            const cadFim     = document.getElementById('fCadastroFim').value;
+            const nascIni    = document.getElementById('fNascimentoInicio').value;
+            const nascFim    = document.getElementById('fNascimentoFim').value;
+
+            const payload = {
+                fAtivo:               statusVal === 'true' ? true : statusVal === 'false' ? false : null,
+                tipoCliente:          tipoCliente ? parseInt(tipoCliente) : null,
+                genero:               genero  || null,
+                estado:               estado  || null,
+                cidade:               cidade  || null,
+                dthCadastroInicio:    cadIni  || null,
+                dthCadastroFim:       cadFim  || null,
+                dthNascimentoInicio:  nascIni || null,
+                dthNascimentoFim:     nascFim || null,
+                semEmail:             presetAtivo === 'semEmail'          ? true : null,
+                aniversariantesDoMes: presetAtivo === 'aniversariantes'   ? true : null
+            };
+
+            // Salva estado dos filtros p/ chips
+            filtrosState = {
+                fAtivo:               payload.fAtivo,
+                tipoCliente:          payload.tipoCliente,
+                genero:               payload.genero,
+                estado:               payload.estado,
+                cidade:               payload.cidade,
+                dthCadastroInicio:    payload.dthCadastroInicio,
+                dthCadastroFim:       payload.dthCadastroFim,
+                dthNascimentoInicio:  payload.dthNascimentoInicio,
+                dthNascimentoFim:     payload.dthNascimentoFim,
+                semEmail:             payload.semEmail,
+                aniversariantesDoMes: payload.aniversariantesDoMes
+            };
+
+            const count = Object.values(payload).filter(v => v !== null).length;
+
+            try {
+                const r = await fetch('/Cliente/Filtrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                    body: JSON.stringify(payload)
+                });
+                if (!r.ok) throw 0;
+                todos = await r.json();
+
+                // Reseta pill para "todos" e aplica
+                aplicarFiltro('todos');
+
+                // Badge
+                const badge = document.getElementById('filterBadge');
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = '';
+                    document.getElementById('btnFiltros').classList.add('btn-filter-active');
+                } else {
+                    badge.style.display = 'none';
+                    document.getElementById('btnFiltros').classList.remove('btn-filter-active');
+                }
+
+                renderChips();
+                fecharFiltros();
+                toast(`${todos.length} cliente${todos.length !== 1 ? 's' : ''} encontrado${todos.length !== 1 ? 's' : ''}.`);
+            } catch {
+                toast('Erro ao aplicar filtros.', 'error');
+            }
+        }
+
+        async function limparFiltros() {
+            // Reset campos do painel
+            document.querySelectorAll('.filter-radio').forEach((l, i) => { l.classList.toggle('checked', i === 0); });
+            document.querySelector('input[name="fStatus"][value=""]').checked = true;
+            ['fTipoCliente', 'fGenero', 'fEstado'].forEach(id => document.getElementById(id).value = '');
+            ['fCidade', 'fCadastroInicio', 'fCadastroFim', 'fNascimentoInicio', 'fNascimentoFim']
+                .forEach(id => document.getElementById(id).value = '');
+            document.querySelectorAll('.filter-preset-btn').forEach(b => b.classList.remove('active'));
+            presetAtivo = null;
+            filtrosState = {};
+
+            // Badge
+            document.getElementById('filterBadge').style.display = 'none';
+            document.getElementById('btnFiltros').classList.remove('btn-filter-active');
+
+            // Chips
+            renderChips();
+            fecharFiltros();
+
+            // Recarrega tudo
+            await carregar();
+        }
+
+        function renderChips() {
+            const row = document.getElementById('chipsRow');
+            const labelMap = {
+                fAtivo:               v => v === true ? '✅ Ativos' : '⛔ Inativos',
+                tipoCliente:          v => v === 1 ? '👤 Pessoa Física' : '🏢 Pessoa Jurídica',
+                genero:               v => ({ M: '♂ Masculino', F: '♀ Feminino', O: '⚡ Outro' }[v] || v),
+                estado:               v => `📍 ${v}`,
+                cidade:               v => `🏙 ${v}`,
+                dthCadastroInicio:    v => `📅 Cadastro de: ${v}`,
+                dthCadastroFim:       v => `📅 Cadastro até: ${v}`,
+                dthNascimentoInicio:  v => `🎂 Nasc. de: ${v}`,
+                dthNascimentoFim:     v => `🎂 Nasc. até: ${v}`,
+                semEmail:             v => v ? '📧 Sem E-mail' : null,
+                aniversariantesDoMes: v => v ? '🎂 Aniversariantes do Mês' : null
+            };
+
+            const chips = Object.entries(filtrosState)
+                .filter(([, v]) => v !== null && v !== undefined)
+                .map(([k, v]) => {
+                    const label = labelMap[k] ? labelMap[k](v) : null;
+                    if (!label) return '';
+                    return `<span class="filter-chip">${label}<button class="chip-remove" onclick="removerChip('${k}')" title="Remover"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></span>`;
+                })
+                .filter(Boolean)
+                .join('');
+
+            if (chips) {
+                row.innerHTML = `<span class="chips-label">Filtros:</span>${chips}<button class="clear-all-chip" onclick="limparFiltros()">✕ Limpar tudo</button>`;
+                row.style.display = 'flex';
+            } else {
+                row.innerHTML = '';
+                row.style.display = 'none';
+            }
+        }
+
+        function removerChip(key) {
+            filtrosState[key] = null;
+
+            // Reseta o campo correspondente no painel
+            const resetMap = {
+                fAtivo:              () => { document.querySelectorAll('.filter-radio').forEach((l, i) => l.classList.toggle('checked', i === 0)); document.querySelector('input[name="fStatus"][value=""]').checked = true; },
+                tipoCliente:         () => document.getElementById('fTipoCliente').value = '',
+                genero:              () => document.getElementById('fGenero').value = '',
+                estado:              () => document.getElementById('fEstado').value = '',
+                cidade:              () => document.getElementById('fCidade').value = '',
+                dthCadastroInicio:   () => document.getElementById('fCadastroInicio').value = '',
+                dthCadastroFim:      () => document.getElementById('fCadastroFim').value = '',
+                dthNascimentoInicio: () => document.getElementById('fNascimentoInicio').value = '',
+                dthNascimentoFim:    () => document.getElementById('fNascimentoFim').value = '',
+                semEmail:            () => { if (presetAtivo === 'semEmail') { presetAtivo = null; document.getElementById('preset-semEmail').classList.remove('active'); } },
+                aniversariantesDoMes:() => { if (presetAtivo === 'aniversariantes') { presetAtivo = null; document.getElementById('preset-aniversariantes').classList.remove('active'); } }
+            };
+            if (resetMap[key]) resetMap[key]();
+
+            // Re-aplica filtros sem o chip removido
+            aplicarFiltrosAvancados();
+        }
+
+        function aplicarPreset(preset, btn) {
+            // Toggle: clicou no mesmo preset → desmarca
+            if (presetAtivo === preset) {
+                presetAtivo = null;
+                btn.classList.remove('active');
+                resetCamposPanel();
+                return;
+            }
+
+            // Desmarca preset anterior
+            document.querySelectorAll('.filter-preset-btn').forEach(b => b.classList.remove('active'));
+            presetAtivo = preset;
+            btn.classList.add('active');
+
+            // Reset campos
+            resetCamposPanel();
+
+            const hoje = new Date();
+            const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
+            const ultimoDia   = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0];
+
+            switch (preset) {
+                case 'aniversariantes':
+                    setRadioStatus('true');
+                    break;
+                case 'novos':
+                    document.getElementById('fCadastroInicio').value = primeiroDia;
+                    document.getElementById('fCadastroFim').value    = ultimoDia;
+                    break;
+                case 'semEmail':
+                    break;
+                case 'pjAtivas':
+                    document.getElementById('fTipoCliente').value = '2';
+                    setRadioStatus('true');
+                    break;
+            }
+        }
+
+        function resetCamposPanel() {
+            document.getElementById('fTipoCliente').value = '';
+            document.getElementById('fGenero').value = '';
+            document.getElementById('fEstado').value = '';
+            document.getElementById('fCidade').value = '';
+            document.getElementById('fCadastroInicio').value = '';
+            document.getElementById('fCadastroFim').value = '';
+            document.getElementById('fNascimentoInicio').value = '';
+            document.getElementById('fNascimentoFim').value = '';
+            setRadioStatus('');
+        }
+
+        function setRadioStatus(val) {
+            document.querySelectorAll('.filter-radio').forEach(l => {
+                const match = l.dataset.val === val;
+                l.classList.toggle('checked', match);
+                if (match) l.querySelector('input').checked = true;
+            });
+        }
+    </script>
+}

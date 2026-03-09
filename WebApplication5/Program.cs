@@ -22,6 +22,10 @@ builder.Services.AddScoped<TokenResetRepository>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<SenhaResetService>();
 
+builder.Services.AddScoped<EnderecoRepository>();
+builder.Services.AddScoped<ClienteRepository>();
+builder.Services.AddScoped<ClienteService>();
+
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 

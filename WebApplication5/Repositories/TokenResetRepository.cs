@@ -18,10 +18,10 @@ public class TokenResetRepository
             commandType: CommandType.StoredProcedure);
     }
 
-    public TokenResetSenha? Buscar(string token)
+    public TokenResetSenhaModel? Buscar(string token)
     {
         using var conn = new SqlConnection(_connectionString);
-        return conn.QueryFirstOrDefault<TokenResetSenha>("sp_BuscarTokenReset",
+        return conn.QueryFirstOrDefault<TokenResetSenhaModel>("sp_BuscarTokenReset",
             new { token },
             commandType: CommandType.StoredProcedure);
     }

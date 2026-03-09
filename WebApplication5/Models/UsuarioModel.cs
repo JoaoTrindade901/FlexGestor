@@ -1,4 +1,4 @@
-﻿public class Usuario
+﻿public class UsuarioModel
 {
     public int IdUsuario { get; set; }
     public string Login { get; set; } = string.Empty;

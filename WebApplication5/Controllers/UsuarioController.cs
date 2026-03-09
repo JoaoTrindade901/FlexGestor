@@ -35,7 +35,7 @@ public class UsuarioController : BaseController
     }
 
     [HttpPost]
-    public IActionResult Criar([FromBody] Usuario usuario)
+    public IActionResult Criar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.Criar(usuario);
@@ -43,7 +43,7 @@ public class UsuarioController : BaseController
     }
 
     [HttpPost]
-    public IActionResult Editar([FromBody] Usuario usuario)
+    public IActionResult Editar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.Editar(usuario);

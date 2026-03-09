@@ -1,4 +1,4 @@
-﻿public class TokenResetSenha
+﻿public class TokenResetSenhaModel
 {
     public int idToken { get; set; }
     public int idUsuario { get; set; }

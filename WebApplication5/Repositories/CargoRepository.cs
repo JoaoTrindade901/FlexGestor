@@ -14,11 +14,11 @@ namespace WebApplication5.Repositories
             _connectionString = config.GetConnectionString("Default");
         }
 
-        public IEnumerable<Cargo> Listar()
+        public IEnumerable<CargoModel> Listar()
         {
             using var conn = new SqlConnection(_connectionString);
 
-            return conn.Query<Cargo>(
+            return conn.Query<CargoModel>(
                 "spCargo_Listar",
                 commandType: CommandType.StoredProcedure);
         }

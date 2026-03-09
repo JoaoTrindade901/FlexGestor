@@ -1,6 +1,6 @@
 ﻿namespace WebApplication5.Models
 {
-    public class Empresa
+    public class EmpresaModel
     {
         public int IdEmpresa { get; set; }
         public string nome { get; set; } = string.Empty;

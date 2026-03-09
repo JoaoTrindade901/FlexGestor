@@ -19,7 +19,7 @@ namespace WebApplication5.Services
             return _repo.Listar();
         }
 
-        public void Criar(Usuario usuario)
+        public void Criar(UsuarioModel usuario)
         {
             usuario.Senha = _password.Hash(usuario.Senha);
             usuario.dthCriacao = DateTime.Now;
@@ -28,7 +28,7 @@ namespace WebApplication5.Services
             _repo.Inserir(usuario); 
         }
 
-        public void Editar(Usuario usuario)
+        public void Editar(UsuarioModel usuario)
         {
             usuario.Senha = _password.Hash(usuario.Senha);
             _repo.Atualizar(usuario);
