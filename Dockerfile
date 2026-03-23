@@ -4,10 +4,10 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["SeuProjeto/SeuProjeto.csproj", "SeuProjeto/"]
-RUN dotnet restore "SeuProjeto/SeuProjeto.csproj"
+COPY ["WebApplication5/WebApplication5.csproj", "SeuProjeto/"]
+RUN dotnet restore "WebApplication5/WebApplication5.csproj"
 COPY . .
-WORKDIR "/src/SeuProjeto"
+WORKDIR "/src/WebApplication5"
 RUN dotnet build -c Release -o /app/build
 
 FROM build AS publish
@@ -16,4 +16,4 @@ RUN dotnet publish -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SeuProjeto.dll"]
+ENTRYPOINT ["dotnet", "WebApplication5.dll"]
