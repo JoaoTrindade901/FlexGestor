@@ -49,7 +49,7 @@ namespace WebApplication5.Controllers
         }
 
         [HttpGet]
-        public IActionResult RedefinirSenha(string token)  // 👈 renomeia de GetRedefinirSenha para RedefinirSenha
+        public IActionResult RedefinirSenha(string token)
         {
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Index", "Login");

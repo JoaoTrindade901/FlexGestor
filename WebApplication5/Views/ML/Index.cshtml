@@ -1,0 +1,742 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Previsoes ML";
+}
+
+@section styles {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .page-header-left h2 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .page-header-left p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .info-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(79,142,255,0.08);
+            border: 1px solid rgba(79,142,255,0.2);
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+            .info-btn:hover {
+                background: rgba(79,142,255,0.15);
+            }
+
+            .info-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+        .info-panel {
+            position: fixed;
+            width: 380px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            z-index: 9999;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+            .info-panel.open {
+                display: block;
+            }
+
+            .info-panel h4 {
+                font-family: 'Syne', sans-serif;
+                font-weight: 700;
+                font-size: 0.95rem;
+                margin-bottom: 12px;
+            }
+
+            .info-panel p {
+                font-size: 0.78rem;
+                color: var(--muted);
+                line-height: 1.6;
+                margin-bottom: 10px;
+            }
+
+        .info-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: var(--surface2);
+            margin-bottom: 6px;
+        }
+
+        .info-feature-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .info-feature-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .info-feature-pct {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.2s;
+        }
+
+            .kpi-card:hover {
+                border-color: var(--accent);
+            }
+
+        .kpi-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+            .kpi-icon svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .kpi-icon.blue {
+                background: rgba(79,142,255,0.15);
+                color: var(--accent);
+            }
+
+            .kpi-icon.green {
+                background: rgba(52,211,153,0.15);
+                color: var(--success);
+            }
+
+            .kpi-icon.red {
+                background: rgba(248,113,113,0.15);
+                color: var(--danger);
+            }
+
+            .kpi-icon.purple {
+                background: rgba(167,139,250,0.15);
+                color: var(--accent2);
+            }
+
+        .kpi-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .card-title svg {
+                width: 15px;
+                height: 15px;
+                color: var(--accent);
+            }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+            .form-input:focus {
+                border-color: var(--accent);
+            }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+            width: 100%;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #3a7aee;
+                transform: translateY(-1px);
+            }
+
+        .btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .resultado-box {
+            margin-top: 16px;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+
+            .resultado-box.won {
+                background: rgba(52,211,153,0.08);
+                border: 1px solid rgba(52,211,153,0.2);
+            }
+
+            .resultado-box.lost {
+                background: rgba(248,113,113,0.08);
+                border: 1px solid rgba(248,113,113,0.2);
+            }
+
+        .resultado-emoji {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        .resultado-label {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+            .resultado-label.won {
+                color: var(--success);
+            }
+
+            .resultado-label.lost {
+                color: var(--danger);
+            }
+
+        .resultado-prob {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .prob-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .prob-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+            .prob-fill.won {
+                background: var(--success);
+            }
+
+            .prob-fill.lost {
+                background: var(--danger);
+            }
+
+        .loading-text {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        /* insight badge */
+        .insight {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+            .insight.good {
+                background: rgba(52,211,153,0.1);
+                color: var(--success);
+            }
+
+            .insight.warn {
+                background: rgba(251,191,36,0.1);
+                color: var(--warning);
+            }
+    </style>
+}
+
+<!-- HEADER -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h2>Inteligencia de Vendas</h2>
+        <p>Analise preditiva com Machine Learning — 6.711 deals historicos treinados.</p>
+    </div>
+    <div>
+        <div class="info-btn" onclick="toggleInfo()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01" /></svg>
+            Como o modelo funciona?
+        </div>
+        <div class="info-panel" id="infoPanel">
+            <h4>Como a previsao e calculada</h4>
+            <p>O modelo <strong>Gradient Boosting</strong> foi treinado com 6.711 deals historicos finalizados (Won/Lost) e aprendeu padroes de quais fatores levam a negocios ganhos ou perdidos.</p>
+            <p style="margin-bottom:8px">Peso de cada variavel:</p>
+            <div class="info-feature"><div class="info-feature-bar" style="width:90px"></div><div class="info-feature-name">Agente de vendas</div><div class="info-feature-pct">Alto</div></div>
+            <div class="info-feature"><div class="info-feature-bar" style="width:75px"></div><div class="info-feature-name">Produto / Serie</div><div class="info-feature-pct">Alto</div></div>
+            <div class="info-feature"><div class="info-feature-bar" style="width:60px"></div><div class="info-feature-name">Dias para fechar</div><div class="info-feature-pct">Medio</div></div>
+            <div class="info-feature"><div class="info-feature-bar" style="width:45px"></div><div class="info-feature-name">Regiao / Gerente</div><div class="info-feature-pct">Medio</div></div>
+            <div class="info-feature"><div class="info-feature-bar" style="width:30px"></div><div class="info-feature-name">Setor / Porte</div><div class="info-feature-pct">Baixo</div></div>
+            <p style="margin-top:10px;font-size:0.72rem">Acuracia: <strong style="color:var(--accent)">61.8%</strong> — F1: <strong style="color:var(--accent)">0.748</strong></p>
+        </div>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card" style="animation-delay:0.05s">
+        <div class="kpi-icon blue"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
+        <div class="kpi-value">8.800</div>
+        <div class="kpi-label">Total de deals</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.1s">
+        <div class="kpi-icon green"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+        <div class="kpi-value" style="color:var(--success)">63.1%</div>
+        <div class="kpi-label">Taxa de conversao geral</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.15s">
+        <div class="kpi-icon purple"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+        <div class="kpi-value" style="color:var(--accent2)">$2.360</div>
+        <div class="kpi-label">Ticket medio (Won)</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.2s">
+        <div class="kpi-icon red"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+        <div class="kpi-value" style="color:var(--warning)">51d</div>
+        <div class="kpi-label">Tempo medio de fechamento</div>
+    </div>
+</div>
+
+<!-- PREDICAO + DISTRIBUICAO -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Simular Deal
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Produto</label>
+                <select class="form-input" id="product">
+                    <option value="GTX Basic">GTX Basic</option>
+                    <option value="GTX Pro">GTX Pro</option>
+                    <option value="GTX Plus Basic">GTX Plus Basic</option>
+                    <option value="GTX Plus Pro">GTX Plus Pro</option>
+                    <option value="MG Special">MG Special</option>
+                    <option value="MG Advanced">MG Advanced</option>
+                    <option value="GTK 500">GTK 500</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Serie</label>
+                <select class="form-input" id="series" onchange="sincronizarSerie()">
+                    <option value="GTX">GTX</option>
+                    <option value="MG">MG</option>
+                    <option value="GTK">GTK</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Agente de Vendas</label>
+                <select class="form-input" id="sales_agent" onchange="atualizarGerente()">
+                    <option value="">Selecione</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gerente</label>
+                <select class="form-input" id="manager">
+                    <option value="">—</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Regiao</label>
+                <select class="form-input" id="regional_office">
+                    <option value="Central">Central</option>
+                    <option value="East">East</option>
+                    <option value="West">West</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Setor</label>
+                <select class="form-input" id="sector">
+                    <option value="technolgy">Tecnologia</option>
+                    <option value="medical">Medico</option>
+                    <option value="retail">Varejo</option>
+                    <option value="finance">Financas</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Preco de Venda</label>
+                <input type="number" class="form-input" id="sales_price" value="550">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dias para Fechar</label>
+                <input type="number" class="form-input" id="dias_para_fechar" value="51">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Receita da Empresa (M)</label>
+                <input type="number" class="form-input" id="revenue" value="1100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Funcionarios</label>
+                <input type="number" class="form-input" id="employees" value="500">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="prever()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Prever Resultado
+        </button>
+        <div class="loading-text" id="loading">Consultando modelo...</div>
+        <div class="resultado-box" id="resultado">
+            <div class="resultado-emoji" id="resultadoEmoji"></div>
+            <div class="resultado-label" id="resultadoLabel"></div>
+            <div class="resultado-prob" id="resultadoProb"></div>
+            <div class="prob-bar"><div class="prob-fill" id="probFill"></div></div>
+            <div id="resultadoInsight"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+            Deals Won por Mes
+        </div>
+        <canvas id="chartMensal" height="240"></canvas>
+    </div>
+</div>
+
+<!-- AGENTES + GERENTES -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Top 10 Agentes — Conversao
+        </div>
+        <canvas id="chartAgentes" height="200"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            Conversao por Gerente
+        </div>
+        <canvas id="chartGerentes" height="200"></canvas>
+    </div>
+</div>
+
+<!-- TEMPO FECHAMENTO + PRODUTOS -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            Tempo Medio de Fechamento por Produto (dias)
+        </div>
+        <canvas id="chartTempo" height="200"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            Conversao por Produto
+        </div>
+        <canvas id="chartProdutos" height="200"></canvas>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        const ML_API = "http://localhost:5000";
+
+        // MAPA AGENTE -> GERENTE E REGIAO
+        const agenteGerente = {
+            'Anna Snelling':'Dustin Brinkmann','Cecily Lampkin':'Dustin Brinkmann','Versie Hillebrand':'Dustin Brinkmann',
+            'Lajuana Vencill':'Dustin Brinkmann','Moses Frase':'Dustin Brinkmann','Jonathan Berthelot':'Melvin Marxen',
+            'Marty Freudenburg':'Melvin Marxen','Gladys Colclough':'Melvin Marxen','Niesha Huffines':'Melvin Marxen',
+            'Darcel Schlecht':'Melvin Marxen','Mei-Mei Johns':'Melvin Marxen','Violet Mclelland':'Cara Losch',
+            'Corliss Cosme':'Cara Losch','Rosie Papadopoulos':'Cara Losch','Garret Kinder':'Cara Losch',
+            'Wilburn Farren':'Cara Losch','Elizabeth Anderson':'Cara Losch','Daniell Hammack':'Rocco Neubert',
+            'Cassey Cress':'Rocco Neubert','Donn Cantrell':'Rocco Neubert','Reed Clapper':'Rocco Neubert',
+            'Boris Faz':'Rocco Neubert','Natalya Ivanova':'Rocco Neubert','Vicki Laflamme':'Celia Rouche',
+            'Rosalina Dieter':'Celia Rouche','Hayden Neloms':'Celia Rouche','Markita Hansen':'Celia Rouche',
+            'Elease Gluck':'Celia Rouche','Carol Thompson':'Celia Rouche','James Ascencio':'Summer Sewald',
+            'Kary Hendrixson':'Summer Sewald','Kami Bicknell':'Summer Sewald','Zane Levy':'Summer Sewald',
+            'Maureen Marcano':'Summer Sewald','Carl Lin':'Summer Sewald'
+        };
+
+        const agenteRegiao = {
+            'Anna Snelling':'Central','Cecily Lampkin':'Central','Versie Hillebrand':'Central','Lajuana Vencill':'Central','Moses Frase':'Central',
+            'Jonathan Berthelot':'East','Marty Freudenburg':'East','Gladys Colclough':'East','Niesha Huffines':'East','Darcel Schlecht':'East','Mei-Mei Johns':'East',
+            'Violet Mclelland':'West','Corliss Cosme':'West','Rosie Papadopoulos':'West','Garret Kinder':'West','Wilburn Farren':'West','Elizabeth Anderson':'West',
+            'Daniell Hammack':'Central','Cassey Cress':'Central','Donn Cantrell':'Central','Reed Clapper':'Central','Boris Faz':'Central','Natalya Ivanova':'Central',
+            'Vicki Laflamme':'East','Rosalina Dieter':'East','Hayden Neloms':'East','Markita Hansen':'East','Elease Gluck':'East','Carol Thompson':'East',
+            'James Ascencio':'West','Kary Hendrixson':'West','Kami Bicknell':'West','Zane Levy':'West','Maureen Marcano':'West','Carl Lin':'West'
+        };
+
+        // Popula combo de agentes
+        const selectAgente = document.getElementById('sales_agent');
+        Object.keys(agenteGerente).sort().forEach(a => {
+            const o = document.createElement('option');
+            o.value = a; o.textContent = a;
+            selectAgente.appendChild(o);
+        });
+
+        function atualizarGerente() {
+            const agente  = document.getElementById('sales_agent').value;
+            const gerente = agenteGerente[agente] || '';
+            const regiao  = agenteRegiao[agente] || '';
+
+            const selGer = document.getElementById('manager');
+            selGer.innerHTML = '';
+            const o = document.createElement('option');
+            o.value = gerente; o.textContent = gerente || '—';
+            selGer.appendChild(o);
+
+            if (regiao) document.getElementById('regional_office').value = regiao;
+        }
+
+        // INFO PANEL
+        function toggleInfo() {
+            const panel = document.getElementById('infoPanel');
+            const btn   = document.querySelector('.info-btn');
+            if (panel.parentElement !== document.body) document.body.appendChild(panel);
+            if (panel.classList.contains('open')) { panel.classList.remove('open'); return; }
+            const rect = btn.getBoundingClientRect();
+            panel.style.top   = (rect.bottom + 8) + 'px';
+            panel.style.right = (window.innerWidth - rect.right) + 'px';
+            panel.style.left  = 'auto';
+            panel.classList.add('open');
+        }
+        document.addEventListener('click', e => {
+            const panel = document.getElementById('infoPanel');
+            if (!e.target.closest('.info-btn') && !e.target.closest('#infoPanel')) panel.classList.remove('open');
+        });
+
+        // PREVER
+        async function prever() {
+            const loading = document.getElementById('loading');
+            const resultado = document.getElementById('resultado');
+            loading.style.display = 'block';
+            resultado.style.display = 'none';
+
+            const payload = {
+                product:          document.getElementById('product').value,
+                sales_agent:      document.getElementById('sales_agent').value,
+                manager:          document.getElementById('manager').value,
+                regional_office:  document.getElementById('regional_office').value,
+                series:           document.getElementById('series').value,
+                sector:           document.getElementById('sector').value,
+                sales_price:      parseFloat(document.getElementById('sales_price').value),
+                revenue:          parseFloat(document.getElementById('revenue').value),
+                employees:        parseInt(document.getElementById('employees').value),
+                dias_para_fechar: parseInt(document.getElementById('dias_para_fechar').value)
+            };
+
+            try {
+                const res  = await fetch(`${ML_API}/predict`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                const data = await res.json();
+                const won  = data.prediction === 1;
+                const prob = Math.round(data.probability * 100);
+
+                document.getElementById('resultadoEmoji').textContent    = won ? '🏆' : '❌';
+                document.getElementById('resultadoLabel').textContent    = won ? 'Won' : 'Lost';
+                document.getElementById('resultadoLabel').className      = `resultado-label ${won ? 'won' : 'lost'}`;
+                document.getElementById('resultadoProb').textContent     = `Probabilidade: ${prob}%`;
+                document.getElementById('probFill').style.width          = `${prob}%`;
+                document.getElementById('probFill').className            = `prob-fill ${won ? 'won' : 'lost'}`;
+                resultado.className     = `resultado-box ${won ? 'won' : 'lost'}`;
+                resultado.style.display = 'block';
+
+                // Insight contextual
+                const dias = parseInt(document.getElementById('dias_para_fechar').value);
+                let insight = '';
+                if (won && prob >= 80) insight = '<span class="insight good">Alta confianca — perfil historicamente forte</span>';
+                else if (won && prob < 65) insight = '<span class="insight warn">Conversao provavel mas incerta</span>';
+                else if (!won && dias > 60) insight = '<span class="insight warn">Prazo longo reduz chance de conversao</span>';
+                else if (!won) insight = '<span class="insight warn">Combinacao com baixo historico de conversao</span>';
+                document.getElementById('resultadoInsight').innerHTML = insight;
+
+            } catch { alert('Erro ao conectar com a API de ML. Verifique se ela esta rodando na porta 5000.'); }
+            finally { loading.style.display = 'none'; }
+        }
+
+        const cd = {
+            plugins: { legend: { labels: { color:'#e8ecf4', font:{ family:'DM Sans', size:11 } } } },
+            scales: {
+                x: { ticks:{ color:'#6b7491', font:{ size:10 } }, grid:{ color:'#242840' } },
+                y: { ticks:{ color:'#6b7491', font:{ size:10 } }, grid:{ color:'#242840' } }
+            }
+        };
+
+        // MENSAL
+        new Chart(document.getElementById('chartMensal'), {
+            type: 'line',
+            data: {
+                labels: ['Mar/17','Abr/17','Mai/17','Jun/17','Jul/17','Ago/17','Set/17','Out/17','Nov/17','Dez/17'],
+                datasets: [{
+                    label: 'Deals Won',
+                    data: [531,285,438,531,308,446,503,279,406,511],
+                    borderColor: '#4f8eff', backgroundColor: 'rgba(79,142,255,0.1)',
+                    borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#4f8eff', fill: true, tension: 0.4
+                }]
+            },
+            options: { ...cd, scales: { ...cd.scales, y: { ...cd.scales.y, min: 200 } } }
+        });
+
+        // AGENTES
+        new Chart(document.getElementById('chartAgentes'), {
+            type: 'bar',
+            data: {
+                labels: ['Hayden Neloms','Maureen Marcano','Wilburn Farren','Cecily Lampkin','Versie Hillebrand','Moses Frase','Boris Faz','James Ascencio','Rosalina Dieter','Corliss Cosme'],
+                datasets: [{ label:'Conversao (%)', data:[70.4,70.0,69.6,66.9,66.7,66.2,66.0,65.5,65.5,65.5], backgroundColor:'rgba(79,142,255,0.65)', borderColor:'#4f8eff', borderWidth:1, borderRadius:5 }]
+            },
+            options: { ...cd, scales: { ...cd.scales, y: { ...cd.scales.y, min:55, max:75 } } }
+        });
+
+        // GERENTES
+        new Chart(document.getElementById('chartGerentes'), {
+            type: 'bar',
+            data: {
+                labels: ['Cara Losch','Summer Sewald','Celia Rouche','Dustin Brinkmann','Melvin Marxen','Rocco Neubert'],
+                datasets: [{ label:'Conversao (%)', data:[64.4,64.3,63.4,63.0,62.2,62.1], backgroundColor:'rgba(167,139,250,0.65)', borderColor:'#a78bfa', borderWidth:1, borderRadius:5 }]
+            },
+            options: { ...cd, scales: { ...cd.scales, y: { ...cd.scales.y, min:58, max:68 } } }
+        });
+
+        // TEMPO FECHAMENTO
+        new Chart(document.getElementById('chartTempo'), {
+            type: 'bar',
+            data: {
+                labels: ['GTXPro','MG Special','GTX Plus Pro','GTX Plus Basic','MG Advanced','GTX Basic','GTK 500'],
+                datasets: [{ label:'Dias (media)', data:[48.3,51.3,51.7,51.8,51.8,54.8,64.1], backgroundColor:'rgba(52,211,153,0.65)', borderColor:'#34d399', borderWidth:1, borderRadius:5 }]
+            },
+            options: { ...cd, scales: { ...cd.scales, y: { ...cd.scales.y, min:40, max:70 } } }
+        });
+
+        // PRODUTOS
+        new Chart(document.getElementById('chartProdutos'), {
+            type: 'bar',
+            data: {
+                labels: ['MG Special','GTX Plus Pro','GTX Basic','GTXPro','GTX Plus Basic','MG Advanced','GTK 500'],
+                datasets: [{ label:'Conversao (%)', data:[64.8,64.3,63.7,63.6,62.1,60.3,60.0], backgroundColor:'rgba(251,191,36,0.65)', borderColor:'#fbbf24', borderWidth:1, borderRadius:5 }]
+            },
+            options: { ...cd, scales: { ...cd.scales, y: { ...cd.scales.y, min:55, max:70 } } }
+        });
+    </script>
+}

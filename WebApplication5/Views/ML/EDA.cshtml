@@ -1,0 +1,288 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Analise Exploratoria";
+}
+
+@section styles {
+    <style>
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            animation: fadeUp 0.4s ease both;
+        }
+
+            .page-header h2 {
+                font-family: 'Syne', sans-serif;
+                font-weight: 800;
+                font-size: 1.5rem;
+            }
+
+            .page-header p {
+                font-size: 0.82rem;
+                color: var(--muted);
+                margin-top: 3px;
+            }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+            .chart-card:hover {
+                border-color: var(--accent);
+                transform: translateY(-2px);
+            }
+
+            .chart-card.full {
+                grid-column: 1 / -1;
+            }
+
+        .chart-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .chart-header svg {
+                width: 14px;
+                height: 14px;
+                color: var(--accent);
+                flex-shrink: 0;
+            }
+
+        .chart-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .chart-desc {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .chart-img {
+            width: 100%;
+            display: block;
+        }
+
+        .chart-loading {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 500;
+        }
+
+            .badge.blue {
+                background: rgba(79,142,255,0.12);
+                color: var(--accent);
+            }
+
+            .badge.green {
+                background: rgba(52,211,153,0.12);
+                color: var(--success);
+            }
+
+            .badge.purple {
+                background: rgba(167,139,250,0.12);
+                color: var(--accent2);
+            }
+
+        .regen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(79,142,255,0.08);
+            border: 1px solid rgba(79,142,255,0.2);
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+            .regen-btn:hover {
+                background: rgba(79,142,255,0.15);
+            }
+
+            .regen-btn svg {
+                width: 13px;
+                height: 13px;
+            }
+
+            .regen-btn.loading svg {
+                animation: spin 1s linear infinite;
+            }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h2>Analise Exploratoria de Dados</h2>
+        <p>EDA gerada com Python, Seaborn e Matplotlib — dataset CRM Sales Opportunities.</p>
+    </div>
+    <button class="regen-btn" id="regenBtn" onclick="regenerar()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        Regenerar Graficos
+    </button>
+</div>
+
+<div class="charts-grid" id="chartsGrid">
+    <div class="chart-card loading-card" style="grid-column:1/-1">
+        <div class="chart-loading">Carregando graficos...</div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        const ML_API = "http://localhost:5000";
+
+        const META = {
+            "hist_close_value.png": {
+                title: "Distribuicao de Valor dos Deals Ganhos",
+                desc:  "Histograma com media e mediana do close_value para deals Won.",
+                badge: "blue", badgeText: "Histograma", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>'
+            },
+            "boxplot_revenue_setor.png": {
+                title: "Revenue por Setor",
+                desc:  "Boxplot mostrando dispersao de receita por setor da empresa cliente.",
+                badge: "purple", badgeText: "Boxplot", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>'
+            },
+            "line_deals_mensal.png": {
+                title: "Deals Won por Mes",
+                desc:  "Evolucao temporal dos deals ganhos — identifica sazonalidade e tendencias.",
+                badge: "green", badgeText: "Linha", full: true,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>'
+            },
+            "bar_winrate_agente.png": {
+                title: "Win Rate por Agente",
+                desc:  "Barras horizontais com taxa de conversao de cada vendedor. Verde acima de 66%, vermelho abaixo de 63%.",
+                badge: "blue", badgeText: "Barras", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/>'
+            },
+            "heatmap_correlacao.png": {
+                title: "Heatmap de Correlacao",
+                desc:  "Matriz de correlacao de Pearson entre todas as variaveis numericas e categoricas codificadas.",
+                badge: "purple", badgeText: "Heatmap", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>'
+            },
+            "hist_tempo_fechamento.png": {
+                title: "Distribuicao do Tempo de Fechamento",
+                desc:  "Histograma dos dias entre engage_date e close_date nos deals Won.",
+                badge: "green", badgeText: "Histograma", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+            },
+            "bar_winrate_gerente.png": {
+                title: "Win Rate por Gerente",
+                desc:  "Comparativo de taxa de conversao entre os 6 gerentes regionais.",
+                badge: "blue", badgeText: "Barras", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>'
+            },
+            "pie_estagios.png": {
+                title: "Distribuicao por Estagio do Pipeline",
+                desc:  "Pizza mostrando proporcao de deals em cada estagio: Won, Lost, Engaging, Prospecting.",
+                badge: "purple", badgeText: "Pizza", full: false,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>'
+            },
+            "bar_ticket_produto.png": {
+                title: "Ticket Medio por Produto",
+                desc:  "Media e mediana do valor dos deals Won agrupados por produto.",
+                badge: "green", badgeText: "Barras", full: true,
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+            }
+        };
+
+        async function carregarGraficos() {
+            try {
+                const res   = await fetch(`${ML_API}/charts/list`);
+                const files = await res.json();
+                const grid  = document.getElementById('chartsGrid');
+                grid.innerHTML = '';
+
+                // Ordena por META (ordem definida)
+                const ordem = Object.keys(META);
+                const sorted = ordem.filter(f => files.includes(f));
+
+                sorted.forEach((file, i) => {
+                    const m   = META[file] || { title: file, desc: '', badge: 'blue', badgeText: 'Grafico', full: false, icon: '' };
+                    const card = document.createElement('div');
+                    card.className = `chart-card${m.full ? ' full' : ''}`;
+                    card.style.animationDelay = `${i * 0.06}s`;
+                    card.innerHTML = `
+                        <div class="chart-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">${m.icon}</svg>
+                            <div style="flex:1">
+                                <div class="chart-title">${m.title}</div>
+                                <div class="chart-desc">${m.desc}</div>
+                            </div>
+                            <span class="badge ${m.badge}">${m.badgeText}</span>
+                        </div>
+                        <img class="chart-img" src="${ML_API}/charts/${file}?t=${Date.now()}" alt="${m.title}" loading="lazy">
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch {
+                document.getElementById('chartsGrid').innerHTML = `
+                    <div class="chart-card" style="grid-column:1/-1">
+                        <div class="chart-loading">Erro ao conectar com a API. Verifique se ela esta rodando na porta 5000.</div>
+                    </div>`;
+            }
+        }
+
+        async function regenerar() {
+            const btn = document.getElementById('regenBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Gerando...';
+            try {
+                await fetch(`${ML_API}/eda/regenerar`, { method: 'POST' });
+                await carregarGraficos();
+            } catch {
+                alert('Erro ao regenerar. Verifique a API.');
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Regenerar Graficos';
+            }
+        }
+
+        carregarGraficos();
+    </script>
+}
