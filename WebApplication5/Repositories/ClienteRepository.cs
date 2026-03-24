@@ -1,5 +1,5 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 using WebApplication5.Models;
 
@@ -16,7 +16,7 @@ namespace WebApplication5.Repositories
 
         public IEnumerable<ClienteListaGridDto> ListarClientes()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             return conn.Query<ClienteListaGridDto>(
                 "sp_ListarCliente",
                 commandType: CommandType.StoredProcedure);
@@ -24,7 +24,7 @@ namespace WebApplication5.Repositories
 
         public IEnumerable<ClienteListaGridDto> FiltrarClientes(ClienteFiltroDto filtro)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             return conn.Query<ClienteListaGridDto>(
                 "sp_FiltrarCliente",
                 new
@@ -49,7 +49,7 @@ namespace WebApplication5.Repositories
 
         public int InserirCliente(ClienteModel cliente)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             return conn.ExecuteScalar<int>(
                 "sp_CriarCliente",
                 new
@@ -73,7 +73,7 @@ namespace WebApplication5.Repositories
 
         public void AtualizarCliente(ClienteModel cliente)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_EditarCliente",
                 new
@@ -96,7 +96,7 @@ namespace WebApplication5.Repositories
 
         public void DeletarCliente(int idCliente)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_DeletarCliente",
                 new { idCliente },

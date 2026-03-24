@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 using WebApplication5.Models;
 
@@ -16,7 +16,7 @@ namespace WebApplication5.Repositories
 
         public IEnumerable<UsuarioListaGridDto> Listar()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
 
             return conn.Query<UsuarioListaGridDto>(
                 "sp_ListarUsuario",
@@ -26,7 +26,7 @@ namespace WebApplication5.Repositories
         //usado na SenhaResetService
         public UsuarioModel? BuscarPorEmail(string email)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             return conn.QueryFirstOrDefault<UsuarioModel>(
                 "SELECT idUsuario, Nome, Email FROM Usuario WHERE Email = @email AND fAtivo = 1",
                 new { email });
@@ -34,7 +34,7 @@ namespace WebApplication5.Repositories
 
         public UsuarioModel? BuscarPorLogin(string login, string CNPJ)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
 
             return conn.QueryFirstOrDefault<UsuarioModel>(
                 "sp_BuscarLogin",
@@ -44,7 +44,7 @@ namespace WebApplication5.Repositories
 
         public void Inserir(UsuarioModel usuario)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_CriarUsuario",
                 new
@@ -64,7 +64,7 @@ namespace WebApplication5.Repositories
 
         public void AlterarStatus(int idUsuario)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AlterarStatusUsuario",
                 new { idUsuario },
@@ -73,7 +73,7 @@ namespace WebApplication5.Repositories
 
         public void Atualizar(UsuarioModel usuario)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_EditarUsuario",
                 new

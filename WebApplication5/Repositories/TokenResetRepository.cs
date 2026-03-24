@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 
 public class TokenResetRepository
@@ -12,7 +12,7 @@ public class TokenResetRepository
 
     public void Inserir(int idUsuario, string token, DateTime expiracao)
     {
-        using var conn = new SqlConnection(_connectionString);
+        using var conn = new MySqlConnection(_connectionString);
         conn.Execute("sp_InserirTokenReset",
             new { idUsuario, token, dthExpiracao = expiracao },
             commandType: CommandType.StoredProcedure);
@@ -20,7 +20,7 @@ public class TokenResetRepository
 
     public TokenResetSenhaModel? Buscar(string token)
     {
-        using var conn = new SqlConnection(_connectionString);
+        using var conn = new MySqlConnection(_connectionString);
         return conn.QueryFirstOrDefault<TokenResetSenhaModel>("sp_BuscarTokenReset",
             new { token },
             commandType: CommandType.StoredProcedure);
@@ -28,7 +28,7 @@ public class TokenResetRepository
 
     public void Invalidar(string token)
     {
-        using var conn = new SqlConnection(_connectionString);
+        using var conn = new MySqlConnection(_connectionString);
         conn.Execute("sp_InvalidarTokenReset",
             new { token },
             commandType: CommandType.StoredProcedure);
@@ -36,7 +36,7 @@ public class TokenResetRepository
 
     public void AtualizarSenha(int idUsuario, string senhaHash)
     {
-        using var conn = new SqlConnection(_connectionString);
+        using var conn = new MySqlConnection(_connectionString);
         conn.Execute("sp_AtualizarSenha",
             new { idUsuario, Senha = senhaHash },
             commandType: CommandType.StoredProcedure);

@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 using WebApplication5.Models;
 
@@ -16,7 +16,7 @@ namespace WebApplication5.Repositories
 
         public int InserirEndereco(EnderecoModel endereco)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             return conn.ExecuteScalar<int>(
                 "sp_CriarEndereco",
                 new
@@ -37,7 +37,7 @@ namespace WebApplication5.Repositories
 
         public void AtualizarEndereco(EnderecoModel endereco)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_EditarEndereco",
                 new

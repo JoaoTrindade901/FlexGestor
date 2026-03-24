@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 using WebApplication5.Models;
 
@@ -16,7 +16,7 @@ namespace WebApplication5.Repositories
 
         public IEnumerable<CargoModel> Listar()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new MySqlConnection(_connectionString);
 
             return conn.Query<CargoModel>(
                 "spCargo_Listar",
