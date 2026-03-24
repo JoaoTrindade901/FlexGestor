@@ -62,6 +62,15 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        public void AlterarStatus(int idUsuario)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            conn.Execute(
+                "sp_AlterarStatusUsuario",
+                new { idUsuario },
+                commandType: CommandType.StoredProcedure);
+        }
+
         public void Atualizar(UsuarioModel usuario)
         {
             using var conn = new SqlConnection(_connectionString);
@@ -72,7 +81,7 @@ namespace WebApplication5.Repositories
                     usuario.IdUsuario,
                     usuario.Nome,
                     usuario.Login,
-                    usuario.Senha,
+                    Senha = string.IsNullOrEmpty(usuario.Senha) ? null : usuario.Senha,
                     usuario.CPF,
                     usuario.Email,
                     usuario.Telefone,

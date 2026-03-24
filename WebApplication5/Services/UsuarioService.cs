@@ -30,8 +30,15 @@ namespace WebApplication5.Services
 
         public void Editar(UsuarioModel usuario)
         {
-            usuario.Senha = _password.Hash(usuario.Senha);
+            if (!string.IsNullOrEmpty(usuario.Senha))
+                usuario.Senha = _password.Hash(usuario.Senha);
+
             _repo.Atualizar(usuario);
+        }
+
+        public void AlterarStatus(int idUsuario)
+        {
+            _repo.AlterarStatus(idUsuario);
         }
     }
 }

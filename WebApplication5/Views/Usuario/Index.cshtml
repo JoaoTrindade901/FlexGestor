@@ -1,585 +1,163 @@
-﻿@{
+﻿
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Usuários";
 }
 
 @section styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css" />
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-    <style>
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: fadeUp .4s ease both;
-        }
 
-            .page-header h2 {
-                font-family: 'Syne',sans-serif;
-                font-weight: 800;
-                font-size: 1.4rem;
-            }
-
-            .page-header p {
-                font-size: .8rem;
-                color: var(--muted);
-                margin-top: 3px;
-            }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 9px 16px;
-            border-radius: 7px;
-            font-family: 'DM Sans',sans-serif;
-            font-size: .82rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all .15s;
-        }
-
-            .btn svg {
-                width: 14px;
-                height: 14px;
-            }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #fff;
-        }
-
-            .btn-primary:hover {
-                background: #3a7aee;
-                transform: translateY(-1px);
-            }
-
-        .btn-ghost {
-            background: var(--surface2);
-            color: var(--muted);
-            border: 1px solid var(--border);
-        }
-
-            .btn-ghost:hover {
-                color: var(--text);
-                border-color: var(--text);
-            }
-
-        .btn-warning {
-            background: rgba(251,191,36,.12);
-            color: var(--warning);
-            border: 1px solid rgba(251,191,36,.25);
-        }
-
-            .btn-warning:hover {
-                background: rgba(251,191,36,.22);
-            }
-
-        .btn-success {
-            background: rgba(52,211,153,.12);
-            color: var(--success);
-            border: 1px solid rgba(52,211,153,.25);
-        }
-
-            .btn-success:hover {
-                background: rgba(52,211,153,.22);
-            }
-
-        .grid-wrap {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            animation: fadeUp .4s ease .08s both;
-        }
-
-        .grid-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            padding: 7px 12px;
-            flex: 1;
-            max-width: 280px;
-            transition: border-color .15s;
-        }
-
-            .search-box:focus-within {
-                border-color: var(--accent);
-            }
-
-            .search-box svg {
-                width: 13px;
-                height: 13px;
-                color: var(--muted);
-                flex-shrink: 0;
-            }
-
-            .search-box input {
-                background: none;
-                border: none;
-                outline: none;
-                color: var(--text);
-                font-family: 'DM Sans',sans-serif;
-                font-size: .82rem;
-                width: 100%;
-            }
-
-                .search-box input::placeholder {
-                    color: var(--muted);
-                }
-
-        .filter-pill {
-            padding: 5px 11px;
-            border-radius: 20px;
-            font-size: .72rem;
-            cursor: pointer;
-            border: 1px solid var(--border);
-            background: var(--surface2);
-            color: var(--muted);
-            transition: all .15s;
-        }
-
-            .filter-pill.active, .filter-pill:hover {
-                border-color: var(--accent);
-                color: var(--accent);
-                background: rgba(79,142,255,.07);
-            }
-
-        .grid-count {
-            margin-left: auto;
-            font-size: .75rem;
-            color: var(--muted);
-        }
-
-        .ag-theme-quartz {
-            --ag-background-color: transparent;
-            --ag-foreground-color: #e8ecf4;
-            --ag-border-color: #242840;
-            --ag-header-background-color: #1c2030;
-            --ag-header-foreground-color: #6b7491;
-            --ag-row-hover-color: rgba(79,142,255,.04);
-            --ag-font-family: 'DM Sans',sans-serif;
-            --ag-font-size: 13px;
-            --ag-cell-horizontal-padding: 16px;
-            --ag-row-border-color: #1c2030;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 9px;
-            border-radius: 20px;
-            font-size: .7rem;
-            font-weight: 500;
-        }
-
-            .status-badge.ativo {
-                background: rgba(52,211,153,.1);
-                color: #34d399;
-            }
-
-            .status-badge.inativo {
-                background: rgba(248,113,113,.1);
-                color: #f87171;
-            }
-
-        .status-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .action-btn {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all .15s;
-        }
-
-            .action-btn svg {
-                width: 12px;
-                height: 12px;
-            }
-
-            .action-btn.edit {
-                background: rgba(79,142,255,.08);
-                color: var(--accent);
-            }
-
-                .action-btn.edit:hover {
-                    background: rgba(79,142,255,.2);
-                }
-
-            .action-btn.deactivate {
-                background: rgba(251,191,36,.08);
-                color: var(--warning);
-            }
-
-                .action-btn.deactivate:hover {
-                    background: rgba(251,191,36,.2);
-                }
-
-            .action-btn.activate {
-                background: rgba(52,211,153,.08);
-                color: var(--success);
-            }
-
-                .action-btn.activate:hover {
-                    background: rgba(52,211,153,.2);
-                }
-        /* modals */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(0,0,0,.65);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .2s;
-        }
-
-            .modal-overlay.open {
-                opacity: 1;
-                pointer-events: all;
-            }
-
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            width: 100%;
-            max-width: 480px;
-            padding: 26px;
-            transform: translateY(14px) scale(.97);
-            transition: transform .22s cubic-bezier(.34,1.56,.64,1);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.open .modal {
-            transform: translateY(0) scale(1);
-        }
-
-        .modal-hd {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-family: 'Syne',sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        .modal-sub {
-            font-size: .75rem;
-            color: var(--muted);
-            margin-top: 2px;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--muted);
-            padding: 3px;
-            border-radius: 5px;
-            transition: all .15s;
-            display: flex;
-        }
-
-            .modal-close:hover {
-                color: var(--text);
-                background: var(--surface2);
-            }
-
-            .modal-close svg {
-                width: 15px;
-                height: 15px;
-            }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: .74rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .form-input {
-            width: 100%;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            padding: 9px 12px;
-            color: var(--text);
-            font-family: 'DM Sans',sans-serif;
-            font-size: .85rem;
-            outline: none;
-            transition: border-color .15s;
-        }
-
-            .form-input:focus {
-                border-color: var(--accent);
-            }
-
-            .form-input::placeholder {
-                color: var(--muted);
-            }
-
-        .modal-ft {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .confirm-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 14px;
-        }
-
-            .confirm-icon svg {
-                width: 22px;
-                height: 22px;
-            }
-
-            .confirm-icon.warning {
-                background: rgba(251,191,36,.1);
-                color: var(--warning);
-            }
-
-            .confirm-icon.success {
-                background: rgba(52,211,153,.1);
-                color: var(--success);
-            }
-
-        .confirm-title {
-            font-family: 'Syne',sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 6px;
-        }
-
-        .confirm-text {
-            font-size: .82rem;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        .confirm-name {
-            color: var(--text);
-            font-weight: 500;
-        }
-        /* toast */
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .toast {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            min-width: 240px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.4);
-            animation: toastIn .3s cubic-bezier(.34,1.56,.64,1) both;
-        }
-
-            .toast.out {
-                animation: toastOut .22s ease forwards;
-            }
-
-        .toast-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-            .toast-icon svg {
-                width: 12px;
-                height: 12px;
-            }
-
-            .toast-icon.success {
-                background: rgba(52,211,153,.12);
-                color: var(--success);
-            }
-
-            .toast-icon.error {
-                background: rgba(248,113,113,.12);
-                color: var(--danger);
-            }
-
-        .toast-msg {
-            font-size: .8rem;
-            color: var(--text);
-        }
-
-        @@keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(16px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0)
-            }
-        }
-
-        @@keyframes toastOut {
-            from {
-                opacity: 1
-            }
-
-            to {
-                opacity: 0;
-                transform: translateX(16px)
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/usuario.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 }
 
-<div class="page-header">
-    <div>
-        <h2>Gerenciar Usuários</h2>
-        <p>Cadastre, edite e inative usuários do sistema.</p>
-    </div>
-    <button class="btn btn-primary" onclick="abrirModalCriar()">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-        Novo Usuário
-    </button>
-</div>
+<main>
+    <section class="secao-usuarios">
 
-<div class="grid-wrap">
-    <div class="grid-toolbar">
-        <div class="search-box">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" placeholder="Buscar usuário..." oninput="filtrarGrid(this.value)">
+        <div class="cabecalho-tela">
+            <h2>Gerenciamento de Usuários</h2>
+            <button class="btn-novo-usuario" onclick="abrirModalCriar()">
+                <i class="bi bi-person-plus-fill"></i> Novo Usuário
+            </button>
         </div>
-        <div class="filter-pill active" id="filtroTodos" onclick="aplicarFiltro('todos')">Todos</div>
-        <div class="filter-pill" id="filtroAtivos" onclick="aplicarFiltro('ativos')">Ativos</div>
-        <div class="filter-pill" id="filtroInativos" onclick="aplicarFiltro('inativos')">Inativos</div>
-        <div class="grid-count" id="gridCount">0 registros</div>
-    </div>
-    <div id="gridUsuarios" class="ag-theme-quartz" style="height:420px;width:100%"></div>
-</div>
 
-<!-- MODAL FORM -->
+        <div class="table-container">
+
+            <!-- FILTROS -->
+            <div class="area-filtro">
+                <select id="select-tipo-filtro" class="select-filtro" onchange="filtrarTabela()">
+                    <option value="nome">Nome</option>
+                    <option value="documento">CPF</option>
+                </select>
+                <input type="text" id="input-termo-busca" class="input-filtro"
+                       placeholder="Filtrar..." oninput="filtrarTabela()">
+
+                <!-- Filtro de status -->
+                <div class="filtro-status">
+                    <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                    <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
+                    <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                </div>
+            </div>
+
+            <!-- TABELA -->
+            <table class="table-usuarios" id="tabela-usuarios">
+                <thead>
+                    <tr>
+                        <th>Ações</th>
+                        <th>Status</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Login</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+
+            <!-- PAGINAÇÃO -->
+            <div class="paginacao">
+                <span class="paginacao-info"></span>
+                <div class="paginacao-controles"></div>
+            </div>
+        </div>
+
+    </section>
+</main>
 <div class="modal-overlay" id="modalForm">
     <div class="modal">
-        <div class="modal-hd">
-            <div><div class="modal-title" id="modalTitulo">Novo Usuário</div><div class="modal-sub" id="modalSub">Preencha os dados.</div></div>
-            <button class="modal-close" onclick="fecharModal('modalForm')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-titulo" id="modalTitulo">Novo Usuário</h3>
+                <p class="modal-sub" id="modalSub">Preencha os dados do novo usuário.</p>
+            </div>
+            <button class="modal-fechar" onclick="fecharModal('modalForm')">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
-        <input type="hidden" id="formId">
-        <div class="form-row">
-            <div class="form-group"><label class="form-label">Nome completo</label><input type="text" class="form-input" id="formNome" placeholder="João Silva"></div>
-            <div class="form-group"><label class="form-label">Login</label><input type="text" class="form-input" id="formLogin" placeholder="joao.silva"></div>
+        <div class="modal-body">
+            <input type="hidden" id="formId" />
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="formNome">Nome <span class="obrigatorio">*</span></label>
+                    <input type="text" id="formNome" placeholder="Nome completo" />
+                </div>
+                <div class="form-group">
+                    <label for="formCPF">CPF</label>
+                    <input type="text" id="formCPF" placeholder="000.000.000-00" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="formLogin">Login <span class="obrigatorio">*</span></label>
+                    <input type="text" id="formLogin" placeholder="Login de acesso" />
+                </div>
+                <div class="form-group">
+                    <label for="formSenha">Senha</label>
+                    <input type="password" id="formSenha" placeholder="Deixe em branco para manter" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="formEmail">E-mail</label>
+                    <input type="email" id="formEmail" placeholder="email@exemplo.com" />
+                </div>
+                <div class="form-group">
+                    <label for="formTelefone">Telefone</label>
+                    <input type="text" id="formTelefone" placeholder="(00) 00000-0000" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="formCargo">Perfil <span class="obrigatorio">*</span></label>
+                    <select id="formCargo">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
+            </div>
         </div>
-        <div class="form-row">
-            <div class="form-group"><label class="form-label">Senha</label><input type="password" class="form-input" id="formSenha" placeholder="••••••••"></div>
-            <div class="form-group"><label class="form-label">CPF</label><input type="text" class="form-input" id="formCPF" placeholder="000.000.000-00"></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label class="form-label">Perfil</label><select class="form-input" id="formCargo"><option value="">Carregando...</option></select></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="formEmail" placeholder="email@exemplo.com"></div>
-            <div class="form-group"><label class="form-label">Telefone</label><input type="text" class="form-input" id="formTelefone" placeholder="(00) 00000-0000"></div>
-        </div>
-        <div class="modal-ft">
-            <button class="btn btn-ghost" onclick="fecharModal('modalForm')">Cancelar</button>
-            <button class="btn btn-primary" onclick="salvarUsuario()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>Salvar</button>
+        <div class="modal-footer">
+            <button class="btn-secundario" onclick="fecharModal('modalForm')">Cancelar</button>
+            <button class="btn-primario" onclick="salvarUsuario()">Salvar</button>
         </div>
     </div>
 </div>
 
 <!-- MODAL INATIVAR -->
 <div class="modal-overlay" id="modalInativar">
-    <div class="modal" style="max-width:380px">
-        <div class="confirm-icon warning"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg></div>
-        <div class="confirm-title">Inativar Usuário</div>
-        <p class="confirm-text">Tem certeza que deseja inativar <span class="confirm-name" id="nomeInativar"></span>? O usuário perderá o acesso.</p>
-        <div class="modal-ft">
-            <button class="btn btn-ghost" onclick="fecharModal('modalInativar')">Cancelar</button>
-            <button class="btn btn-warning" onclick="confirmarInativar()">Inativar</button>
+    <div class="modal modal-confirmacao">
+        <div class="modal-header">
+            <h3 class="modal-titulo">Inativar Usuário</h3>
+            <button class="modal-fechar" onclick="fecharModal('modalInativar')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Tem certeza que deseja inativar o usuário <strong id="nomeInativar"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secundario" onclick="fecharModal('modalInativar')">Cancelar</button>
+            <button class="btn-perigo" onclick="confirmarInativar()">Inativar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL REATIVAR -->
+<!-- MODAL ATIVAR -->
 <div class="modal-overlay" id="modalAtivar">
-    <div class="modal" style="max-width:380px">
-        <div class="confirm-icon success"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-        <div class="confirm-title">Reativar Usuário</div>
-        <p class="confirm-text">Deseja reativar <span class="confirm-name" id="nomeAtivar"></span>?</p>
-        <div class="modal-ft">
-            <button class="btn btn-ghost" onclick="fecharModal('modalAtivar')">Cancelar</button>
-            <button class="btn btn-success" onclick="confirmarAtivar()">Reativar</button>
+    <div class="modal modal-confirmacao">
+        <div class="modal-header">
+            <h3 class="modal-titulo">Reativar Usuário</h3>
+            <button class="modal-fechar" onclick="fecharModal('modalAtivar')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Tem certeza que deseja reativar o usuário <strong id="nomeAtivar"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secundario" onclick="fecharModal('modalAtivar')">Cancelar</button>
+            <button class="btn-primario" onclick="confirmarAtivar()">Reativar</button>
         </div>
     </div>
 </div>
@@ -589,91 +167,278 @@
 
 @section scripts {
     <script>
-        let gridApi, idPendente=null, filtroAtual='todos', todos=[];
+                let idPendente = null, filtroAtual = 'todos', todos = [];
+        let paginaAtual = 1;
+        const itensPorPagina = 10;
+        let dadosFiltrados = [];
 
-        const cols = [
-            { field:'nome',      headerName:'Nome',   flex:2, sortable:true, filter:true },
-            { field:'login',     headerName:'Login',  flex:1.5, sortable:true },
-            { field:'nomeCargo', headerName:'Perfil', flex:1, sortable:true },
-            { field:'fAtivo', headerName:'Status', flex:1, cellRenderer: p=>`<span class="status-badge ${p.value?'ativo':'inativo'}"><span class="status-dot"></span>${p.value?'Ativo':'Inativo'}</span>` },
-            { headerName:'Ações', flex:1, sortable:false, filter:false, cellRenderer: p=>{
-                const u=p.data;
-                const tog=u.fAtivo
-                    ?`<button class="action-btn deactivate" onclick="abrirInativar(${u.idUsuario},'${u.nome}')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>`
-                    :`<button class="action-btn activate" onclick="abrirAtivar(${u.idUsuario},'${u.nome}')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>`;
-                return `<div class="action-btns"><button class="action-btn edit" onclick="abrirEditar(${u.idUsuario})"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>${tog}</div>`;
-            }}
-        ];
-        agGrid.createGrid(document.getElementById('gridUsuarios'),{columnDefs:cols,rowData:[],rowHeight:46,suppressCellFocus:true,
-            onGridReady:p=>{gridApi=p.api;carregar();},
-            onModelUpdated:()=>{if(gridApi){const c=gridApi.getDisplayedRowCount();document.getElementById('gridCount').textContent=`${c} registro${c!==1?'s':''}`}}
+        async function carregar() {
+            try {
+                const r = await fetch('/Usuario/Listar');
+                if (!r.ok) throw 0;
+                todos = await r.json();
+                aplicarFiltro(filtroAtual);
+                carregarCargos();
+            } catch {
+                toast('Erro ao carregar usuários.', 'error');
+            }
+        }
+
+        function aplicarFiltro(t) {
+            filtroAtual = t;
+
+            document.querySelectorAll('.btn-status-filtro').forEach(b => b.classList.remove('ativo-sel'));
+            const mapa = { todos: 'btn-filtro-todos', ativo: 'btn-filtro-ativo', inativo: 'btn-filtro-inativo' };
+            document.getElementById(mapa[t])?.classList.add('ativo-sel');
+
+            const termo = document.getElementById('input-termo-busca').value.toLowerCase();
+            const tipo  = document.getElementById('select-tipo-filtro').value;
+
+            let base = t === 'ativo'   ? todos.filter(u => u.fAtivo)
+                     : t === 'inativo' ? todos.filter(u => !u.fAtivo)
+                     : todos;
+
+            if (termo) {
+                base = base.filter(u => {
+                    const val = tipo === 'documento' ? (u.cpf ?? '') : (u.nome ?? '');
+                    return val.toLowerCase().includes(termo);
+                });
+            }
+
+            dadosFiltrados = base;
+            paginaAtual = 1;
+            renderizarTabela();
+        }
+
+        function filtrarTabela() { aplicarFiltro(filtroAtual); }
+        function setFiltroStatus(t) { aplicarFiltro(t); }
+
+        function renderizarTabela() {
+            const tbody = document.querySelector('#tabela-usuarios tbody');
+            tbody.innerHTML = '';
+
+            const total  = dadosFiltrados.length;
+            const inicio = (paginaAtual - 1) * itensPorPagina;
+            const fim    = Math.min(inicio + itensPorPagina, total);
+            const pagina = dadosFiltrados.slice(inicio, fim);
+
+            if (pagina.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum registro encontrado.</td></tr>`;
+            } else {
+                pagina.forEach(u => {
+                    const statusBadge = u.fAtivo
+                        ? `<span class="status-pill status-ativo">Ativo</span>`
+                        : `<span class="status-pill status-inativo">Inativo</span>`;
+
+                    const btnToggle = u.fAtivo
+                        ? `<button class="btn-acao btn-inativar" title="Inativar" onclick="abrirInativar(${u.idUsuario},'${u.nome}')">
+                               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                               </svg>
+                           </button>`
+                        : `<button class="btn-acao btn-reativar" title="Reativar" onclick="abrirAtivar(${u.idUsuario},'${u.nome}')">
+                               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                               </svg>
+                           </button>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div class="area-acoes">
+                                <button class="btn-acao btn-editar" title="Editar" onclick="abrirEditar(${u.idUsuario})">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                ${btnToggle}
+                            </div>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>${u.nome ?? ''}</td>
+                        <td>${u.cpf ?? ''}</td>
+                        <td>${u.login ?? ''}</td>
+                        <td>${u.email ?? ''}</td>
+                        <td>${u.telefone ?? ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            renderizarPaginacao(total, inicio, fim);
+        }
+
+        function renderizarPaginacao(total, inicio, fim) {
+            const totalPaginas = Math.ceil(total / itensPorPagina) || 1;
+
+            document.querySelector('.paginacao-info').textContent =
+                total === 0 ? '0 registros'
+                            : `${inicio + 1}–${fim} de ${total} registro${total !== 1 ? 's' : ''}`;
+
+            const controles = document.querySelector('.paginacao-controles');
+            controles.innerHTML = '';
+
+            const btnAnt = document.createElement('button');
+            btnAnt.className = 'btn-pagina';
+            btnAnt.textContent = '‹';
+            btnAnt.disabled = paginaAtual === 1;
+            btnAnt.onclick = () => { paginaAtual--; renderizarTabela(); };
+            controles.appendChild(btnAnt);
+
+            for (let i = 1; i <= totalPaginas; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-pagina' + (i === paginaAtual ? ' ativo' : '');
+                btn.textContent = i;
+                btn.onclick = () => { paginaAtual = i; renderizarTabela(); };
+                controles.appendChild(btn);
+            }
+
+            const btnProx = document.createElement('button');
+            btnProx.className = 'btn-pagina';
+            btnProx.textContent = '›';
+            btnProx.disabled = paginaAtual === totalPaginas;
+            btnProx.onclick = () => { paginaAtual++; renderizarTabela(); };
+            controles.appendChild(btnProx);
+        }
+
+        async function carregarCargos() {
+            try {
+                const r = await fetch('/Usuario/ListarCargos');
+                if (!r.ok) throw 0;
+                const cs = await r.json();
+                const s = document.getElementById('formCargo');
+                s.innerHTML = '<option value="">Selecione</option>';
+                cs.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c.idCargo;
+                    o.textContent = c.nome;
+                    s.appendChild(o);
+                });
+            } catch {
+                toast('Erro ao carregar cargos.', 'error');
+            }
+        }
+
+        function abrirModal(id)  { document.getElementById(id).classList.add('open'); }
+        function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(o =>
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+        );
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape')
+                document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
         });
 
-        async function carregar(){
-            try{const r=await fetch('/Usuario/Listar');if(!r.ok)throw 0;todos=await r.json();aplicarFiltro(filtroAtual);carregarCargos();}
-            catch{toast('Erro ao carregar usuários.','error');}
-        }
-        function aplicarFiltro(t){
-            filtroAtual=t;
-            document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
-            document.getElementById(`filtro${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.add('active');
-            gridApi.setGridOption('rowData',t==='ativos'?todos.filter(u=>u.fAtivo):t==='inativos'?todos.filter(u=>!u.fAtivo):todos);
-        }
-        function filtrarGrid(v){gridApi.setGridOption('quickFilterText',v);}
-        async function carregarCargos(){
-            try{const r=await fetch('/Usuario/ListarCargos');if(!r.ok)throw 0;const cs=await r.json();const s=document.getElementById('formCargo');s.innerHTML='<option value="">Selecione</option>';cs.forEach(c=>{const o=document.createElement('option');o.value=c.idCargo;o.textContent=c.nome;s.appendChild(o)});}
-            catch{toast('Erro ao carregar cargos.','error');}
-        }
-
-        function abrirModal(id){document.getElementById(id).classList.add('open');}
-        function fecharModal(id){document.getElementById(id).classList.remove('open');}
-        document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
-        document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'))});
-
-        function abrirModalCriar(){
-            document.getElementById('modalTitulo').textContent='Novo Usuário';
-            document.getElementById('modalSub').textContent='Preencha os dados do novo usuário.';
-            ['formId','formNome','formLogin','formSenha','formCPF','formEmail','formTelefone'].forEach(i=>document.getElementById(i).value='');
+        function abrirModalCriar() {
+            document.getElementById('modalTitulo').textContent = 'Novo Usuário';
+            document.getElementById('modalSub').textContent    = 'Preencha os dados do novo usuário.';
+            ['formId','formNome','formLogin','formSenha','formCPF','formEmail','formTelefone']
+                .forEach(i => document.getElementById(i).value = '');
+            document.getElementById('formCargo').value = '';
             abrirModal('modalForm');
         }
-        function abrirEditar(id){
-            const u=todos.find(u=>u.idUsuario===parseInt(id));if(!u)return;
-            document.getElementById('modalTitulo').textContent='Editar Usuário';
-            document.getElementById('modalSub').textContent=`Editando: ${u.nome}`;
-            document.getElementById('formId').value=u.idUsuario;
-            document.getElementById('formNome').value=u.nome;
-            document.getElementById('formLogin').value=u.login;
-            document.getElementById('formSenha').value='';
-            document.getElementById('formCargo').value=u.cargo_id;
-            document.getElementById('formEmail').value=u.email??'';
-            document.getElementById('formTelefone').value=u.telefone??'';
+
+        function abrirEditar(id) {
+            const u = todos.find(u => u.idUsuario === id);
+            if (!u) return;
+            document.getElementById('modalTitulo').textContent = 'Editar Usuário';
+            document.getElementById('modalSub').textContent    = `Editando: ${u.nome}`;
+            document.getElementById('formId').value       = u.idUsuario;
+            document.getElementById('formNome').value     = u.nome;
+            document.getElementById('formLogin').value    = u.login;
+            document.getElementById('formSenha').value    = '';
+            document.getElementById('formCargo').value    = u.cargo_id ?? '';
+            document.getElementById('formCPF').value      = u.cpf ?? '';
+            document.getElementById('formEmail').value    = u.email ?? '';
+            document.getElementById('formTelefone').value = u.telefone ?? '';
             abrirModal('modalForm');
         }
-        function abrirInativar(id,nome){idPendente=id;document.getElementById('nomeInativar').textContent=nome;abrirModal('modalInativar');}
-        function abrirAtivar(id,nome){idPendente=id;document.getElementById('nomeAtivar').textContent=nome;abrirModal('modalAtivar');}
 
-        async function salvarUsuario(){
-            const id=document.getElementById('formId').value;
-            const p={idUsuario:id?parseInt(id):0,nome:document.getElementById('formNome').value,login:document.getElementById('formLogin').value,senha:document.getElementById('formSenha').value,cpf:document.getElementById('formCPF').value,email:document.getElementById('formEmail').value||null,telefone:document.getElementById('formTelefone').value||null,cargo_id:parseInt(document.getElementById('formCargo').value)};
-            if(!p.nome||!p.login){toast('Preencha os campos obrigatórios.','error');return;}
-            try{const r=await fetch(id?'/Usuario/Editar':'/Usuario/Criar',{method:'POST',headers:{'Content-Type':'application/json','RequestVerificationToken':getToken()},body:JSON.stringify(p)});if(!r.ok)throw 0;fecharModal('modalForm');await carregar();toast(id?'Usuário atualizado!':'Usuário criado!');}
-            catch{toast('Erro ao salvar.','error');}
-        }
-        async function confirmarInativar(){
-            try{const r=await fetch(`/Usuario/AlterarStatus/${idPendente}`,{method:'POST',headers:{'RequestVerificationToken':getToken()}});if(!r.ok)throw 0;fecharModal('modalInativar');await carregar();toast('Usuário inativado.');}
-            catch{toast('Erro ao inativar.','error');}
-        }
-        async function confirmarAtivar(){
-            try{const r=await fetch(`/Usuario/AlterarStatus/${idPendente}`,{method:'POST',headers:{'RequestVerificationToken':getToken()}});if(!r.ok)throw 0;fecharModal('modalAtivar');await carregar();toast('Usuário reativado.');}
-            catch{toast('Erro ao reativar.','error');}
+        function abrirInativar(id, nome) {
+            idPendente = id;
+            document.getElementById('nomeInativar').textContent = nome;
+            abrirModal('modalInativar');
         }
 
-        function toast(msg,tipo='success'){
-            const c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast';
-            const ico=tipo==='success'?'<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>':'<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
-            t.innerHTML=`<div class="toast-icon ${tipo}"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">${ico}</svg></div><div class="toast-msg">${msg}</div>`;
-            c.appendChild(t);setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),250)},3000);
+        function abrirAtivar(id, nome) {
+            idPendente = id;
+            document.getElementById('nomeAtivar').textContent = nome;
+            abrirModal('modalAtivar');
         }
-        function getToken(){return document.querySelector('input[name="__RequestVerificationToken"]')?.value??'';}
+
+        async function salvarUsuario() {
+            const id = document.getElementById('formId').value;
+            const p = {
+                idUsuario : id ? parseInt(id) : 0,
+                nome      : document.getElementById('formNome').value,
+                login     : document.getElementById('formLogin').value,
+                senha     : document.getElementById('formSenha').value,
+                cpf       : document.getElementById('formCPF').value,
+                email     : document.getElementById('formEmail').value || null,
+                telefone  : document.getElementById('formTelefone').value || null,
+                cargo_id  : parseInt(document.getElementById('formCargo').value)
+            };
+            if (!p.nome || !p.login) { toast('Preencha os campos obrigatórios.', 'error'); return; }
+            try {
+                const r = await fetch(id ? '/Usuario/Editar' : '/Usuario/Criar', {
+                    method  : 'POST',
+                    headers : { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                    body    : JSON.stringify(p)
+                });
+                if (!r.ok) throw 0;
+                fecharModal('modalForm');
+                await carregar();
+                toast(id ? 'Usuário atualizado!' : 'Usuário criado!');
+            } catch {
+                toast('Erro ao salvar.', 'error');
+            }
+        }
+
+        async function confirmarInativar() {
+            try {
+                const r = await fetch(`/Usuario/AlterarStatus/${idPendente}`, {
+                    method: 'POST', headers: { 'RequestVerificationToken': getToken() }
+                });
+                if (!r.ok) throw 0;
+                fecharModal('modalInativar');
+                await carregar();
+                toast('Usuário inativado.');
+            } catch {
+                toast('Erro ao inativar.', 'error');
+            }
+        }
+
+        async function confirmarAtivar() {
+            try {
+                const r = await fetch(`/Usuario/AlterarStatus/${idPendente}`, {
+                    method: 'POST', headers: { 'RequestVerificationToken': getToken() }
+                });
+                if (!r.ok) throw 0;
+                fecharModal('modalAtivar');
+                await carregar();
+                toast('Usuário reativado.');
+            } catch {
+                toast('Erro ao reativar.', 'error');
+            }
+        }
+
+        function toast(msg, tipo = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast';
+            const ico = tipo === 'success'
+                ? '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
+            t.innerHTML = `<div class="toast-icon ${tipo}"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">${ico}</svg></div><div class="toast-msg">${msg}</div>`;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+        }
+
+        function getToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        }
+
+        carregar();
     </script>
 }

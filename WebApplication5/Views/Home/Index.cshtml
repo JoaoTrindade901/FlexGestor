@@ -1,218 +1,153 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Home";
+    ViewBag.Title = "Página Inicial";
 }
 
 @section styles {
-    <style>
-        .greeting {
-            margin-bottom: 28px;
-            animation: fadeUp 0.5s ease both;
-        }
-
-            .greeting h2 {
-                font-family: 'Syne', sans-serif;
-                font-weight: 800;
-                font-size: 1.8rem;
-                line-height: 1.2;
-            }
-
-                .greeting h2 span {
-                    background: linear-gradient(135deg, var(--accent), var(--accent2));
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-
-            .greeting p {
-                color: var(--muted);
-                font-size: 0.88rem;
-                margin-top: 6px;
-            }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-bottom: 28px;
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 20px;
-            animation: fadeUp 0.5s ease both;
-            transition: border-color 0.2s, transform 0.2s;
-        }
-
-            .card:hover {
-                border-color: var(--accent);
-                transform: translateY(-2px);
-            }
-
-            .card:nth-child(1) {
-                animation-delay: 0.05s;
-            }
-
-            .card:nth-child(2) {
-                animation-delay: 0.1s;
-            }
-
-        .card-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-
-            .card-icon svg {
-                width: 16px;
-                height: 16px;
-            }
-
-            .card-icon.blue {
-                background: rgba(79,142,255,0.15);
-                color: var(--accent);
-            }
-
-            .card-icon.purple {
-                background: rgba(167,139,250,0.15);
-                color: var(--accent2);
-            }
-
-        .card-value {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .card-label {
-            font-size: 0.78rem;
-            color: var(--muted);
-        }
-
-        .card-trend {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            margin-top: 10px;
-            padding: 3px 8px;
-            border-radius: 20px;
-            background: rgba(52,211,153,0.12);
-            color: var(--success);
-        }
-
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            margin-bottom: 14px;
-        }
-
-        .quick-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
-        }
-
-        .quick-btn {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 7px;
-            text-decoration: none;
-            color: var(--text);
-            transition: all 0.2s;
-            animation: fadeUp 0.5s ease both;
-        }
-
-            .quick-btn:hover {
-                border-color: var(--accent);
-                background: rgba(79,142,255,0.05);
-                transform: translateY(-2px);
-            }
-
-            .quick-btn svg {
-                width: 18px;
-                height: 18px;
-                color: var(--accent);
-            }
-
-            .quick-btn span {
-                font-size: 0.8rem;
-                font-weight: 500;
-            }
-
-            .quick-btn small {
-                font-size: 0.7rem;
-                color: var(--muted);
-            }
-    </style>
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 }
 
-<div class="greeting">
-    <h2>Ola, <span>@(ViewBag.NomeUsuario ?? "Usuario")</span> !</h2>
-    <p>Aqui esta um resumo do sistema hoje.</p>
-</div>
+<main>
+    <h2>Bem-vindo, @(ViewBag.NomeUsuario ?? "Usuário")!</h2>
 
-<div class="cards-grid">
-    <div class="card">
-        <div class="card-icon blue">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        </div>
-        <div class="card-value" id="totalUsuarios">-</div>
-        <div class="card-label">Usuarios ativos</div>
-        <div class="card-trend">atualizado agora</div>
-    </div>
-    <div class="card">
-        <div class="card-icon purple">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-        </div>
-        <div class="card-value" id="totalEmpresas">-</div>
-        <div class="card-label">Empresas cadastradas</div>
-        <div class="card-trend">atualizado agora</div>
-    </div>
-</div>
+    <div class="cards">
 
-<div class="section-title">Acesso rapido</div>
-<div class="quick-grid">
-    <a href="/Usuario" class="quick-btn">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-        <span>Novo Usuario</span>
-        <small>Cadastrar usuario</small>
-    </a>
-    <a href="/Empresa" class="quick-btn">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        <span>Nova Empresa</span>
-        <small>Cadastrar empresa</small>
-    </a>
-    <a href="/ML" class="quick-btn">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-        <span>Previsoes ML</span>
-        <small>Inteligencia de vendas</small>
-    </a>
-</div>
+        <!-- Ticket Médio -->
+        <div class="card">
+            <div class="card-topo">
+                <span class="kpi-label">Ticket Médio</span>
+                <div class="kpi-icon kpi-icon-verde">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+            <div class="kpi-valor kpi-valor-verde" id="ticketMedio">-</div>
+            <p class="kpi-sub">Média por venda este mês</p>
+            <div class="kpi-barra-label">
+                <span>Meta</span>
+                <span id="ticketPercent">-</span>
+            </div>
+            <div class="kpi-barra">
+                <div class="kpi-barra-fill fill-verde" id="ticketBarra" style="width:0%"></div>
+            </div>
+            <div class="card-rodape">
+                <span class="kpi-variacao positiva" id="ticketVariacao"></span>
+                <span class="kpi-periodo">Atual</span>
+            </div>
+        </div>
+
+        <!-- Clientes Ativos -->
+        <div class="card">
+            <div class="card-topo">
+                <span class="kpi-label">Clientes Ativos</span>
+                <div class="kpi-icon kpi-icon-azul">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+            <div class="kpi-valor" id="clientesAtivos">-</div>
+            <p class="kpi-sub" id="clientesTotal">-</p>
+            <div class="kpi-barra-label">
+                <span>Taxa</span>
+                <span id="clientesPercent">-</span>
+            </div>
+            <div class="kpi-barra">
+                <div class="kpi-barra-fill fill-azul" id="clientesBarra" style="width:0%"></div>
+            </div>
+            <div class="card-rodape">
+                <span class="kpi-variacao positiva" id="clientesVariacao"></span>
+                <span class="kpi-periodo">Atual</span>
+            </div>
+        </div>
+
+        <!-- Usuários -->
+        <div class="card">
+            <div class="card-topo">
+                <span class="kpi-label">Usuários</span>
+                <div class="kpi-icon kpi-icon-ciano">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+            </div>
+            <div class="kpi-valor kpi-valor-ciano" id="totalUsuarios">-</div>
+            <p class="kpi-sub">Total no sistema</p>
+            <div class="kpi-barra-label">
+                <span>Atividade</span>
+                <span id="usuariosPercent">-</span>
+            </div>
+            <div class="kpi-barra">
+                <div class="kpi-barra-fill fill-ciano" id="usuariosBarra" style="width:0%"></div>
+            </div>
+            <div class="card-rodape">
+                <span class="kpi-variacao neutra">Sem alterações</span>
+                <span class="kpi-periodo">Atual</span>
+            </div>
+        </div>
+
+        <!-- Empresas -->
+        <div class="card">
+            <div class="card-topo">
+                <span class="kpi-label">Empresas</span>
+                <div class="kpi-icon kpi-icon-roxo">
+                    <i class="bi bi-building"></i>
+                </div>
+            </div>
+            <div class="kpi-valor kpi-valor-roxo" id="totalEmpresas">-</div>
+            <p class="kpi-sub">Empresas cadastradas</p>
+            <div class="kpi-barra-label">
+                <span>Crescimento</span>
+                <span>-</span>
+            </div>
+            <div class="kpi-barra">
+                <div class="kpi-barra-fill fill-roxo" style="width:60%"></div>
+            </div>
+            <div class="card-rodape">
+                <span class="kpi-variacao positiva">+ crescimento</span>
+                <span class="kpi-periodo">Atual</span>
+            </div>
+        </div>
+
+    </div>
+</main>
 
 @section scripts {
     <script>
-        async function carregarTotais() {
+        async function carregarDashboard() {
             try {
-                const [resU, resE] = await Promise.all([fetch('/Usuario/Total'), fetch('/Empresa/Total')]);
-                if (resU.ok) document.getElementById('totalUsuarios').textContent = await resU.text();
-                if (resE.ok) document.getElementById('totalEmpresas').textContent = await resE.text();
-            } catch {}
+                const [resUsuarios, resEmpresas] = await Promise.all([
+                    fetch('/Usuario/Total'),
+                    fetch('/Empresa/Total')
+                ]);
+
+                if (resUsuarios.ok) {
+                    const total = await resUsuarios.text();
+                    document.getElementById('totalUsuarios').textContent = total;
+
+                    // exemplo simples de % fake
+                    document.getElementById('usuariosPercent').textContent = "80%";
+                    document.getElementById('usuariosBarra').style.width = "80%";
+                }
+
+                if (resEmpresas.ok) {
+                    const total = await resEmpresas.text();
+                    document.getElementById('totalEmpresas').textContent = total;
+                }
+
+                // MOCK (depois você liga na API real)
+                document.getElementById('ticketMedio').textContent = "R$ 312,50";
+                document.getElementById('ticketPercent').textContent = "89%";
+                document.getElementById('ticketBarra').style.width = "89%";
+                document.getElementById('ticketVariacao').innerHTML = '<i class="bi bi-arrow-up-short"></i> +5%';
+
+                document.getElementById('clientesAtivos').textContent = "248";
+                document.getElementById('clientesTotal').textContent = "de 261 cadastrados";
+                document.getElementById('clientesPercent').textContent = "95%";
+                document.getElementById('clientesBarra').style.width = "95%";
+                document.getElementById('clientesVariacao').innerHTML = '<i class="bi bi-arrow-up-short"></i> +12 novos';
+
+            } catch (e) {
+                console.error(e);
+            }
         }
-        carregarTotais();
+
+        carregarDashboard();
     </script>
 }

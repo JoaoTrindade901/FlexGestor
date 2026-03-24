@@ -35,6 +35,7 @@ public class UsuarioController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Criar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
@@ -43,10 +44,20 @@ public class UsuarioController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Editar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.Editar(usuario);
+        return Ok();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AlterarStatus(int id)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.AlterarStatus(id);
         return Ok();
     }
 }

@@ -1,0 +1,209 @@
+﻿/* ===== HOME.CSS ===== */
+/* Valores em px — imune a qualquer conflito de font-size/rem do sistema */
+
+main h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e3c72;
+    margin-bottom: 24px;
+}
+
+/* Grid de cards */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background-color: #fff;
+    padding: 28px 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+/* Topo do card */
+.card-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.kpi-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', sans-serif;
+}
+
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.kpi-icon-azul {
+    background: #eff6ff;
+    color: #1e3c72;
+}
+
+.kpi-icon-verde {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.kpi-icon-vermelho {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.kpi-icon-laranja {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.kpi-icon-roxo {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.kpi-icon-ciano {
+    background: #ecfeff;
+    color: #0e7490;
+}
+
+/* Valor principal */
+.kpi-valor {
+    font-size: 38px;
+    font-weight: 700;
+    color: #1e3c72;
+    line-height: 1;
+    font-family: 'Poppins', sans-serif;
+}
+
+.kpi-valor-alerta {
+    color: #dc2626;
+}
+
+.kpi-valor-verde {
+    color: #15803d;
+}
+
+.kpi-valor-roxo {
+    color: #7c3aed;
+}
+
+.kpi-valor-ciano {
+    color: #0e7490;
+}
+
+.kpi-valor-laranja {
+    color: #c2410c;
+}
+
+/* Subtítulo */
+.kpi-sub {
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Barra de progresso */
+.kpi-barra-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 5px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.kpi-barra {
+    height: 7px;
+    background: #f0f2f5;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.kpi-barra-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.fill-azul {
+    background: #1e3c72;
+}
+
+.fill-verde {
+    background: #16a34a;
+}
+
+.fill-vermelho {
+    background: #dc2626;
+}
+
+.fill-laranja {
+    background: #ea580c;
+}
+
+.fill-roxo {
+    background: #7c3aed;
+}
+
+.fill-ciano {
+    background: #0e7490;
+}
+
+/* Rodapé */
+.card-rodape {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid #f0f2f5;
+}
+
+.kpi-variacao {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .kpi-variacao.positiva {
+        color: #16a34a;
+    }
+
+    .kpi-variacao.negativa {
+        color: #dc2626;
+    }
+
+    .kpi-variacao.neutra {
+        color: #6b7280;
+    }
+
+.kpi-periodo {
+    font-size: 13px;
+    color: #9ca3af;
+    font-family: 'Poppins', sans-serif;
+}
