@@ -20,13 +20,13 @@ namespace WebApplication5.Services
 
             if (user == null)
             {
-                return user;
+                return null;
             }
                 
 
             if (!_password.Verify(senha, user.Senha))
             {
-                return user;
+                return null;
             }
                 
 
