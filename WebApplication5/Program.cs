@@ -1,12 +1,12 @@
 using WebApplication5.Repositories;
 using WebApplication5.Services;
 using System.Data;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IDbConnection>(sp =>
-    new SqlConnection(builder.Configuration.GetConnectionString("Default")));
+    new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddControllersWithViews();
 

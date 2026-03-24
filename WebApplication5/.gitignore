@@ -1,0 +1,14 @@
+﻿# Dados sensíveis
+appsettings.Development.json
+
+# Build
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Pacotes
+packages/
