@@ -39,6 +39,7 @@ public class SenhaResetService
     public bool RedefinirSenha(string token, string novaSenha)
     {
         var registro = _tokenRepo.Buscar(token);
+        Console.WriteLine($"Token recebido: '{token}'");
         if (registro == null) return false;
 
         var hash = _senhaService.Hash(novaSenha);

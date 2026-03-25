@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json.Linq;
 using System.Data;
 
 public class TokenResetRepository
@@ -21,9 +22,9 @@ public class TokenResetRepository
     public TokenResetSenhaModel? Buscar(string token)
     {
         using var conn = new MySqlConnection(_connectionString);
-        return conn.QueryFirstOrDefault<TokenResetSenhaModel>("sp_BuscarTokenReset",
-            new { token },
-            commandType: CommandType.StoredProcedure);
+        return conn.QueryFirstOrDefault<TokenResetSenhaModel>(
+            "SELECT * FROM TokenResetSenha WHERE token = @token AND fUsado = 0",
+            new { token });
     }
 
     public void Invalidar(string token)

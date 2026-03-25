@@ -17,7 +17,7 @@ public class EmailService
     {
         var client = new SendGridClient(_apiKey);
         var link = $"{_baseUrl}/Login/RedefinirSenha?token={token}";
-        var from = new EmailAddress("decaozao@gmail.com", "teste");
+        var from = new EmailAddress("flexgestor5@gmail.com", "teste");
         var to = new EmailAddress(emailDestino, nomeUsuario);
         var subject = "Redefinição de senha — FlexGestor";
         var html = $@"
