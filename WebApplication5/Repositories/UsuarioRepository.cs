@@ -67,7 +67,7 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AlterarStatusUsuario",
-                new { idUsuario },
+                new { p_idUsuario = idUsuario },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -78,14 +78,14 @@ namespace WebApplication5.Repositories
                 "sp_EditarUsuario",
                 new
                 {
-                    usuario.IdUsuario,
-                    usuario.Nome,
-                    usuario.Login,
-                    Senha = string.IsNullOrEmpty(usuario.Senha) ? null : usuario.Senha,
-                    usuario.CPF,
-                    usuario.Email,
-                    usuario.Telefone,
-                    cargo_id = usuario.cargo_id
+                    p_idUsuario = usuario.IdUsuario,
+                    p_Nome = usuario.Nome,
+                    p_Login = usuario.Login,
+                    p_Senha = string.IsNullOrEmpty(usuario.Senha) ? null : usuario.Senha,
+                    p_CPF = usuario.CPF,
+                    p_Email = usuario.Email,
+                    p_Telefone = usuario.Telefone,
+                    p_cargo_id = usuario.cargo_id
                 },
                 commandType: CommandType.StoredProcedure);
         }

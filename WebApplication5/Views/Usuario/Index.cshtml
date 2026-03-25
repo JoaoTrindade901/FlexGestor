@@ -85,7 +85,7 @@
                 </div>
                 <div class="form-group">
                     <label for="formCPF">CPF</label>
-                    <input type="text" id="formCPF" placeholder="000.000.000-00" />
+                    <input type="text" maxlength="14" id="formCPF" placeholder="000.000.000-00" />
                 </div>
             </div>
             <div class="form-row">
@@ -95,7 +95,7 @@
                 </div>
                 <div class="form-group">
                     <label for="formSenha">Senha</label>
-                    <input type="password" id="formSenha" placeholder="Deixe em branco para manter" />
+                    <input type="password" id="formSenha" placeholder="******" />
                 </div>
             </div>
             <div class="form-row">
@@ -104,8 +104,8 @@
                     <input type="email" id="formEmail" placeholder="email@exemplo.com" />
                 </div>
                 <div class="form-group">
-                    <label for="formTelefone">Telefone</label>
-                    <input type="text" id="formTelefone" placeholder="(00) 00000-0000" />
+                    <label for="formTelefone" >Telefone</label>
+                    <input type="text" maxlength="15" id="formTelefone" placeholder="(01) 01001-0000" />
                 </div>
             </div>
             <div class="form-row">
@@ -256,10 +256,10 @@
                         </td>
                         <td>${statusBadge}</td>
                         <td>${u.nome ?? ''}</td>
-                        <td>${u.cpf ?? ''}</td>
+                        <td>${formatarCPF(u.cpf)}</td>
                         <td>${u.login ?? ''}</td>
                         <td>${u.email ?? ''}</td>
-                        <td>${u.telefone ?? ''}</td>
+                        <td>${formatarTelefone(u.telefone)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -349,9 +349,9 @@
             document.getElementById('formLogin').value    = u.login;
             document.getElementById('formSenha').value    = '';
             document.getElementById('formCargo').value    = u.cargo_id ?? '';
-            document.getElementById('formCPF').value      = u.cpf ?? '';
+            document.getElementById('formCPF').value      = formatarCPF(u.cpf ?? '');
+            document.getElementById('formTelefone').value = formatarTelefone(u.telefone ?? '');
             document.getElementById('formEmail').value    = u.email ?? '';
-            document.getElementById('formTelefone').value = u.telefone ?? '';
             abrirModal('modalForm');
         }
 
@@ -367,16 +367,16 @@
             abrirModal('modalAtivar');
         }
 
-        async function salvarUsuario() {
+                async function salvarUsuario() {
             const id = document.getElementById('formId').value;
             const p = {
                 idUsuario : id ? parseInt(id) : 0,
                 nome      : document.getElementById('formNome').value,
                 login     : document.getElementById('formLogin').value,
                 senha     : document.getElementById('formSenha').value,
-                cpf       : document.getElementById('formCPF').value,
+                cpf       : document.getElementById('formCPF').value.replace(/\D/g, ''),
                 email     : document.getElementById('formEmail').value || null,
-                telefone  : document.getElementById('formTelefone').value || null,
+                telefone  : document.getElementById('formTelefone').value.replace(/\D/g, ''),
                 cargo_id  : parseInt(document.getElementById('formCargo').value)
             };
             if (!p.nome || !p.login) { toast('Preencha os campos obrigatórios.', 'error'); return; }
@@ -423,21 +423,57 @@
             }
         }
 
-        function toast(msg, tipo = 'success') {
+                function toast(msg, tipo = 'success') {
             const c = document.getElementById('toastContainer');
             const t = document.createElement('div');
             t.className = 'toast';
-            const ico = tipo === 'success'
-                ? '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'
-                : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
-            t.innerHTML = `<div class="toast-icon ${tipo}"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">${ico}</svg></div><div class="toast-msg">${msg}</div>`;
+            t.innerHTML = `<span class="toast-icon ${tipo}"></span><span class="toast-msg">${msg}</span>`;
             c.appendChild(t);
-            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 200); }, 2500);
         }
 
         function getToken() {
             return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
         }
+
+
+        function mascararCPF(v) {
+            v = v.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            if (v.length > 6) return v.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+            if (v.length > 3) return v.replace(/(\d{3})(\d+)/, '$1.$2');
+            return v;
+        }
+
+        function mascararTelefone(v) {
+            v = v.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            if (v.length > 6)  return v.replace(/(\d{2})(\d{4,5})(\d*)/, '($1) $2-$3');
+            if (v.length > 2)  return v.replace(/(\d{2})(\d+)/, '($1) $2');
+            return v;
+        }
+
+                function formatarCPF(v) {
+            if (!v) return '';
+            v = v.replace(/\D/g, '');
+            return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function formatarTelefone(v) {
+            if (!v) return '';
+            v = v.replace(/\D/g, '');
+            if (v.length === 11) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            if (v.length === 10) return v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+            return v;
+        }
+
+                document.getElementById('formCPF').addEventListener('input', function() {
+            this.value = mascararCPF(this.value);
+        });
+
+        document.getElementById('formTelefone').addEventListener('input', function() {
+            this.value = mascararTelefone(this.value);
+        });
 
         carregar();
     </script>
