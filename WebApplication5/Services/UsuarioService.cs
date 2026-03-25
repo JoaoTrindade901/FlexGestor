@@ -14,9 +14,9 @@ namespace WebApplication5.Services
             _password = password;
         }
 
-        public IEnumerable<UsuarioListaGridDto> Listar()
+        public IEnumerable<UsuarioModel> Listar(int idEmpresa)
         {
-            return _repo.Listar();
+            return _repo.Listar(idEmpresa);
         }
 
         public void Criar(UsuarioModel usuario)

@@ -14,12 +14,12 @@ namespace WebApplication5.Repositories
             _connectionString = config.GetConnectionString("Default");
         }
 
-        public IEnumerable<UsuarioListaGridDto> Listar()
+        public IEnumerable<UsuarioModel> Listar(int idEmpresa)
         {
             using var conn = new MySqlConnection(_connectionString);
-
-            return conn.Query<UsuarioListaGridDto>(
+            return conn.Query<UsuarioModel>(
                 "sp_ListarUsuario",
+                new { p_idEmpresa = idEmpresa },
                 commandType: CommandType.StoredProcedure);
         }
 

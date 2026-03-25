@@ -33,6 +33,7 @@ namespace WebApplication5.Controllers
 
             HttpContext.Session.SetInt32("idUsuario", user.IdUsuario);
             HttpContext.Session.SetString("nomeUsuario", user.Nome);
+            HttpContext.Session.SetInt32("IdEmpresa", user.idEmpresa);
 
             return RedirectToAction("Index", "Home");
         }

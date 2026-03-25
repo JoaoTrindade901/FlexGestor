@@ -24,8 +24,9 @@ public class UsuarioController : BaseController
 
     public IActionResult Listar()
     {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        return Json(_service.Listar());
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa");
+        if (idEmpresa == null) return Unauthorized();
+        return Ok(_service.Listar(idEmpresa.Value));
     }
 
     public IActionResult ListarCargos()
