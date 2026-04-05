@@ -1,3 +1,4 @@
+// Controllers/EstoqueController.cs
 using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
 using WebApplication5.Services;
@@ -6,10 +7,7 @@ public class EstoqueController : BaseController
 {
     private readonly EstoqueService _service;
 
-    public EstoqueController(EstoqueService service)
-    {
-        _service = service;
-    }
+    public EstoqueController(EstoqueService service) => _service = service;
 
     public IActionResult Index()
     {
@@ -24,19 +22,11 @@ public class EstoqueController : BaseController
         return Json(_service.Listar(idEmpresa));
     }
 
-    [HttpPost]
-    public IActionResult Filtrar([FromBody] MovimentacaoFiltroDto filtro)
+    public IActionResult ListarMovimentacoes()
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        return Json(_service.Filtrar(filtro, idEmpresa));
-    }
-
-    public IActionResult ListarMovimentacoes(int idProduto)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        return Json(_service.ListarMovimentacoes(idProduto, idEmpresa));
+        return Json(_service.ListarMovimentacoes(idEmpresa));
     }
 
     [HttpPost]

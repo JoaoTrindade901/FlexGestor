@@ -53,17 +53,14 @@ namespace WebApplication5.Repositories
                 "sp_CriarProduto",
                 new
                 {
-                    p_IdEmpresa = p.IdEmpresa,
+                    p_idEmpresa = p.IdEmpresa,
                     p_Nome = p.Nome,
                     p_Descricao = p.Descricao,
-                    p_SKU = p.SKU,
-                    p_CodigoBarras = p.CodigoBarras,
-                    p_PrecoCusto = p.PrecoCusto,
-                    p_PrecoVenda = p.PrecoVenda,
-                    p_IdCategoria = p.IdCategoria,
-                    p_Unidade = p.Unidade,
-                    p_FAtivo = p.FAtivo,
-                    p_DthCadastro = p.DthCadastro.Date
+                    p_codBarras = p.CodigoBarras,
+                    p_categoriaProduto_id = p.IdCategoria,
+                    p_precoCusto = p.PrecoCusto,
+                    p_precoVenda = p.PrecoVenda,
+                    p_fAtivo = p.FAtivo
                 },
                 commandType: CommandType.StoredProcedure);
         }

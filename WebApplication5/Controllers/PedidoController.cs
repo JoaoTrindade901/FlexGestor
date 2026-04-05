@@ -39,11 +39,13 @@ public class PedidoController : BaseController
     }
 
     [HttpPost]
+    [HttpPost]
     public IActionResult Criar([FromBody] PedidoCriarDto dto)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idGerado = _service.Criar(dto, idEmpresa);
+        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
+        var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
         return Ok(new { idPedido = idGerado });
     }
 

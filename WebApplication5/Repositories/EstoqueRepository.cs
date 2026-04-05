@@ -1,3 +1,4 @@
+// Repositories/EstoqueRepository.cs
 using Dapper;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -23,28 +24,12 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public IEnumerable<EstoqueListaGridDto> Filtrar(MovimentacaoFiltroDto filtro, int idEmpresa)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<EstoqueListaGridDto>(
-                "sp_FiltrarEstoque",
-                new
-                {
-                    p_idEmpresa         = idEmpresa,
-                    p_idProduto         = filtro.IdProduto,
-                    p_tipoMovimentacao  = filtro.TipoMovimentacao,
-                    p_dthInicio         = filtro.DthInicio,
-                    p_dthFim            = filtro.DthFim
-                },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public IEnumerable<MovimentacaoEstoqueModel> ListarMovimentacoes(int idProduto, int idEmpresa)
+        public IEnumerable<MovimentacaoEstoqueModel> ListarMovimentacoes(int idEmpresa)
         {
             using var conn = new MySqlConnection(_connectionString);
             return conn.Query<MovimentacaoEstoqueModel>(
                 "sp_ListarMovimentacaoEstoque",
-                new { p_idProduto = idProduto, p_idEmpresa = idEmpresa },
+                new { p_idEmpresa = idEmpresa },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -55,13 +40,12 @@ namespace WebApplication5.Repositories
                 "sp_MovimentarEstoque",
                 new
                 {
-                    p_IdProduto = m.IdProduto,
-                    p_IdEmpresa = m.IdEmpresa,
-                    p_TipoMovimentacao = m.TipoMovimentacao,
-                    p_Quantidade = m.Quantidade,
-                    p_Motivo = m.Motivo,
-                    p_IdUsuario = m.IdUsuario,
-                    p_DthMovimentacao = m.DthMovimentacao
+                    p_produto_id = m.IdProduto,
+                    p_idEmpresa = m.IdEmpresa,
+                    p_tipoMovimentacao = m.TipoMovimentacao,
+                    p_Qtde = m.Quantidade,
+                    p_Observacao = m.Motivo,
+                    p_usuario_id = m.IdUsuario
                 },
                 commandType: CommandType.StoredProcedure);
         }
@@ -71,7 +55,7 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AtualizarEstoqueMinimo",
-                new { p_idProduto = idProduto, p_estoqueMinimo = estoqueMinimo },
+                new { p_produto_id = idProduto, p_estoqueMin = estoqueMinimo },
                 commandType: CommandType.StoredProcedure);
         }
     }

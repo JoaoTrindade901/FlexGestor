@@ -143,7 +143,7 @@ function renderizarTabela() {
             <td>${item.quantidade}</td>
             <td>${item.estoqueMinimo}</td>
             <td>${item.skuProduto || "—"}</td>
-            <td>${item.nomeCategoria || "—"}</td>
+            <td>${item.local || "—"}</td>
             <td>${formatarData(item.dthUltimaAtualizacao)}</td>
         </tr>`;
     }).join("");
@@ -204,7 +204,7 @@ function validarEtapaAtual() {
     if (etapaProduto === 2) {
         const qtd = document.getElementById("qtd")?.value;
         const min = document.getElementById("min")?.value;
-        if (!qtd || !min) {
+        if (qtd === "" || min === "") {
             mostrarErro("Preencha a Quantidade Atual e o Estoque Mínimo.");
             return false;
         }
@@ -213,74 +213,67 @@ function validarEtapaAtual() {
 }
 
 // ──────────────────────────────────────────
-// SALVAR PRODUTO (submit do wizard)
+// SALVAR PRODUTO (etapa 3 → botão Salvar)
 // ──────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+async function salvarNovoProduto() {
+    const btnSalvar = document.getElementById("btnSalvar");
+    const textoOriginal = btnSalvar.innerHTML;
 
-    document.getElementById("formEstoque")?.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        if (!validarEtapaAtual()) return;
+    const nome = document.getElementById("nome")?.value?.trim();
+    const codBarras = document.getElementById("codBarras")?.value?.trim();
+    const qtdInicial = Number(document.getElementById("qtd")?.value || 0);
+    const estoqueMin = Number(document.getElementById("min")?.value || 0);
 
-        const btnSalvar = document.getElementById("btnSalvar");
-        const textoOriginal = btnSalvar.innerHTML;
-        btnSalvar.disabled = true;
-        btnSalvar.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
+    if (!nome || !codBarras) {
+        mostrarErro("Nome e Código de Barras são obrigatórios.");
+        return;
+    }
 
-        try {
-            const nomeProduto = document.getElementById("nome").value.trim();
-            const qtdInicial = Number(document.getElementById("qtd")?.value) || 0;
-            const estoqueMin = Number(document.getElementById("min")?.value) || 0;
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
 
-            // 1. Cria o produto
-            await apiPost("/Produto/Criar", {
-                Nome: nomeProduto,
-                Descricao: document.getElementById("descricao")?.value.trim() || null,
-                SKU: document.getElementById("codProduto")?.value.trim() || null,
-                CodigoBarras: document.getElementById("codBarras").value.trim(),
-                PrecoCusto: Number(document.getElementById("precoCusto")?.value) || 0,
-                PrecoVenda: Number(document.getElementById("precoVenda")?.value) || 0,
-                IdCategoria: document.getElementById("prod-categoria")?.value
-                    ? Number(document.getElementById("prod-categoria").value)
-                    : null,
-                Unidade: document.getElementById("unidade")?.value.trim() || null,
-                FAtivo: true
+    try {
+        // 1. Cria produto
+        const resProduto = await apiPost("/Produto/Criar", {
+            Nome: nome,
+            Descricao: document.getElementById("descricao")?.value || null,
+            CodigoBarras: codBarras,
+            IdCategoria: Number(document.getElementById("prod-categoria")?.value) || null,
+            PrecoCusto: Number(document.getElementById("precoCusto")?.value || 0),
+            PrecoVenda: Number(document.getElementById("precoVenda")?.value || 0),
+            Unidade: document.getElementById("unidade")?.value || null
+        });
+
+        const { idProduto } = await resProduto.json();
+
+        // 2. Entrada inicial de estoque
+        if (qtdInicial > 0) {
+            await apiPost("/Estoque/Movimentar", {
+                IdProduto: idProduto,
+                TipoMovimentacao: "ENTRADA",
+                Quantidade: qtdInicial,
+                Motivo: "Estoque inicial"
             });
-
-            // 2. Recarrega estoque e acha o produto recém criado pelo nome
-            const estoqueAtual = await apiGet("/Estoque/Listar");
-            const itemNovo = estoqueAtual.find(i => i.nomeProduto === nomeProduto);
-
-            if (itemNovo) {
-                // 3. Movimenta entrada inicial se qtd > 0
-                if (qtdInicial > 0) {
-                    await apiPost("/Estoque/Movimentar", {
-                        IdProduto: itemNovo.idProduto,
-                        TipoMovimentacao: "ENTRADA",
-                        Quantidade: qtdInicial,
-                        Motivo: "Cadastro inicial de produto"
-                    });
-                }
-                // 4. Define estoque mínimo
-                if (estoqueMin > 0) {
-                    await apiPost("/Estoque/AtualizarMinimo", {
-                        IdProduto: itemNovo.idProduto,
-                        EstoqueMinimo: estoqueMin
-                    });
-                }
-            }
-
-            fecharModal();
-            await carregarEstoque();
-
-        } catch (err) {
-            mostrarErro("Erro ao salvar produto: " + err.message);
-        } finally {
-            btnSalvar.disabled = false;
-            btnSalvar.innerHTML = textoOriginal;
         }
-    });
 
-});
+        // 3. Atualiza estoque mínimo
+        if (estoqueMin > 0) {
+            await apiPost("/Estoque/AtualizarMinimo", {
+                IdProduto: idProduto,
+                EstoqueMinimo: estoqueMin
+            });
+        }
+
+        fecharModal();
+        await carregarEstoque();
+
+    } catch (err) {
+        mostrarErro("Erro ao cadastrar produto: " + err.message);
+    } finally {
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+    }
+}
 
 // ──────────────────────────────────────────
 // MODAL MOVIMENTAÇÃO
@@ -304,12 +297,17 @@ async function salvarMovimentacao() {
     const quantidade = Number(document.getElementById("mov-quantidade").value);
     const motivo = document.getElementById("mov-motivo").value.trim() || null;
 
-    if (!quantidade || quantidade <= 0) { alert("Informe uma quantidade válida."); return; }
+    if (!quantidade || quantidade <= 0) {
+        alert("Informe uma quantidade válida.");
+        return;
+    }
 
     try {
         await apiPost("/Estoque/Movimentar", {
-            IdProduto: idProduto, TipoMovimentacao: tipoMovimentacao,
-            Quantidade: quantidade, Motivo: motivo
+            IdProduto: idProduto,
+            TipoMovimentacao: tipoMovimentacao,
+            Quantidade: quantidade,
+            Motivo: motivo
         });
         fecharModalMovimentacao();
         await carregarEstoque();
@@ -335,16 +333,34 @@ async function salvarMinimo() {
     const idProduto = Number(document.getElementById("min-idProduto").value);
     const estoqueMinimo = Number(document.getElementById("min-valor").value);
 
-    if (isNaN(estoqueMinimo) || estoqueMinimo < 0) { alert("Informe um valor válido."); return; }
+    if (isNaN(estoqueMinimo) || estoqueMinimo < 0) {
+        alert("Informe um valor válido.");
+        return;
+    }
 
     try {
-        await apiPost("/Estoque/AtualizarMinimo", { IdProduto: idProduto, EstoqueMinimo: estoqueMinimo });
+        await apiPost("/Estoque/AtualizarMinimo", {
+            IdProduto: idProduto,
+            EstoqueMinimo: estoqueMinimo
+        });
         fecharModalMinimo();
         await carregarEstoque();
     } catch (err) {
         alert("Erro ao atualizar mínimo: " + err.message);
     }
 }
+
+// ──────────────────────────────────────────
+// EVENTOS DO WIZARD (botões do footer)
+// ──────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("btn-proximo")?.addEventListener("click", proximaEtapa);
+    document.getElementById("btn-voltar")?.addEventListener("click", voltarEtapa);
+    document.getElementById("btnSalvar")?.addEventListener("click", function (e) {
+        e.preventDefault();
+        salvarNovoProduto();
+    });
+});
 
 // ──────────────────────────────────────────
 // FECHAR CLICANDO FORA

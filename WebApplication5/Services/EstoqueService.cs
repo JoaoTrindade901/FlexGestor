@@ -1,4 +1,5 @@
-﻿using WebApplication5.Models;
+﻿// Services/EstoqueService.cs
+using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -7,19 +8,13 @@ namespace WebApplication5.Services
     {
         private readonly EstoqueRepository _repo;
 
-        public EstoqueService(EstoqueRepository repo)
-        {
-            _repo = repo;
-        }
+        public EstoqueService(EstoqueRepository repo) => _repo = repo;
 
         public IEnumerable<EstoqueListaGridDto> Listar(int idEmpresa)
             => _repo.Listar(idEmpresa);
 
-        public IEnumerable<EstoqueListaGridDto> Filtrar(MovimentacaoFiltroDto filtro, int idEmpresa)
-            => _repo.Filtrar(filtro, idEmpresa);
-
-        public IEnumerable<MovimentacaoEstoqueModel> ListarMovimentacoes(int idProduto, int idEmpresa)
-            => _repo.ListarMovimentacoes(idProduto, idEmpresa);
+        public IEnumerable<MovimentacaoEstoqueModel> ListarMovimentacoes(int idEmpresa)
+            => _repo.ListarMovimentacoes(idEmpresa);
 
         public void Movimentar(MovimentacaoEstoqueModel m, int idEmpresa, int idUsuario)
         {
@@ -31,5 +26,20 @@ namespace WebApplication5.Services
 
         public void AtualizarMinimo(int idProduto, int estoqueMinimo)
             => _repo.AtualizarMinimo(idProduto, estoqueMinimo);
+
+        // Chamado pelo PedidoService ao criar pedido
+        public void DescontarEstoque(int idProduto, int quantidade, int idEmpresa, int idUsuario)
+        {
+            _repo.Movimentar(new MovimentacaoEstoqueModel
+            {
+                IdProduto = idProduto,
+                IdEmpresa = idEmpresa,
+                IdUsuario = idUsuario,
+                TipoMovimentacao = "SAIDA",
+                Quantidade = quantidade,
+                Motivo = "Venda — pedido gerado automaticamente",
+                DthMovimentacao = DateTime.Now
+            });
+        }
     }
 }
