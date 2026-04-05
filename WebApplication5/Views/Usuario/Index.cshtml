@@ -84,15 +84,15 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Login <span class="obrigatorio">*</span></label>
-                            <input type="text" required id="novo-login" placeholder="ex: joao.silva" required>
+                            <input type="text" id="novo-login" placeholder="ex: joao.silva">
                         </div>
                         <div class="form-group">
                             <label>Senha <span class="obrigatorio">*</span></label>
-                            <input type="password" required id="novo-senha" placeholder="••••••••" required>
+                            <input type="password" id="novo-senha" placeholder="••••••••">
                         </div>
                         <div class="form-group">
                             <label>Perfil <span class="obrigatorio">*</span></label>
-                            <select id="novo-perfil" required>
+                            <select id="novo-perfil">
                                 <option value="">Carregando...</option>
                             </select>
                         </div>
@@ -102,7 +102,7 @@
                     <div class="form-grid">
                         <div class="form-group form-col-2">
                             <label>Nome Completo <span class="obrigatorio">*</span></label>
-                            <input type="text" required id="novo-nome" placeholder="Nome completo" required>
+                            <input type="text" id="novo-nome" placeholder="Nome completo" >
                         </div>
                         <div class="form-group form-col-2">
                             <label>Email</label>
@@ -143,7 +143,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Login <span class="obrigatorio">*</span></label>
-                            <input type="text" id="edit-login" required>
+                            <input type="text" id="edit-login">
                         </div>
                         <div class="form-group">
                             <label>Nova Senha</label>
@@ -165,7 +165,7 @@
                     <div class="form-grid">
                         <div class="form-group form-col-2">
                             <label>Nome Completo <span class="obrigatorio">*</span></label>
-                            <input type="text" id="edit-nome" required>
+                            <input type="text" id="edit-nome">
                         </div>
                         <div class="form-group form-col-2">
                             <label>Email</label>
@@ -213,6 +213,7 @@
     </div>
 
     <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/shared/flexValidation.js"></script>
     <script src="/js/usuarioJS/usuario.js"></script>
 </body>
 </html>

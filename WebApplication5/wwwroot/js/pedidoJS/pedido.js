@@ -76,7 +76,7 @@ async function carregarPedidos() {
         todosPedidos = await apiGet("/Pedido/Listar");
         aplicarFiltros();
     } catch (err) {
-        alert("Erro ao carregar pedidos: " + err.message);
+        flexToast("Erro ao carregar pedidos: " + err.message, "erro")
     }
 }
 
@@ -495,10 +495,10 @@ document.getElementById("form-pedido").addEventListener("submit", async function
     e.preventDefault();
     const clienteId = Number(document.getElementById("novo-cliente-id").value);
     const enderecoId = Number(document.getElementById("novo-cliente-endereco").value) || 1;
-    if (!clienteId) { alert("Selecione um cliente."); return; }
+    if (!clienteId) { flexToast("Selecione um cliente.", "aviso"); return; }
 
     const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
-    if (!itensValidos.length) { alert("Adicione pelo menos um item."); return; }
+    if (!itensValidos.length) { flexToast("Adicione pelo menos um item.", "aviso"); return; }
 
     const desconto = Number(document.getElementById("novo-desconto").value) || 0;
     const frete = Number(document.getElementById("novo-frete")?.value || 0);
@@ -529,7 +529,7 @@ document.getElementById("form-pedido").addEventListener("submit", async function
         fecharModal();
         await carregarPedidos();
     } catch (err) {
-        alert("Erro ao salvar pedido: " + err.message);
+        flexToast("Erro ao salvar pedido: " + err.message, "erro");
     } finally {
         btnSalvar.disabled = false;
     }
@@ -595,7 +595,7 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     if (!_pedidoEmEdicao) return;
 
     const clienteId = Number(document.getElementById("edit-cliente-id").value);
-    if (!clienteId) { alert("Selecione um cliente."); return; }
+    if (!clienteId) { flexToast("Selecione um cliente.", "aviso"); return; }
 
     const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
     if (!itensValidos.length) { alert("Adicione pelo menos um item."); return; }
@@ -626,7 +626,7 @@ document.getElementById("form-edicao").addEventListener("submit", async function
         await carregarPedidos();
         mostrarToast("Pedido atualizado com sucesso!");
     } catch (err) {
-        alert("Erro ao salvar pedido: " + err.message);
+        flexToast("Erro ao salvar pedido: " + err.message, "erro");
     } finally {
         btnSalvar.disabled = false;
     }
@@ -715,7 +715,7 @@ document.getElementById("confirm-btn-sim").addEventListener("click", async funct
         fecharConfirmar();
         await carregarPedidos();
     } catch (err) {
-        alert("Erro ao cancelar: " + err.message);
+        flexToast("Erro ao cancelar: " + err.message, "erro");
     } finally {
         this.disabled = false;
     }

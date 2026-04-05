@@ -92,12 +92,12 @@
                         <div class="form-group form-col-2">
                             <label id="novo-label-nome" for="novo-nome">Nome Completo <span class="obrigatorio">*</span></label>
                             <input type="text" id="novo-nome" name="nome"
-                                   placeholder="Nome do cliente" required maxlength="120" autocomplete="name">
+                                   placeholder="Nome do cliente" maxlength="120" autocomplete="name">
                         </div>
                         <div class="form-group">
                             <label id="novo-label-doc" for="novo-doc">CPF <span class="obrigatorio">*</span></label>
                             <input type="text" id="novo-doc" name="cnpjCpf"
-                                   placeholder="000.000.000-00" required maxlength="18"
+                                   placeholder="000.000.000-00" maxlength="18"
                                    inputmode="numeric" autocomplete="off">
                         </div>
 
@@ -140,12 +140,12 @@
                         <div class="form-group form-col-2">
                             <label for="novo-email">Email <span class="obrigatorio">*</span></label>
                             <input type="email" id="novo-email" name="email"
-                                   placeholder="email@exemplo.com" required maxlength="80" autocomplete="email">
+                                   placeholder="email@exemplo.com" maxlength="80" autocomplete="email">
                         </div>
                         <div class="form-group">
                             <label for="novo-telefone">Telefone <span class="obrigatorio">*</span></label>
                             <input type="text" id="novo-telefone" name="telefone"
-                                   placeholder="(00) 00000-0000" required maxlength="20"
+                                   placeholder="(00) 00000-0000" maxlength="20"
                                    inputmode="tel" autocomplete="tel">
                         </div>
                     </div>
@@ -155,11 +155,11 @@
                     <div class="form-grid">
                         <div class="form-group form-col-2">
                             <label for="novo-logradouro">Logradouro <span class="obrigatorio">*</span></label>
-                            <input type="text" id="novo-logradouro" placeholder="Rua, Av., etc." required maxlength="120">
+                            <input type="text" id="novo-logradouro" placeholder="Rua, Av., etc."  maxlength="120">
                         </div>
                         <div class="form-group">
                             <label for="novo-numero">Número <span class="obrigatorio">*</span></label>
-                            <input type="text" id="novo-numero" placeholder="ex: 123" required maxlength="20">
+                            <input type="text" id="novo-numero" placeholder="ex: 123"  maxlength="20">
                         </div>
                         <div class="form-group">
                             <label for="novo-complemento">Complemento</label>
@@ -171,11 +171,11 @@
                         </div>
                         <div class="form-group">
                             <label for="novo-cidade">Cidade <span class="obrigatorio">*</span></label>
-                            <input type="text" id="novo-cidade" placeholder="Cidade" required maxlength="80">
+                            <input type="text" id="novo-cidade" placeholder="Cidade"  maxlength="80">
                         </div>
                         <div class="form-group">
                             <label for="novo-estado">Estado <span class="obrigatorio">*</span></label>
-                            <select id="novo-estado" required>
+                            <select id="novo-estado" >
                                 <option value="">Selecione</option>
                                 <option>AC</option>
                                 <option>AL</option>
@@ -279,12 +279,12 @@
                         <div class="form-group form-col-2">
                             <label id="edit-label-nome" for="edit-nome">Nome Completo <span class="obrigatorio">*</span></label>
                             <input type="text" id="edit-nome" name="nome"
-                                   required maxlength="120" autocomplete="name">
+                                    maxlength="120" autocomplete="name">
                         </div>
                         <div class="form-group">
                             <label id="edit-label-doc" for="edit-doc">CPF <span class="obrigatorio">*</span></label>
                             <input type="text" id="edit-doc" name="cnpjCpf"
-                                   required maxlength="18" inputmode="numeric" autocomplete="off">
+                                    maxlength="18" inputmode="numeric" autocomplete="off">
                         </div>
 
                         <!-- Campos exclusivos PF -->
@@ -325,12 +325,12 @@
                         <div class="form-group form-col-2">
                             <label for="edit-email">Email <span class="obrigatorio">*</span></label>
                             <input type="email" id="edit-email" name="email"
-                                   required maxlength="80" autocomplete="email">
+                                   aria- maxlength="80" autocomplete="email">
                         </div>
                         <div class="form-group">
                             <label for="edit-telefone">Telefone <span class="obrigatorio">*</span></label>
                             <input type="text" id="edit-telefone" name="telefone"
-                                   required maxlength="20" inputmode="tel" autocomplete="tel">
+                                    maxlength="20" inputmode="tel" autocomplete="tel">
                         </div>
                     </div>
 
@@ -339,11 +339,11 @@
                     <div class="form-grid">
                         <div class="form-group form-col-2">
                             <label for="edit-logradouro">Logradouro <span class="obrigatorio">*</span></label>
-                            <input type="text" id="edit-logradouro" required maxlength="120">
+                            <input type="text" id="edit-logradouro" maxlength="120">
                         </div>
                         <div class="form-group">
                             <label for="edit-numero">Número <span class="obrigatorio">*</span></label>
-                            <input type="text" id="edit-numero" required maxlength="20">
+                            <input type="text" id="edit-numero" maxlength="20">
                         </div>
                         <div class="form-group">
                             <label for="edit-complemento">Complemento</label>
@@ -355,11 +355,11 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-cidade">Cidade <span class="obrigatorio">*</span></label>
-                            <input type="text" id="edit-cidade" required maxlength="80">
+                            <input type="text" id="edit-cidade" maxlength="80">
                         </div>
                         <div class="form-group">
                             <label for="edit-estado">Estado <span class="obrigatorio">*</span></label>
-                            <select id="edit-estado" required>
+                            <select id="edit-estado" >
                                 <option value="">Selecione</option>
                                 <option>AC</option>
                                 <option>AL</option>
@@ -461,6 +461,7 @@
     </div>
 
     <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/shared/flexValidation.js"></script>
     <script src="/js/clienteJS/cliente.js"></script>
 </body>
 </html>

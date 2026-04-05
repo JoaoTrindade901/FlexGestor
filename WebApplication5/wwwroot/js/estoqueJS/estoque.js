@@ -191,23 +191,35 @@ function voltarEtapa() {
     if (etapaProduto > 1) { etapaProduto--; atualizarEtapas(); }
 }
 
+// 1. validarEtapaAtual() — adiciona categoria como obrigatória na etapa 1
 function validarEtapaAtual() {
     esconderErro();
     if (etapaProduto === 1) {
-        const nome = document.getElementById("nome")?.value.trim();
-        const cod = document.getElementById("codBarras")?.value.trim();
-        if (!nome || !cod) {
-            mostrarErro("Preencha o Nome e o Código de Barras.");
-            return false;
+        const nome = document.getElementById("nome");
+        const cod = document.getElementById("codBarras");
+        const cat = document.getElementById("prod-categoria");
+        let ok = true;
+
+        if (!validarObrigatorio(nome, "Nome")) ok = false;
+        if (!validarObrigatorio(cod, "Código de Barras")) ok = false;
+        if (!cat.value) {
+            marcarErro(cat, "Selecione uma categoria.");
+            ok = false;
+        } else {
+            limparErro(cat);
         }
+
+        if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
+        return ok;
     }
     if (etapaProduto === 2) {
-        const qtd = document.getElementById("qtd")?.value;
-        const min = document.getElementById("min")?.value;
-        if (qtd === "" || min === "") {
-            mostrarErro("Preencha a Quantidade Atual e o Estoque Mínimo.");
-            return false;
-        }
+        const qtd = document.getElementById("qtd");
+        const min = document.getElementById("min");
+        let ok = true;
+        if (!validarObrigatorio(qtd, "Quantidade inicial")) ok = false;
+        if (!validarObrigatorio(min, "Estoque mínimo")) ok = false;
+        if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
+        return ok;
     }
     return true;
 }
@@ -291,16 +303,20 @@ function fecharModalMovimentacao() {
     document.getElementById("modal-movimentacao").classList.remove("open");
 }
 
+// 2. salvarMovimentacao() — troca o alert de quantidade inválida
 async function salvarMovimentacao() {
     const idProduto = Number(document.getElementById("mov-idProduto").value);
     const tipoMovimentacao = document.getElementById("mov-tipo").value;
-    const quantidade = Number(document.getElementById("mov-quantidade").value);
+    const qtdEl = document.getElementById("mov-quantidade");
+    const quantidade = Number(qtdEl.value);
     const motivo = document.getElementById("mov-motivo").value.trim() || null;
 
     if (!quantidade || quantidade <= 0) {
-        alert("Informe uma quantidade válida.");
+        marcarErro(qtdEl, "Informe uma quantidade maior que zero.");
+        flexToast("Quantidade inválida.", "aviso");
         return;
     }
+    limparErro(qtdEl);
 
     try {
         await apiPost("/Estoque/Movimentar", {
@@ -311,8 +327,9 @@ async function salvarMovimentacao() {
         });
         fecharModalMovimentacao();
         await carregarEstoque();
+        flexToast("Movimentação registrada com sucesso!", "sucesso");
     } catch (err) {
-        alert("Erro ao movimentar: " + err.message);
+        flexToast("Erro ao movimentar: " + err.message, "erro");
     }
 }
 
@@ -329,14 +346,18 @@ function fecharModalMinimo() {
     document.getElementById("modal-minimo").classList.remove("open");
 }
 
+// 3. salvarMinimo() — troca o alert de valor inválido
 async function salvarMinimo() {
     const idProduto = Number(document.getElementById("min-idProduto").value);
-    const estoqueMinimo = Number(document.getElementById("min-valor").value);
+    const minEl = document.getElementById("min-valor");
+    const estoqueMinimo = Number(minEl.value);
 
     if (isNaN(estoqueMinimo) || estoqueMinimo < 0) {
-        alert("Informe um valor válido.");
+        marcarErro(minEl, "Informe um valor válido (mínimo 0).");
+        flexToast("Valor inválido.", "aviso");
         return;
     }
+    limparErro(minEl);
 
     try {
         await apiPost("/Estoque/AtualizarMinimo", {
@@ -345,11 +366,11 @@ async function salvarMinimo() {
         });
         fecharModalMinimo();
         await carregarEstoque();
+        flexToast("Estoque mínimo atualizado!", "sucesso");
     } catch (err) {
-        alert("Erro ao atualizar mínimo: " + err.message);
+        flexToast("Erro ao atualizar mínimo: " + err.message, "erro");
     }
 }
-
 // ──────────────────────────────────────────
 // EVENTOS DO WIZARD (botões do footer)
 // ──────────────────────────────────────────

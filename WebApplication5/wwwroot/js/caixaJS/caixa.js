@@ -295,7 +295,7 @@ function abrirModalLancamento(tipo) {
 
     // Popula categorias filtradas por tipo
     const tipoNum = tipo === "entrada" ? 1 : 2;
-    const cats = categorias.filter(c => c.tipo === tipoNum);
+    const cats = categorias.filter(c => Number(c.tipo) === tipoNum);
     const select = document.getElementById("lanc-categoria");
     select.innerHTML = cats.map(c =>
         `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`

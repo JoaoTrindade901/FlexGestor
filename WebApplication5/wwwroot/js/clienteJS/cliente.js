@@ -1,4 +1,5 @@
-// ===== CLIENTE.JS — alinhado com backend FlexGestor =====
+// ===== CLIENTE.JS — com validações completas (TCC) =====
+// Depende de: /js/shared/flexValidation.js
 
 const CLIENTES_POR_PAGINA = 10;
 let paginaAtual = 1;
@@ -10,9 +11,6 @@ let filtroStatus = "todos";
 let filtroTexto = "";
 let filtroTipo = "nome";
 
-// ──────────────────────────────────────────
-// FETCH HELPERS
-// ──────────────────────────────────────────
 async function apiGet(url) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
@@ -32,21 +30,16 @@ async function apiPost(url, body) {
     return res;
 }
 
-function mostrarErro(msg) {
-    alert("⚠ " + msg);
-}
-
 // ──────────────────────────────────────────
 // CARREGAR E FILTRAR
 // ──────────────────────────────────────────
 async function carregarClientes() {
     try {
-        // GET /Cliente/Listar → IEnumerable<ClienteListaGridDto>
         const data = await apiGet("/Cliente/Listar");
         todosClientes = data.map(c => ({ ...c, fAtivo: c.fAtivo == 1 }));
         aplicarFiltros();
     } catch (err) {
-        mostrarErro("Não foi possível carregar os clientes: " + err.message);
+        flexToast("Não foi possível carregar os clientes: " + err.message, "erro");
     }
 }
 
@@ -55,7 +48,6 @@ function aplicarFiltros() {
         const ativo = Boolean(c.fAtivo);
         if (filtroStatus === "ativo" && !ativo) return false;
         if (filtroStatus === "inativo" && ativo) return false;
-
         if (filtroTexto) {
             const campo = filtroTipo === "nome"
                 ? (c.nome ?? "").toLowerCase()
@@ -87,7 +79,7 @@ function setFiltroStatus(valor) {
 }
 
 // ──────────────────────────────────────────
-// RENDERIZAÇÃO DA TABELA
+// TABELA
 // ──────────────────────────────────────────
 function renderizarTabela() {
     const tbody = document.querySelector("#tabela-clientes tbody");
@@ -108,8 +100,9 @@ function renderizarTabela() {
                     <button class="btn-acao btn-editar" title="Editar" onclick="abrirModalEdicao(${c.idCliente})">
                         <i class="bi bi-pencil-fill"></i>
                     </button>
-                    <button class="btn-acao btn-inativar" title="Deletar" onclick="confirmarDeletar(${c.idCliente})">
-                        <i class="bi bi-trash3-fill"></i>
+                    <button class="btn-acao btn-inativar" title="${c.fAtivo ? 'Inativar' : 'Reativar'}"
+                        onclick="confirmarDeletar(${c.idCliente})">
+                        <i class="bi bi-${c.fAtivo ? 'person-dash-fill' : 'person-check-fill'}"></i>
                     </button>
                 </td>
                 <td><span class="status-pill status-${c.fAtivo ? 'ativo' : 'inativo'}">${c.fAtivo ? 'Ativo' : 'Inativo'}</span></td>
@@ -130,22 +123,17 @@ function renderizarPaginacao() {
     const totalPaginas = Math.ceil(total / CLIENTES_POR_PAGINA);
     const inicio = total === 0 ? 0 : (paginaAtual - 1) * CLIENTES_POR_PAGINA + 1;
     const fim = Math.min(paginaAtual * CLIENTES_POR_PAGINA, total);
-
     document.querySelector(".paginacao-info").textContent =
         total === 0 ? "Nenhum registro" : `Mostrando ${inicio}–${fim} de ${total} clientes`;
-
     const controles = document.querySelector(".paginacao-controles");
     controles.innerHTML = "";
-
     controles.appendChild(criarBtnPagina("‹", paginaAtual === 1,
         () => { paginaAtual--; renderizarTabela(); }));
-
     for (let i = 1; i <= totalPaginas; i++) {
         const btn = criarBtnPagina(i, false, () => { paginaAtual = i; renderizarTabela(); });
         if (i === paginaAtual) btn.classList.add("ativo");
         controles.appendChild(btn);
     }
-
     controles.appendChild(criarBtnPagina("›", paginaAtual === totalPaginas || totalPaginas === 0,
         () => { paginaAtual++; renderizarTabela(); }));
 }
@@ -160,7 +148,7 @@ function criarBtnPagina(label, disabled, onClick) {
 }
 
 // ──────────────────────────────────────────
-// HELPERS: TIPO PF / PJ
+// TIPO PF / PJ
 // ──────────────────────────────────────────
 function configurarTipoSelector(prefixo) {
     document.querySelectorAll(`.tipo-btn[data-prefixo="${prefixo}"]`).forEach(btn => {
@@ -176,7 +164,6 @@ function configurarTipoSelector(prefixo) {
 function alternarCamposPorTipo(prefixo, tipo) {
     const camposPF = [`${prefixo}-grupo-genero`, `${prefixo}-grupo-nascimento`, `${prefixo}-grupo-estadocivil`];
     const camposPJ = [`${prefixo}-grupo-razaosocial`];
-
     camposPF.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = tipo === "PF" ? "" : "none";
@@ -185,21 +172,22 @@ function alternarCamposPorTipo(prefixo, tipo) {
         const el = document.getElementById(id);
         if (el) el.style.display = tipo === "PJ" ? "" : "none";
     });
-
-    // Ajusta labels e placeholders
     const labelNome = document.getElementById(`${prefixo}-label-nome`);
     const labelDoc = document.getElementById(`${prefixo}-label-doc`);
     const inputDoc = document.getElementById(`${prefixo}-doc`);
-
     if (labelNome) labelNome.innerHTML = tipo === "PF"
         ? 'Nome Completo <span class="obrigatorio">*</span>'
         : 'Nome Fantasia <span class="obrigatorio">*</span>';
-
     if (labelDoc) labelDoc.innerHTML = tipo === "PF"
         ? 'CPF <span class="obrigatorio">*</span>'
         : 'CNPJ <span class="obrigatorio">*</span>';
-
-    if (inputDoc) inputDoc.placeholder = tipo === "PF" ? "000.000.000-00" : "00.000.000/0000-00";
+    if (inputDoc) {
+        inputDoc.placeholder = tipo === "PF" ? "000.000.000-00" : "00.000.000/0000-00";
+        // reaplica máscara correta
+        inputDoc._listeners?.forEach(fn => inputDoc.removeEventListener("input", fn));
+        if (tipo === "PF") aplicarMascaraCPF(inputDoc);
+        else aplicarMascaraCNPJ(inputDoc);
+    }
 }
 
 function getTipoAtivo(prefixo) {
@@ -208,24 +196,62 @@ function getTipoAtivo(prefixo) {
 }
 
 // ──────────────────────────────────────────
-// HELPERS: LER / POPULAR CAMPOS
+// VALIDAÇÃO DO FORMULÁRIO
+// ──────────────────────────────────────────
+function validarFormCliente(prefixo) {
+    const tipo = getTipoAtivo(prefixo);
+    let ok = true;
+
+    const nome = document.getElementById(`${prefixo}-nome`);
+    const doc = document.getElementById(`${prefixo}-doc`);
+    const email = document.getElementById(`${prefixo}-email`);
+    const tel = document.getElementById(`${prefixo}-telefone`);
+    const logr = document.getElementById(`${prefixo}-logradouro`);
+    const num = document.getElementById(`${prefixo}-numero`);
+    const cidade = document.getElementById(`${prefixo}-cidade`);
+    const estado = document.getElementById(`${prefixo}-estado`);
+
+    if (!validarObrigatorio(nome, "Nome")) ok = false;
+    if (!validarCampoCpfCnpj(doc, tipo)) ok = false;
+    if (!validarCampoEmail(email, true)) ok = false;
+    if (!validarCampoTelefone(tel, true)) ok = false;
+    if (!validarObrigatorio(logr, "Logradouro")) ok = false;
+    if (!validarObrigatorio(num, "Número")) ok = false;
+    if (!validarObrigatorio(cidade, "Cidade")) ok = false;
+    if (!validarObrigatorio(estado, "Estado")) ok = false;
+
+    // CEP: opcional mas se preenchido deve ser válido
+    const cep = document.getElementById(`${prefixo}-cep`);
+    if (cep && !campoVazio(cep.value)) {
+        const digits = cep.value.replace(/\D/g, "");
+        if (!validarCEP(digits)) {
+            marcarErro(cep, "CEP inválido. Informe 8 dígitos.");
+            ok = false;
+        } else {
+            limparErro(cep);
+        }
+    }
+
+    if (!ok) flexToast("Corrija os campos destacados antes de salvar.", "aviso");
+    return ok;
+}
+
+// ──────────────────────────────────────────
+// MONTAR PAYLOAD
 // ──────────────────────────────────────────
 function lerCampo(id) {
     const el = document.getElementById(id);
     return el ? (el.value.trim() || null) : null;
 }
-
 function lerCampoNum(id) {
     const v = lerCampo(id);
     return v !== null ? Number(v) : null;
 }
-
 function setCampo(id, valor) {
     const el = document.getElementById(id);
     if (el) el.value = valor ?? "";
 }
 
-// Monta o DTO no formato que o backend espera: { Cliente: {...}, Endereco: {...} }
 function montarPayloadNovo() {
     const tipo = getTipoAtivo("novo");
     return {
@@ -235,7 +261,7 @@ function montarPayloadNovo() {
             razaoSocial: tipo === "PJ" ? lerCampo("novo-razaosocial") : null,
             cpfCNPJ: (lerCampo("novo-doc") ?? "").replace(/\D/g, ""),
             email: lerCampo("novo-email"),
-            telefone: lerCampo("novo-telefone"),
+            telefone: (lerCampo("novo-telefone") ?? "").replace(/\D/g, ""),
             tipoCliente_id: lerCampoNum("novo-tipocliente") ?? 1,
             observacao: lerCampo("novo-observacao"),
             genero: tipo === "PF" ? lerCampo("novo-genero") : null,
@@ -273,7 +299,7 @@ function montarPayloadEdicao() {
             genero: tipo === "PF" ? lerCampo("edit-genero") : null,
             dthNascimento: tipo === "PF" ? lerCampo("edit-nascimento") : null,
             enderecoId: clienteEmEdicao.enderecoId,
-            saldoDevedor: lerCampo("edit-saldo") 
+            saldoDevedor: lerCampo("edit-saldo")
         },
         Endereco: {
             idEndereco: clienteEmEdicao.enderecoId,
@@ -294,8 +320,9 @@ function montarPayloadEdicao() {
 // MODAL NOVO CLIENTE
 // ──────────────────────────────────────────
 function abrirModal() {
-    document.getElementById("form-cliente").reset();
-    // Garante PF ativo ao abrir
+    const form = document.getElementById("form-cliente");
+    form.reset();
+    limparTodosErros(form);
     document.querySelectorAll('.tipo-btn[data-prefixo="novo"]').forEach(b => b.classList.remove("tipo-btn-ativo"));
     document.querySelector('.tipo-btn[data-prefixo="novo"][data-tipo="PF"]').classList.add("tipo-btn-ativo");
     alternarCamposPorTipo("novo", "PF");
@@ -308,21 +335,22 @@ function fecharModal() {
 
 document.getElementById("form-cliente").addEventListener("submit", async function (e) {
     e.preventDefault();
+    if (!validarFormCliente("novo")) return;
+
     const btnTexto = this.querySelector(".btn-texto");
     const btnLoading = this.querySelector(".btn-loading");
     const btnSubmit = this.querySelector('[type="submit"]');
-
     btnSubmit.disabled = true;
     btnTexto.style.display = "none";
     btnLoading.style.display = "";
 
     try {
-        const payload = montarPayloadNovo();
-        await apiPost("/Cliente/Criar", payload);
+        await apiPost("/Cliente/Criar", montarPayloadNovo());
         fecharModal();
         await carregarClientes();
+        flexToast("Cliente cadastrado com sucesso!", "sucesso");
     } catch (err) {
-        mostrarErro("Erro ao criar cliente: " + err.message);
+        flexToast("Erro ao criar cliente: " + err.message, "erro");
     } finally {
         btnSubmit.disabled = false;
         btnTexto.style.display = "";
@@ -337,9 +365,10 @@ function abrirModalEdicao(id) {
     clienteEmEdicao = todosClientes.find(c => c.idCliente === id);
     if (!clienteEmEdicao) return;
 
-    const tipo = clienteEmEdicao.razaoSocial ? "PJ" : "PF";
+    const form = document.getElementById("form-edicao");
+    limparTodosErros(form);
 
-    // Seta tipo ativo
+    const tipo = clienteEmEdicao.razaoSocial ? "PJ" : "PF";
     document.querySelectorAll('.tipo-btn[data-prefixo="edit"]').forEach(b => b.classList.remove("tipo-btn-ativo"));
     document.querySelector(`.tipo-btn[data-prefixo="edit"][data-tipo="${tipo}"]`).classList.add("tipo-btn-ativo");
     alternarCamposPorTipo("edit", tipo);
@@ -354,15 +383,8 @@ function abrirModalEdicao(id) {
     setCampo("edit-genero", c.genero);
     setCampo("edit-razaosocial", c.razaoSocial);
     setCampo("edit-saldo", c.saldoDevedor);
-
-    if (c.dthNascimento) {
-        setCampo("edit-nascimento", c.dthNascimento.substring(0, 10));
-    }
-    if (c.dthCadastro) {
-        setCampo("edit-cadastro", new Date(c.dthCadastro).toLocaleDateString("pt-BR"));
-    }
-
-    // Endereço — vem do JOIN no ClienteListaGridDto
+    if (c.dthNascimento) setCampo("edit-nascimento", c.dthNascimento.substring(0, 10));
+    if (c.dthCadastro) setCampo("edit-cadastro", new Date(c.dthCadastro).toLocaleDateString("pt-BR"));
     setCampo("edit-logradouro", c.logradouro);
     setCampo("edit-numero", c.numero);
     setCampo("edit-complemento", c.complemento);
@@ -382,22 +404,22 @@ function fecharModalEdicao() {
 document.getElementById("form-edicao").addEventListener("submit", async function (e) {
     e.preventDefault();
     if (!clienteEmEdicao) return;
+    if (!validarFormCliente("edit")) return;
 
     const btnTexto = this.querySelector(".btn-texto");
     const btnLoading = this.querySelector(".btn-loading");
     const btnSubmit = this.querySelector('[type="submit"]');
-
     btnSubmit.disabled = true;
     btnTexto.style.display = "none";
     btnLoading.style.display = "";
 
     try {
-        const payload = montarPayloadEdicao();
-        await apiPost("/Cliente/Editar", payload);
+        await apiPost("/Cliente/Editar", montarPayloadEdicao());
         fecharModalEdicao();
         await carregarClientes();
+        flexToast("Cliente atualizado com sucesso!", "sucesso");
     } catch (err) {
-        mostrarErro("Erro ao salvar cliente: " + err.message);
+        flexToast("Erro ao salvar cliente: " + err.message, "erro");
     } finally {
         btnSubmit.disabled = false;
         btnTexto.style.display = "";
@@ -406,73 +428,83 @@ document.getElementById("form-edicao").addEventListener("submit", async function
 });
 
 // ──────────────────────────────────────────
-// MODAL CONFIRMAÇÃO DELETAR
+// EXCLUSÃO LÓGICA (inativar/reativar)
 // ──────────────────────────────────────────
 function confirmarDeletar(id) {
     clienteParaDeletar = todosClientes.find(c => c.idCliente === id);
     if (!clienteParaDeletar) return;
 
-    document.getElementById("confirm-mensagem").innerHTML =
-        `Deseja <strong>deletar</strong> o cliente <strong>"${clienteParaDeletar.nome}"</strong>? Esta ação não pode ser desfeita.`;
+    const acao = clienteParaDeletar.fAtivo ? "inativar" : "reativar";
+    const btnTexto = clienteParaDeletar.fAtivo ? "Sim, inativar" : "Sim, reativar";
 
-    const btnSim = document.getElementById("confirm-btn-sim");
-    btnSim.textContent = "Sim, deletar";
-    btnSim.className = "btn-perigo";
-
-    document.getElementById("modal-confirmar").classList.add("open");
+    flexConfirmar(
+        `Deseja ${acao} o cliente "${clienteParaDeletar.nome}"?\n(O registro não será excluído do sistema.)`,
+        async () => {
+            try {
+                await apiPost("/Cliente/Deletar", clienteParaDeletar.idCliente);
+                await carregarClientes();
+                flexToast(`Cliente ${acao}do com sucesso!`, "sucesso");
+            } catch (err) {
+                flexToast("Erro ao alterar status: " + err.message, "erro");
+            }
+        },
+        btnTexto
+    );
 }
-
-function fecharModalConfirmar() {
-    document.getElementById("modal-confirmar").classList.remove("open");
-    clienteParaDeletar = null;
-}
-
-document.getElementById("confirm-btn-sim").addEventListener("click", async function () {
-    if (!clienteParaDeletar) return;
-    this.disabled = true;
-
-    try {
-        await apiPost("/Cliente/Deletar", clienteParaDeletar.idCliente);
-        fecharModalConfirmar();
-        await carregarClientes();
-    } catch (err) {
-        mostrarErro("Erro ao deletar cliente: " + err.message);
-    } finally {
-        this.disabled = false;
-    }
-});
 
 // ──────────────────────────────────────────
 // FECHAR CLICANDO FORA DO MODAL
 // ──────────────────────────────────────────
 ["modal-novo-cliente", "modal-edicao", "modal-confirmar"].forEach(id => {
-    document.getElementById(id).addEventListener("click", function (e) {
+    document.getElementById(id)?.addEventListener("click", function (e) {
         if (e.target !== this) return;
         if (id === "modal-novo-cliente") fecharModal();
         else if (id === "modal-edicao") fecharModalEdicao();
-        else fecharModalConfirmar();
     });
 });
 
-// ──────────────────────────────────────────
-// BOTÕES DO HTML (ids com data-*)
-// ──────────────────────────────────────────
 document.getElementById("btn-abrir-modal")?.addEventListener("click", abrirModal);
 document.getElementById("btn-fechar-novo")?.addEventListener("click", fecharModal);
 document.getElementById("btn-cancelar-novo")?.addEventListener("click", fecharModal);
 document.getElementById("btn-fechar-edicao")?.addEventListener("click", fecharModalEdicao);
 document.getElementById("btn-cancelar-edicao")?.addEventListener("click", fecharModalEdicao);
-document.getElementById("btn-fechar-confirmar")?.addEventListener("click", fecharModalConfirmar);
-document.getElementById("btn-confirmar-nao")?.addEventListener("click", fecharModalConfirmar);
-
 document.getElementById("select-tipo-filtro")?.addEventListener("change", filtrarTabela);
 document.getElementById("input-termo-busca")?.addEventListener("input", filtrarTabela);
 
+// ──────────────────────────────────────────
+// INIT — aplica máscaras e CEP automático
+// ──────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+    configurarTipoSelector("novo");
+    configurarTipoSelector("edit");
+    document.getElementById("btn-filtro-todos").classList.add("ativo-sel");
 
-// ──────────────────────────────────────────
-// INIT
-// ──────────────────────────────────────────
-configurarTipoSelector("novo");
-configurarTipoSelector("edit");
-document.getElementById("btn-filtro-todos").classList.add("ativo-sel");
-carregarClientes();
+    // Máscaras de telefone
+    ["novo-telefone", "edit-telefone"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) aplicarMascaraTelefone(el);
+    });
+
+    // Máscaras CPF (padrão inicial PF)
+    ["novo-doc", "edit-doc"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) aplicarMascaraCPF(el);
+    });
+
+    // Máscaras CEP + busca automática ao sair do campo
+    ["novo-cep", "edit-cep"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        aplicarMascaraCEP(el);
+        const prefixo = id.replace("-cep", "");
+        el.addEventListener("blur", () => preencherEnderecoPorCEP(el, prefixo));
+    });
+
+    // Limpeza de erro ao digitar (feedback imediato)
+    document.querySelectorAll("input, select, textarea").forEach(el => {
+        el.addEventListener("input", () => limparErro(el));
+        el.addEventListener("change", () => limparErro(el));
+    });
+
+    carregarClientes();
+});
