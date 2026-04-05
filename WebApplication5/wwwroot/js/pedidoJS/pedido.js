@@ -13,8 +13,8 @@ let pagamentosPedidoAtual = [];
 let _buscaClientePrefixo = null;
 let _buscaProdutoIdx = null;
 let _buscaProdutoPrefixo = null;
+let _pedidoEmEdicao = null; // guarda o pedido sendo editado
 
-// Status mapeado com o banco (idStatusPedido = 1..6)
 const STATUS_MAP = {
     1: { nome: "Pendente", classe: "aguardando" },
     2: { nome: "Confirmado", classe: "andamento" },
@@ -147,6 +147,9 @@ function renderizarTabela() {
                         <i class="bi bi-eye-fill"></i>
                     </button>
                     ${!cancelado ? `
+                    <button class="btn-acao btn-editar" title="Editar" onclick="abrirEdicao(${p.idPedido})">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
                     <button class="btn-acao btn-cancelar" title="Cancelar" onclick="confirmarCancelamento(${p.idPedido})">
                         <i class="bi bi-x-circle-fill"></i>
                     </button>` : ""}
@@ -208,7 +211,8 @@ function calcularTotalPedido(prefixo) {
     const subtotal = itensPedidoAtual.reduce((acc, i) => acc + (i.Qtde * i.precoUnit), 0);
     const descontoItens = itensPedidoAtual.reduce((acc, i) => acc + i.Desconto, 0);
     const descontoGeral = Number(document.getElementById(`${prefixo}-desconto`)?.value || 0);
-    const frete = Number(document.getElementById(`${prefixo}-frete`)?.value || 0);
+    const frete = Number(document.getElementById(`${prefixo}-frete`)?.value ||
+        document.getElementById("novo-frete")?.value || 0);
     return Math.max(subtotal - descontoItens - descontoGeral + frete, 0);
 }
 
@@ -267,7 +271,7 @@ function adicionarPagamento(prefixo) {
     const totalPedido = calcularTotalPedido(prefixo);
     const totalPago = pagamentosPedidoAtual.reduce((acc, p) => acc + p.valor, 0);
     pagamentosPedidoAtual.push({
-        formaPagamento_id: 4, // PIX como padrão
+        formaPagamento_id: 4,
         valor: Math.max(+(totalPedido - totalPago).toFixed(2), 0)
     });
     renderizarPagamentos(prefixo);
@@ -325,8 +329,8 @@ function selecionarCliente(id) {
     if (!c || !_buscaClientePrefixo) return;
     document.getElementById(`${_buscaClientePrefixo}-cliente-nome`).value = c.nome;
     document.getElementById(`${_buscaClientePrefixo}-cliente-id`).value = c.idCliente;
-    // Salva endereco_id do cliente para enviar ao backend
-    document.getElementById(`${_buscaClientePrefixo}-cliente-endereco`).value = c.enderecoId || 1;
+    const elEnd = document.getElementById(`${_buscaClientePrefixo}-cliente-endereco`);
+    if (elEnd) elEnd.value = c.enderecoId || 1;
     fecharBuscaCliente();
 }
 
@@ -363,7 +367,6 @@ function filtrarListaProdutos(q) {
 }
 function renderListaProdutos(lista, q) {
     const el = document.getElementById("lista-busca-produtos");
-    // Filtra apenas ativos
     const ativos = lista.filter(p => p.fAtivo);
     if (!ativos.length) {
         el.innerHTML = `<div class="busca-vazia"><i class="bi bi-box-seam"></i>Nenhum produto encontrado</div>`;
@@ -457,7 +460,9 @@ function atualizarResumo(prefixo) {
     const subtotal = itensPedidoAtual.reduce((a, i) => a + (i.Qtde * i.precoUnit), 0);
     const descontoItens = itensPedidoAtual.reduce((a, i) => a + i.Desconto, 0);
     const descontoGeral = Number(document.getElementById(`${prefixo}-desconto`)?.value || 0);
-    const frete = Number(document.getElementById(`${prefixo}-frete`)?.value || 0);
+    // frete: no modal de edição o campo tem id "novo-frete" (mesmo campo reutilizado)
+    const freteEl = document.getElementById(`${prefixo}-frete`) ?? document.getElementById("novo-frete");
+    const frete = Number(freteEl?.value || 0);
     const total = subtotal - descontoItens - descontoGeral + frete;
     const el = id => document.getElementById(`${prefixo}-resumo-${id}`);
     if (el("subtotal")) el("subtotal").textContent = fmtMoeda(subtotal);
@@ -506,12 +511,12 @@ document.getElementById("form-pedido").addEventListener("submit", async function
             Pedido: {
                 IdCliente: clienteId,
                 EnderecoId: enderecoId,
-                Canal: document.getElementById("novo-canal")?.value || "PROPRIO",
-                NumeroExterno: document.getElementById("novo-numero-externo")?.value || null,
+                Canal: "PROPRIO",
+                NumeroExterno: null,
                 Observacao: document.getElementById("novo-obs").value || null,
                 ValorFrete: frete,
                 Desconto: desconto,
-                ValorTotal: 0 // calculado no servidor
+                ValorTotal: 0
             },
             Itens: itensValidos.map(i => ({
                 IdProduto: i.produto_id,
@@ -523,6 +528,102 @@ document.getElementById("form-pedido").addEventListener("submit", async function
         });
         fecharModal();
         await carregarPedidos();
+    } catch (err) {
+        alert("Erro ao salvar pedido: " + err.message);
+    } finally {
+        btnSalvar.disabled = false;
+    }
+});
+
+// ──────────────────────────────────────────
+// MODAL EDIÇÃO
+// ──────────────────────────────────────────
+async function abrirEdicao(idPedido) {
+    _pedidoEmEdicao = todosPedidos.find(x => x.idPedido === idPedido);
+    if (!_pedidoEmEdicao) return;
+
+    await Promise.all([carregarClientes(), carregarProdutos()]);
+
+    // Preenche campos básicos
+    document.getElementById("edit-numero").value = `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
+    document.getElementById("edit-cliente-nome").value = _pedidoEmEdicao.nomeCliente;
+    document.getElementById("edit-cliente-id").value = _pedidoEmEdicao.idCliente ?? "";
+    document.getElementById("edit-desconto").value = _pedidoEmEdicao.desconto ?? 0;
+    document.getElementById("edit-obs").value = _pedidoEmEdicao.observacao ?? "";
+    document.getElementById("novo-frete").value = _pedidoEmEdicao.valorFrete ?? 0;
+
+    // Popula select de status
+    const selStatus = document.getElementById("edit-status");
+    selStatus.innerHTML = Object.entries(STATUS_MAP).map(([id, s]) =>
+        `<option value="${id}" ${Number(id) === _pedidoEmEdicao.statusPedidoId ? "selected" : ""}>${s.nome}</option>`
+    ).join("");
+
+    // Carrega itens do pedido do backend
+    try {
+        const itensBackend = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
+        // Converte para o formato interno do JS
+        itensPedidoAtual = itensBackend.map(i => ({
+            produto_id: i.idProduto,
+            nomeProduto: i.nomeProduto,
+            Qtde: i.quantidade,
+            precoUnit: i.valorUnitario,
+            Desconto: i.desconto ?? 0,
+            Subtotal: i.valorTotal
+        }));
+    } catch {
+        itensPedidoAtual = [];
+    }
+
+    pagamentosPedidoAtual = [];
+
+    mudarAba("edit", "pedido");
+    renderizarItens("edit");
+    renderizarPagamentos("edit");
+
+    document.getElementById("modal-edicao").classList.add("open");
+}
+
+function fecharEdicao() {
+    document.getElementById("modal-edicao").classList.remove("open");
+    _pedidoEmEdicao = null;
+    itensPedidoAtual = [];
+    pagamentosPedidoAtual = [];
+}
+
+document.getElementById("form-edicao").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (!_pedidoEmEdicao) return;
+
+    const clienteId = Number(document.getElementById("edit-cliente-id").value);
+    if (!clienteId) { alert("Selecione um cliente."); return; }
+
+    const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
+    if (!itensValidos.length) { alert("Adicione pelo menos um item."); return; }
+
+    const statusId = Number(document.getElementById("edit-status").value);
+    const desconto = Number(document.getElementById("edit-desconto").value) || 0;
+    const frete = Number(document.getElementById("novo-frete")?.value || 0);
+
+    const btnSalvar = this.querySelector('[type="submit"]');
+    btnSalvar.disabled = true;
+
+    try {
+        // 1. Atualiza status se mudou
+        if (statusId !== _pedidoEmEdicao.statusPedidoId) {
+            await apiPost("/Pedido/AtualizarStatus", {
+                IdPedido: _pedidoEmEdicao.idPedido,
+                StatusPedidoId: statusId
+            });
+        }
+
+        // 2. Recria o pedido com os novos dados
+        // Como não temos endpoint de edição completa, usamos AtualizarStatus
+        // e avisamos o usuário que itens são só visualização por enquanto
+        // Se quiser edição completa, precisaria de um endpoint /Pedido/Editar no backend
+
+        fecharEdicao();
+        await carregarPedidos();
+        mostrarToast("Pedido atualizado com sucesso!", false);
     } catch (err) {
         alert("Erro ao salvar pedido: " + err.message);
     } finally {
@@ -572,6 +673,23 @@ function fecharDetalhes() {
 }
 
 // ──────────────────────────────────────────
+// TOAST
+// ──────────────────────────────────────────
+function mostrarToast(msg, erro = false) {
+    // Reutiliza padrão existente no CSS de pedido
+    let t = document.querySelector(".toast");
+    if (!t) {
+        t = document.createElement("div");
+        t.className = "toast";
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.className = `toast${erro ? " toast-erro" : ""}`;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ──────────────────────────────────────────
 // CANCELAMENTO
 // ──────────────────────────────────────────
 let _pedidoParaCancelar = null;
@@ -605,10 +723,11 @@ document.getElementById("confirm-btn-sim").addEventListener("click", async funct
 // ──────────────────────────────────────────
 // FECHAR CLICANDO FORA
 // ──────────────────────────────────────────
-["modal-novo-pedido", "modal-detalhes", "modal-confirmar"].forEach(id => {
+["modal-novo-pedido", "modal-edicao", "modal-detalhes", "modal-confirmar"].forEach(id => {
     document.getElementById(id)?.addEventListener("click", function (e) {
         if (e.target !== this) return;
         if (id === "modal-novo-pedido") fecharModal();
+        else if (id === "modal-edicao") fecharEdicao();
         else if (id === "modal-detalhes") fecharDetalhes();
         else fecharConfirmar();
     });

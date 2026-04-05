@@ -14,23 +14,11 @@ const menuHTML = `
 <nav class="sidebar">
     <ul>
         <li><a href="/Home"    class="${ativo('Home')}">Início</a></li>
-        <li><a href="/Usuario" class="${ativo('Usuario')}">Usuários</a></li>
+        <li><a href="/Usuario" class="${ativo('Usuario')}">Usuário</a></li>
         <li><a href="/Cliente" class="${ativo('Cliente')}">Clientes</a></li>
         <li><a href="/Pedido"  class="${ativo('Pedido')}">Pedidos</a></li>
-
-        <!-- ESTOQUE -->
-        <li class="menu-expansivel ${rotaAtual === 'Estoque' || rotaAtual === 'EstoqueHistorico' ? 'active' : ''}">
-            <span>
-                Estoque
-                <i class="bi bi-chevron-down seta"></i>
-            </span>
-            <ul class="submenu">
-                <li><a href="/Estoque"           class="${ativo('Estoque')}">Controle de Estoque</a></li>
-                <li><a href="/EstoqueHistorico"  class="${ativo('EstoqueHistorico')}">Movimentações</a></li>
-            </ul>
-        </li>
-
         <li><a href="/Caixa" class="${ativo('Caixa')}">Caixa</a></li>
+        <li><a href="/Estoque "class="${ativo('Estoque')}">Estoque</a></li>
 
         <!-- CADASTROS -->
         <li class="menu-expansivel ${rotaAtual === 'Fornecedor' || rotaAtual === 'CategoriaProduto' || rotaAtual === 'Produto' ? 'active' : ''}">
@@ -39,9 +27,8 @@ const menuHTML = `
                 <i class="bi bi-chevron-down seta"></i>
             </span>
             <ul class="submenu">
-                <li><a href="/Produto"          class="${ativo('Produto')}">Produtos</a></li>
                 <li><a href="/Fornecedor"       class="${ativo('Fornecedor')}">Fornecedores</a></li>
-                <li><a href="/CategoriaProduto" class="${ativo('CategoriaProduto')}">Categorias</a></li>
+                <li><a href="/CategoriaProduto" class="${ativo('CategoriaProduto')}">Categoria Produto</a></li>
             </ul>
         </li>
 

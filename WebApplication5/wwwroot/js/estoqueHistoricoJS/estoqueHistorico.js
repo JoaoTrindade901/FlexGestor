@@ -60,7 +60,7 @@ function renderizarHistorico() {
         return `
         <tr>
             <td>${formatarData(m.DthMovimentacao ?? m.dthMovimentacao)}</td>
-            <td>${m.IdProduto ?? m.idProduto ?? "—"}</td>
+            <td>${m.nomeProduto ?? m.NomeProduto ?? "—"}</td>
             <td>
                 <span class="badge-mov ${tipoClasse}">${tipoLabel}</span>
             </td>
@@ -68,7 +68,7 @@ function renderizarHistorico() {
                 ${sinal}${m.Quantidade ?? m.quantidade}
             </td>
             <td>—</td>
-            <td>${m.IdUsuario ?? m.idUsuario ?? "—"}</td>
+            <td>${m.nomeUsuario ?? m.NomeUsuario ?? "—"}</td>
             <td title="${m.Motivo ?? m.motivo ?? ""}">
                 ${m.Motivo ?? m.motivo ?? "—"}
             </td>
