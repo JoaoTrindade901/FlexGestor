@@ -608,22 +608,23 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     btnSalvar.disabled = true;
 
     try {
-        // 1. Atualiza status se mudou
-        if (statusId !== _pedidoEmEdicao.statusPedidoId) {
-            await apiPost("/Pedido/AtualizarStatus", {
-                IdPedido: _pedidoEmEdicao.idPedido,
-                StatusPedidoId: statusId
-            });
-        }
-
-        // 2. Recria o pedido com os novos dados
-        // Como não temos endpoint de edição completa, usamos AtualizarStatus
-        // e avisamos o usuário que itens são só visualização por enquanto
-        // Se quiser edição completa, precisaria de um endpoint /Pedido/Editar no backend
-
+        await apiPost("/Pedido/Editar", {
+            IdPedido: _pedidoEmEdicao.idPedido,
+            StatusPedidoId: statusId,
+            Desconto: desconto,
+            ValorFrete: frete,
+            Observacao: document.getElementById("edit-obs").value || null,
+            Itens: itensValidos.map(i => ({
+                IdProduto: i.produto_id,
+                Quantidade: i.Qtde,
+                ValorUnitario: i.precoUnit,
+                Desconto: i.Desconto,
+                ValorTotal: i.Subtotal
+            }))
+        });
         fecharEdicao();
         await carregarPedidos();
-        mostrarToast("Pedido atualizado com sucesso!", false);
+        mostrarToast("Pedido atualizado com sucesso!");
     } catch (err) {
         alert("Erro ao salvar pedido: " + err.message);
     } finally {

@@ -41,6 +41,9 @@ builder.Services.AddScoped<CategoriaProdutoService>();
 builder.Services.AddScoped<CaixaRepository>();
 builder.Services.AddScoped<CaixaService>();
 
+builder.Services.AddScoped<FornecedorRepository>();
+builder.Services.AddScoped<FornecedorService>();
+
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 

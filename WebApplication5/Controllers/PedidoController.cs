@@ -52,4 +52,14 @@ public class PedidoController : BaseController
         _service.Cancelar(idPedido);
         return Ok();
     }
+
+    [HttpPost]
+    public IActionResult Editar([FromBody] PedidoEditarDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
+        _service.Editar(dto, idEmpresa, idUsuario);
+        return Ok();
+    }
 }

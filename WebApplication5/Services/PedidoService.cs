@@ -56,5 +56,27 @@ namespace WebApplication5.Services
 
         public void Cancelar(int idPedido)
             => _repo.Cancelar(idPedido);
+
+        public void Editar(PedidoEditarDto dto, int idEmpresa, int idUsuario)
+        {
+            // 1. Atualiza status se necessário
+            _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId);
+
+            // 2. Deleta itens antigos e reinserindo os novos
+            _repo.DeletarItens(dto.IdPedido);
+
+            decimal valorTotal = 0;
+            foreach (var item in dto.Itens)
+            {
+                item.IdPedido = dto.IdPedido;
+                item.ValorTotal = (item.ValorUnitario * item.Quantidade) - item.Desconto;
+                valorTotal += item.ValorTotal;
+                _repo.InserirItem(item);
+            }
+
+            // 3. Atualiza cabeçalho do pedido
+            valorTotal = valorTotal + dto.ValorFrete - dto.Desconto;
+            _repo.AtualizarCabecalho(dto.IdPedido, valorTotal, dto.Desconto, dto.ValorFrete, dto.Observacao);
+        }
     }
 }

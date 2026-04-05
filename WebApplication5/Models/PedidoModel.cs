@@ -7,8 +7,8 @@ namespace WebApplication5.Models
         public int IdCliente { get; set; }
         public int IdUsuario { get; set; }
         public int IdEmpresa { get; set; }
-        public int EnderecoId { get; set; }       // endereco_id — obrigatório no banco
-        public int StatusPedidoId { get; set; }   // statusPedido_id (FK StatusPedido)
+        public int EnderecoId { get; set; }
+        public int StatusPedidoId { get; set; } 
         public string? Canal { get; set; } = "PROPRIO";
         public string? NumeroExterno { get; set; }
         public string? Observacao { get; set; }
@@ -34,18 +34,18 @@ namespace WebApplication5.Models
         public int idPedido { get; set; }
         public int numeroPedido { get; set; }
         public int idCliente { get; set; }
-        public int idEmpresa { get; set; }
         public string nomeCliente { get; set; } = string.Empty;
+        public int statusPedidoId { get; set; }
         public string? canal { get; set; }
         public string? numeroExterno { get; set; }
-        public string status { get; set; } = string.Empty;      // Nome do StatusPedido
-        public int statusPedidoId { get; set; }
+        public string? status { get; set; }
+        public int idUsuario { get; set; }
         public string? observacao { get; set; }
         public decimal valorTotal { get; set; }
-        public decimal valorFrete { get; set; }
         public decimal desconto { get; set; }
-        public int totalItens { get; set; }
+        public decimal valorFrete { get; set; }
         public DateTime dthCriacao { get; set; }
+        public int idEmpresa { get; set; }
     }
 
     public class PedidoItemGridDto

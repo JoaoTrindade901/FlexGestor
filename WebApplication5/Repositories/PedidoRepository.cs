@@ -23,6 +23,24 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        public void DeletarItens(int idPedido)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_DeletarItensPedido",
+                new { p_idPedido = idPedido },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void AtualizarCabecalho(int idPedido, decimal valorTotal, decimal desconto, decimal valorFrete, string? observacao)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_AtualizarCabecalhoPedido",
+                new { p_idPedido = idPedido, p_valorTotal = valorTotal, p_Desconto = desconto, p_valorFrete = valorFrete, p_Observacao = observacao },
+                commandType: CommandType.StoredProcedure);
+        }
+
         public int Inserir(PedidoModel pedido)
         {
             using var conn = new MySqlConnection(_connectionString);
