@@ -1,5 +1,4 @@
-﻿// Services/PedidoService.cs
-using WebApplication5.Models;
+﻿using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -18,23 +17,25 @@ namespace WebApplication5.Services
         public IEnumerable<PedidoListaGridDto> Listar(int idEmpresa)
             => _repo.Listar(idEmpresa);
 
-        public IEnumerable<PedidoListaGridDto> Filtrar(PedidoFiltroDto filtro, int idEmpresa)
-            => _repo.Filtrar(filtro, idEmpresa);
-
         public IEnumerable<PedidoItemGridDto> ListarItens(int idPedido)
             => _repo.ListarItens(idPedido);
 
         public int Criar(PedidoCriarDto dto, int idEmpresa, int idUsuario)
         {
-            dto.Pedido.IdEmpresa = idEmpresa;
-            dto.Pedido.DthCriacao = DateTime.Now;
-            dto.Pedido.Status = "PENDENTE";
+            var pedido = dto.Pedido;
+            pedido.IdEmpresa = idEmpresa;
+            pedido.IdUsuario = idUsuario;
+            pedido.StatusPedidoId = 1; // PENDENTE
+            pedido.DthCriacao = DateTime.Now;
 
-            dto.Pedido.ValorProdutos = dto.Itens.Sum(i => i.ValorTotal);
-            dto.Pedido.ValorTotal =
-                dto.Pedido.ValorProdutos + dto.Pedido.ValorFrete - dto.Pedido.Desconto;
+            // Recalcula totais no servidor
+            pedido.ValorTotal =
+                dto.Itens.Sum(i => i.ValorTotal) + pedido.ValorFrete - pedido.Desconto;
 
-            var idPedido = _repo.Inserir(dto.Pedido);
+            // endereco_id: usa o do cliente se não informado
+            if (pedido.EnderecoId == 0) pedido.EnderecoId = 1;
+
+            var idPedido = _repo.Inserir(pedido);
 
             foreach (var item in dto.Itens)
             {
@@ -50,8 +51,8 @@ namespace WebApplication5.Services
             return idPedido;
         }
 
-        public void AtualizarStatus(int idPedido, string status)
-            => _repo.AtualizarStatus(idPedido, status);
+        public void AtualizarStatus(int idPedido, int statusPedidoId)
+            => _repo.AtualizarStatus(idPedido, statusPedidoId);
 
         public void Cancelar(int idPedido)
             => _repo.Cancelar(idPedido);

@@ -6,10 +6,7 @@ public class PedidoController : BaseController
 {
     private readonly PedidoService _service;
 
-    public PedidoController(PedidoService service)
-    {
-        _service = service;
-    }
+    public PedidoController(PedidoService service) => _service = service;
 
     public IActionResult Index()
     {
@@ -24,21 +21,12 @@ public class PedidoController : BaseController
         return Json(_service.Listar(idEmpresa));
     }
 
-    [HttpPost]
-    public IActionResult Filtrar([FromBody] PedidoFiltroDto filtro)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        return Json(_service.Filtrar(filtro, idEmpresa));
-    }
-
     public IActionResult ListarItens(int idPedido)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         return Json(_service.ListarItens(idPedido));
     }
 
-    [HttpPost]
     [HttpPost]
     public IActionResult Criar([FromBody] PedidoCriarDto dto)
     {
@@ -50,10 +38,10 @@ public class PedidoController : BaseController
     }
 
     [HttpPost]
-    public IActionResult AtualizarStatus([FromBody] AtualizarStatusDto dto)
+    public IActionResult AtualizarStatus([FromBody] AtualizarStatusPedidoDto dto)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.AtualizarStatus(dto.IdPedido, dto.Status);
+        _service.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId);
         return Ok();
     }
 
@@ -64,10 +52,4 @@ public class PedidoController : BaseController
         _service.Cancelar(idPedido);
         return Ok();
     }
-}
-
-public class AtualizarStatusDto
-{
-    public int IdPedido { get; set; }
-    public string Status { get; set; } = string.Empty;
 }

@@ -23,22 +23,41 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public IEnumerable<PedidoListaGridDto> Filtrar(PedidoFiltroDto filtro, int idEmpresa)
+        public int Inserir(PedidoModel pedido)
         {
             using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<PedidoListaGridDto>(
-                "sp_FiltrarPedido",
+            return conn.ExecuteScalar<int>(
+                "sp_CriarPedido",
                 new
                 {
-                    p_idEmpresa        = idEmpresa,
-                    p_nomeCliente      = filtro.NomeCliente,
-                    p_numeroExterno    = filtro.NumeroExterno,
-                    p_canal            = filtro.Canal,
-                    p_status           = filtro.Status,
-                    p_dthCriacaoInicio = filtro.DthCriacaoInicio,
-                    p_dthCriacaoFim    = filtro.DthCriacaoFim,
-                    p_valorMin         = filtro.ValorMin,
-                    p_valorMax         = filtro.ValorMax
+                    p_cliente_id = pedido.IdCliente,
+                    p_usuario_id = pedido.IdUsuario,
+                    p_idEmpresa = pedido.IdEmpresa,
+                    p_endereco_id = pedido.EnderecoId,
+                    p_canal = pedido.Canal ?? "PROPRIO",
+                    p_numeroExterno = pedido.NumeroExterno,
+                    p_statusPedido_id = pedido.StatusPedidoId,
+                    p_valorTotal = pedido.ValorTotal,
+                    p_valorFrete = pedido.ValorFrete,
+                    p_Desconto = pedido.Desconto,
+                    p_Observacao = pedido.Observacao
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void InserirItem(PedidoItemModel item)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_CriarItemPedido",
+                new
+                {
+                    p_idPedido = item.IdPedido,
+                    p_idProduto = item.IdProduto,
+                    p_quantidade = item.Quantidade,
+                    p_valorUnitario = item.ValorUnitario,
+                    p_desconto = item.Desconto,
+                    p_valorTotal = item.ValorTotal
                 },
                 commandType: CommandType.StoredProcedure);
         }
@@ -52,51 +71,12 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public int Inserir(PedidoModel pedido)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            return conn.ExecuteScalar<int>(
-                "sp_CriarPedido",
-                new
-                {
-                    pedido.IdCliente,
-                    pedido.IdEmpresa,
-                    pedido.NumeroExterno,
-                    pedido.Canal,
-                    pedido.Status,
-                    pedido.Observacao,
-                    pedido.ValorProdutos,
-                    pedido.ValorFrete,
-                    pedido.Desconto,
-                    pedido.ValorTotal,
-                    DthCriacao = DateTime.Now
-                },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public void InserirItem(PedidoItemModel item)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            conn.Execute(
-                "sp_CriarItemPedido",
-                new
-                {
-                    item.IdPedido,
-                    item.IdProduto,
-                    item.Quantidade,
-                    item.ValorUnitario,
-                    item.Desconto,
-                    item.ValorTotal
-                },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public void AtualizarStatus(int idPedido, string status)
+        public void AtualizarStatus(int idPedido, int statusPedidoId)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AtualizarStatusPedido",
-                new { p_idPedido = idPedido, p_status = status },
+                new { p_idPedido = idPedido, p_statusPedido_id = statusPedidoId },
                 commandType: CommandType.StoredProcedure);
         }
 
