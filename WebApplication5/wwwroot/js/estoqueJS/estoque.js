@@ -1,14 +1,11 @@
 // ===== ESTOQUE.JS — integrado com backend FlexGestor =====
 
-// ──────────────────────────────────────────
-// ESTADO GLOBAL
-// ──────────────────────────────────────────
 let lista = [];
 let listaFiltrada = [];
-let itemParaAcao = null;
 let filtroTexto = "";
 let filtroStatus = "todos";
-let etapaAtual = 1;
+let etapaProduto = 1;
+let categorias = [];
 
 // ──────────────────────────────────────────
 // FETCH HELPERS
@@ -45,11 +42,10 @@ function esconderErro() {
 }
 
 // ──────────────────────────────────────────
-// CARREGAR DADOS
+// CARREGAR ESTOQUE
 // ──────────────────────────────────────────
 async function carregarEstoque() {
     try {
-        // GET /Estoque/Listar → IEnumerable<EstoqueListaGridDto>
         lista = await apiGet("/Estoque/Listar");
         aplicarFiltros();
     } catch (err) {
@@ -57,11 +53,27 @@ async function carregarEstoque() {
     }
 }
 
+async function carregarCategorias() {
+    try {
+        categorias = await apiGet("/CategoriaProduto/Listar");
+        const sel = document.getElementById("prod-categoria");
+        if (!sel) return;
+        sel.innerHTML = `<option value="">Selecione...</option>`;
+        categorias.filter(c => c.fAtivo).forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.idCategoria;
+            opt.textContent = c.nome;
+            sel.appendChild(opt);
+        });
+    } catch (err) {
+        console.warn("Categorias indisponíveis:", err.message);
+    }
+}
+
 // ──────────────────────────────────────────
-// CLASSIFICAÇÃO DE STATUS
+// STATUS / FILTROS
 // ──────────────────────────────────────────
 function classificarStatus(item) {
-    // EstoqueListaGridDto tem: quantidade, estoqueMinimo, estoqueCritico
     if (item.estoqueCritico) return "critico";
     return "normal";
 }
@@ -75,15 +87,11 @@ function formatarData(data) {
     return new Date(data).toLocaleDateString("pt-BR");
 }
 
-// ──────────────────────────────────────────
-// FILTROS
-// ──────────────────────────────────────────
 function setFiltroStatus(valor) {
     filtroStatus = valor;
     document.querySelectorAll(".btn-status-filtro").forEach(b =>
         b.classList.remove("sel-todos", "sel-critico", "sel-normal"));
-    const mapa = { todos: "sel-todos", critico: "sel-critico", normal: "sel-normal" };
-    document.getElementById(`btn-filtro-${valor}`)?.classList.add(mapa[valor]);
+    document.getElementById(`btn-filtro-${valor}`)?.classList.add(`sel-${valor}`);
     aplicarFiltros();
 }
 
@@ -142,7 +150,140 @@ function renderizarTabela() {
 }
 
 // ──────────────────────────────────────────
-// MODAL MOVIMENTAÇÃO (ENTRADA / SAÍDA / AJUSTE)
+// WIZARD NOVO PRODUTO
+// ──────────────────────────────────────────
+async function abrirModal() {
+    etapaProduto = 1;
+    document.getElementById("formEstoque").reset();
+    esconderErro();
+    atualizarEtapas();
+    await carregarCategorias();
+    document.getElementById("modalEstoque").classList.add("open");
+}
+
+function fecharModal(id = "modalEstoque") {
+    document.getElementById(id)?.classList.remove("open");
+}
+
+function atualizarEtapas() {
+    document.querySelectorAll(".etapa").forEach(e => e.classList.remove("ativa"));
+    document.getElementById(`etapa-${etapaProduto}`)?.classList.add("ativa");
+
+    document.querySelectorAll(".step").forEach((step, i) => {
+        step.classList.toggle("active", i < etapaProduto);
+    });
+
+    const btnProximo = document.getElementById("btn-proximo");
+    const btnSalvar = document.getElementById("btnSalvar");
+    const btnVoltar = document.getElementById("btn-voltar");
+
+    if (btnProximo) btnProximo.style.display = etapaProduto === 3 ? "none" : "inline-flex";
+    if (btnSalvar) btnSalvar.style.display = etapaProduto === 3 ? "inline-flex" : "none";
+    if (btnVoltar) btnVoltar.style.display = etapaProduto === 1 ? "none" : "inline-flex";
+}
+
+function proximaEtapa() {
+    if (!validarEtapaAtual()) return;
+    if (etapaProduto < 3) { etapaProduto++; atualizarEtapas(); }
+}
+
+function voltarEtapa() {
+    if (etapaProduto > 1) { etapaProduto--; atualizarEtapas(); }
+}
+
+function validarEtapaAtual() {
+    esconderErro();
+    if (etapaProduto === 1) {
+        const nome = document.getElementById("nome")?.value.trim();
+        const cod = document.getElementById("codBarras")?.value.trim();
+        if (!nome || !cod) {
+            mostrarErro("Preencha o Nome e o Código de Barras.");
+            return false;
+        }
+    }
+    if (etapaProduto === 2) {
+        const qtd = document.getElementById("qtd")?.value;
+        const min = document.getElementById("min")?.value;
+        if (!qtd || !min) {
+            mostrarErro("Preencha a Quantidade Atual e o Estoque Mínimo.");
+            return false;
+        }
+    }
+    return true;
+}
+
+// ──────────────────────────────────────────
+// SALVAR PRODUTO (submit do wizard)
+// ──────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+
+    document.getElementById("formEstoque")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (!validarEtapaAtual()) return;
+
+        const btnSalvar = document.getElementById("btnSalvar");
+        const textoOriginal = btnSalvar.innerHTML;
+        btnSalvar.disabled = true;
+        btnSalvar.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
+
+        try {
+            const nomeProduto = document.getElementById("nome").value.trim();
+            const qtdInicial = Number(document.getElementById("qtd")?.value) || 0;
+            const estoqueMin = Number(document.getElementById("min")?.value) || 0;
+
+            // 1. Cria o produto
+            await apiPost("/Produto/Criar", {
+                Nome: nomeProduto,
+                Descricao: document.getElementById("descricao")?.value.trim() || null,
+                SKU: document.getElementById("codProduto")?.value.trim() || null,
+                CodigoBarras: document.getElementById("codBarras").value.trim(),
+                PrecoCusto: Number(document.getElementById("precoCusto")?.value) || 0,
+                PrecoVenda: Number(document.getElementById("precoVenda")?.value) || 0,
+                IdCategoria: document.getElementById("prod-categoria")?.value
+                    ? Number(document.getElementById("prod-categoria").value)
+                    : null,
+                Unidade: document.getElementById("unidade")?.value.trim() || null,
+                FAtivo: true
+            });
+
+            // 2. Recarrega estoque e acha o produto recém criado pelo nome
+            const estoqueAtual = await apiGet("/Estoque/Listar");
+            const itemNovo = estoqueAtual.find(i => i.nomeProduto === nomeProduto);
+
+            if (itemNovo) {
+                // 3. Movimenta entrada inicial se qtd > 0
+                if (qtdInicial > 0) {
+                    await apiPost("/Estoque/Movimentar", {
+                        IdProduto: itemNovo.idProduto,
+                        TipoMovimentacao: "ENTRADA",
+                        Quantidade: qtdInicial,
+                        Motivo: "Cadastro inicial de produto"
+                    });
+                }
+                // 4. Define estoque mínimo
+                if (estoqueMin > 0) {
+                    await apiPost("/Estoque/AtualizarMinimo", {
+                        IdProduto: itemNovo.idProduto,
+                        EstoqueMinimo: estoqueMin
+                    });
+                }
+            }
+
+            fecharModal();
+            await carregarEstoque();
+
+        } catch (err) {
+            mostrarErro("Erro ao salvar produto: " + err.message);
+        } finally {
+            btnSalvar.disabled = false;
+            btnSalvar.innerHTML = textoOriginal;
+        }
+    });
+
+});
+
+// ──────────────────────────────────────────
+// MODAL MOVIMENTAÇÃO
 // ──────────────────────────────────────────
 function abrirModalMovimentacao(idProduto, nomeProduto) {
     document.getElementById("mov-produto-nome").textContent = nomeProduto;
@@ -155,6 +296,26 @@ function abrirModalMovimentacao(idProduto, nomeProduto) {
 
 function fecharModalMovimentacao() {
     document.getElementById("modal-movimentacao").classList.remove("open");
+}
+
+async function salvarMovimentacao() {
+    const idProduto = Number(document.getElementById("mov-idProduto").value);
+    const tipoMovimentacao = document.getElementById("mov-tipo").value;
+    const quantidade = Number(document.getElementById("mov-quantidade").value);
+    const motivo = document.getElementById("mov-motivo").value.trim() || null;
+
+    if (!quantidade || quantidade <= 0) { alert("Informe uma quantidade válida."); return; }
+
+    try {
+        await apiPost("/Estoque/Movimentar", {
+            IdProduto: idProduto, TipoMovimentacao: tipoMovimentacao,
+            Quantidade: quantidade, Motivo: motivo
+        });
+        fecharModalMovimentacao();
+        await carregarEstoque();
+    } catch (err) {
+        alert("Erro ao movimentar: " + err.message);
+    }
 }
 
 // ──────────────────────────────────────────
@@ -170,49 +331,13 @@ function fecharModalMinimo() {
     document.getElementById("modal-minimo").classList.remove("open");
 }
 
-// ──────────────────────────────────────────
-// SALVAR MOVIMENTAÇÃO
-// ──────────────────────────────────────────
-async function salvarMovimentacao() {
-    const idProduto = Number(document.getElementById("mov-idProduto").value);
-    const tipoMovimentacao = document.getElementById("mov-tipo").value;
-    const quantidade = Number(document.getElementById("mov-quantidade").value);
-    const motivo = document.getElementById("mov-motivo").value.trim() || null;
-
-    if (!quantidade || quantidade <= 0) {
-        alert("Informe uma quantidade válida.");
-        return;
-    }
-
-    try {
-        // POST /Estoque/Movimentar → MovimentacaoEstoqueModel
-        await apiPost("/Estoque/Movimentar", {
-            IdProduto: idProduto,
-            TipoMovimentacao: tipoMovimentacao,
-            Quantidade: quantidade,
-            Motivo: motivo
-        });
-        fecharModalMovimentacao();
-        await carregarEstoque();
-    } catch (err) {
-        alert("Erro ao movimentar: " + err.message);
-    }
-}
-
-// ──────────────────────────────────────────
-// SALVAR ESTOQUE MÍNIMO
-// ──────────────────────────────────────────
 async function salvarMinimo() {
     const idProduto = Number(document.getElementById("min-idProduto").value);
     const estoqueMinimo = Number(document.getElementById("min-valor").value);
 
-    if (isNaN(estoqueMinimo) || estoqueMinimo < 0) {
-        alert("Informe um valor válido.");
-        return;
-    }
+    if (isNaN(estoqueMinimo) || estoqueMinimo < 0) { alert("Informe um valor válido."); return; }
 
     try {
-        // POST /Estoque/AtualizarMinimo → AtualizarMinimoDto
         await apiPost("/Estoque/AtualizarMinimo", { IdProduto: idProduto, EstoqueMinimo: estoqueMinimo });
         fecharModalMinimo();
         await carregarEstoque();
@@ -224,9 +349,9 @@ async function salvarMinimo() {
 // ──────────────────────────────────────────
 // FECHAR CLICANDO FORA
 // ──────────────────────────────────────────
-["modal-movimentacao", "modal-minimo"].forEach(id => {
+["modalEstoque", "modal-movimentacao", "modal-minimo", "modal-confirmar"].forEach(id => {
     document.getElementById(id)?.addEventListener("click", function (e) {
-        if (e.target === this) this.classList.remove("open");
+        if (e.target === this) fecharModal(id);
     });
 });
 

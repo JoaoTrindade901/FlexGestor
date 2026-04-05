@@ -1,11 +1,7 @@
-﻿// =========================
-// ROTA ATUAL (injetada pelo layout via data attribute)
-// =========================
+﻿// ===== MENU.JS — FlexGestor =====
+
 const rotaAtual = document.body.dataset.rota || "";
 
-// =========================
-// HTML DO MENU
-// =========================
 function ativo(rota) {
     return rotaAtual === rota ? "active" : "";
 }
@@ -21,22 +17,36 @@ const menuHTML = `
         <li><a href="/Usuario" class="${ativo('Usuario')}">Usuários</a></li>
         <li><a href="/Cliente" class="${ativo('Cliente')}">Clientes</a></li>
         <li><a href="/Pedido"  class="${ativo('Pedido')}">Pedidos</a></li>
-        <li><a href="/Estoque" class="${ativo('Estoque')}">Estoque</a></li>
+
+        <!-- ESTOQUE -->
+        <li class="menu-expansivel ${rotaAtual === 'Estoque' || rotaAtual === 'EstoqueHistorico' ? 'active' : ''}">
+            <span>
+                Estoque
+                <i class="bi bi-chevron-down seta"></i>
+            </span>
+            <ul class="submenu">
+                <li><a href="/Estoque"           class="${ativo('Estoque')}">Controle de Estoque</a></li>
+                <li><a href="/EstoqueHistorico"  class="${ativo('EstoqueHistorico')}">Movimentações</a></li>
+            </ul>
+        </li>
+
+        <li><a href="/Caixa" class="${ativo('Caixa')}">Caixa</a></li>
 
         <!-- CADASTROS -->
-        <li class="menu-expansivel">
+        <li class="menu-expansivel ${rotaAtual === 'Fornecedor' || rotaAtual === 'CategoriaProduto' || rotaAtual === 'Produto' ? 'active' : ''}">
             <span>
                 Cadastros
                 <i class="bi bi-chevron-down seta"></i>
             </span>
             <ul class="submenu">
-                <li><a href="/Fornecedor" class="${ativo('Fornecedores')}">Fornecedores</a></li>
-                <li><a href="/CategoriaProduto" class="${ativo('CategoriaProduto')}">Categoria Produto</a></li>
+                <li><a href="/Produto"          class="${ativo('Produto')}">Produtos</a></li>
+                <li><a href="/Fornecedor"       class="${ativo('Fornecedor')}">Fornecedores</a></li>
+                <li><a href="/CategoriaProduto" class="${ativo('CategoriaProduto')}">Categorias</a></li>
             </ul>
         </li>
 
         <!-- INTELIGÊNCIA -->
-        <li class="menu-expansivel ${ativo('ML')}">
+        <li class="menu-expansivel ${rotaAtual === 'ML' ? 'active' : ''}">
             <span>
                 Análise Gerencial
                 <i class="bi bi-chevron-down seta"></i>
@@ -50,20 +60,14 @@ const menuHTML = `
 </nav>
 `;
 
-// =========================
-// INSERE MENU
-// =========================
 document.getElementById("menu").innerHTML = menuHTML;
 
-// =========================
-// MENU EXPANSÍVEL
-// =========================
+// ── MENU EXPANSÍVEL ──
 const menus = document.querySelectorAll('.menu-expansivel');
 menus.forEach(menu => {
     const toggle = menu.querySelector('span');
     const submenu = menu.querySelector('.submenu');
 
-    // Abre automaticamente o grupo ativo ao carregar
     if (menu.classList.contains('active') && submenu) {
         submenu.style.maxHeight = submenu.scrollHeight + "px";
     }

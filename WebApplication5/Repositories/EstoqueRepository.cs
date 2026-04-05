@@ -55,13 +55,13 @@ namespace WebApplication5.Repositories
                 "sp_MovimentarEstoque",
                 new
                 {
-                    m.IdProduto,
-                    m.IdEmpresa,
-                    m.TipoMovimentacao,
-                    m.Quantidade,
-                    m.Motivo,
-                    m.IdUsuario,
-                    DthMovimentacao = DateTime.Now
+                    p_IdProduto = m.IdProduto,
+                    p_IdEmpresa = m.IdEmpresa,
+                    p_TipoMovimentacao = m.TipoMovimentacao,
+                    p_Quantidade = m.Quantidade,
+                    p_Motivo = m.Motivo,
+                    p_IdUsuario = m.IdUsuario,
+                    p_DthMovimentacao = m.DthMovimentacao
                 },
                 commandType: CommandType.StoredProcedure);
         }

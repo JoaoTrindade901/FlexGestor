@@ -14,11 +14,11 @@ namespace WebApplication5.Repositories
             _connectionString = config.GetConnectionString("Default")!;
         }
 
-        public IEnumerable<ProdutoListaGridDto> Listar(int idEmpresa)
+        public IEnumerable<EstoqueListaGridDto> Listar(int idEmpresa)
         {
             using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<ProdutoListaGridDto>(
-                "sp_ListarProduto",
+            return conn.Query<EstoqueListaGridDto>(
+                "sp_ListarEstoque",
                 new { p_idEmpresa = idEmpresa },
                 commandType: CommandType.StoredProcedure);
         }
@@ -53,17 +53,17 @@ namespace WebApplication5.Repositories
                 "sp_CriarProduto",
                 new
                 {
-                    p.IdEmpresa,
-                    p.Nome,
-                    p.Descricao,
-                    p.SKU,
-                    p.CodigoBarras,
-                    p.PrecoCusto,
-                    p.PrecoVenda,
-                    p.IdCategoria,
-                    p.Unidade,
-                    p.FAtivo,
-                    DthCadastro = DateTime.Now
+                    p_IdEmpresa = p.IdEmpresa,
+                    p_Nome = p.Nome,
+                    p_Descricao = p.Descricao,
+                    p_SKU = p.SKU,
+                    p_CodigoBarras = p.CodigoBarras,
+                    p_PrecoCusto = p.PrecoCusto,
+                    p_PrecoVenda = p.PrecoVenda,
+                    p_IdCategoria = p.IdCategoria,
+                    p_Unidade = p.Unidade,
+                    p_FAtivo = p.FAtivo,
+                    p_DthCadastro = p.DthCadastro.Date
                 },
                 commandType: CommandType.StoredProcedure);
         }

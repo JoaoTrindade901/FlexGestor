@@ -1,75 +1,126 @@
-let categorias = [
-    { id: 1, nome: "Peças", descricao: "Peças automotivas", pai: null, fAtivo: true },
-    { id: 2, nome: "Filtros", descricao: "", pai: 1, fAtivo: true }
-];
+// ===== CATEGORIPRODUTO.JS — integrado com backend =====
 
-let filtrado = [...categorias];
+let categorias = [];
+let filtrado = [];
 let categoriaEdicao = null;
 let categoriaAcao = null;
 let filtroStatus = "todos";
 
+// ──────────────────────────────────────────
+// FETCH HELPERS
+// ──────────────────────────────────────────
+async function apiGet(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
+    return res.json();
+}
+
+async function apiPost(url, body) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(t || `POST ${url} → ${res.status}`);
+    }
+    return res;
+}
+
+// ──────────────────────────────────────────
+// CARREGAR
+// ──────────────────────────────────────────
+async function carregarCategorias() {
+    try {
+        categorias = await apiGet("/CategoriaProduto/Listar");
+        aplicarFiltro();
+    } catch (err) {
+        alert("Erro ao carregar categorias: " + err.message);
+    }
+}
+
+// ──────────────────────────────────────────
 // RENDER
+// ──────────────────────────────────────────
 function renderizarTabela() {
     const tbody = document.getElementById("tbody-categoria");
+    if (!tbody) return;
 
-    tbody.innerHTML = filtrado.map(c => {
-        const pai = categorias.find(p => p.id === c.pai);
+    if (filtrado.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma categoria encontrada.</td></tr>`;
+        return;
+    }
 
-        return `
+    tbody.innerHTML = filtrado.map(c => `
         <tr>
             <td class="area-acoes">
-                <button class="btn-acao btn-editar" onclick="editar(${c.id})">
+                <button class="btn-acao btn-editar" onclick="abrirModalEdicao(${c.idCategoria})">
                     <i class="bi bi-pencil-fill"></i>
                 </button>
-
                 <button class="btn-acao ${c.fAtivo ? 'btn-inativar' : 'btn-reativar'}"
-                    onclick="confirmarAcao(${c.id})">
+                    onclick="confirmarAcao(${c.idCategoria})">
                     <i class="bi bi-${c.fAtivo ? 'trash3-fill' : 'arrow-counterclockwise'}"></i>
                 </button>
             </td>
-
             <td>
                 <span class="status-pill ${c.fAtivo ? 'status-normal' : 'status-critico'}">
                     ${c.fAtivo ? 'Ativo' : 'Inativo'}
                 </span>
             </td>
-
             <td>${c.nome}</td>
-            <td>${c.descricao || '-'}</td>
-            <td>${pai ? pai.nome : '-'}</td>
+            <td>${c.descricao || '—'}</td>
+            <td>${c.nomeCategoriaPai || '—'}</td>
         </tr>
-        `;
-    }).join("");
+    `).join("");
 }
 
+// ──────────────────────────────────────────
 // FILTRO
+// ──────────────────────────────────────────
 function filtrar() {
-    const termo = document.getElementById("input-busca").value.toLowerCase();
-
+    const termo = document.getElementById("input-busca")?.value.toLowerCase() || "";
     filtrado = categorias.filter(c => {
         if (filtroStatus === "ativo" && !c.fAtivo) return false;
         if (filtroStatus === "inativo" && c.fAtivo) return false;
         if (termo && !c.nome.toLowerCase().includes(termo)) return false;
         return true;
     });
-
     renderizarTabela();
 }
 
-// STATUS
-function setFiltroStatus(valor) {
-    filtroStatus = valor;
-
-    document.querySelectorAll(".btn-status-filtro").forEach(b =>
-        b.classList.remove("sel-todos", "sel-ativo", "sel-inativo")
-    );
-
-    document.getElementById("btn-filtro-" + valor).classList.add("sel-" + valor);
-
+function aplicarFiltro() {
+    filtrado = [...categorias];
     filtrar();
 }
 
-// MODAL
+function setFiltroStatus(valor) {
+    filtroStatus = valor;
+    document.querySelectorAll(".btn-status-filtro").forEach(b =>
+        b.classList.remove("sel-todos", "sel-ativo", "sel-inativo"));
+    document.getElementById("btn-filtro-" + valor).classList.add("sel-" + valor);
+    filtrar();
+}
+
+// ──────────────────────────────────────────
+// SELECT PAI
+// ──────────────────────────────────────────
+function popularSelectPai(idExcluir = null) {
+    const select = document.getElementById("categoriaPai");
+    select.innerHTML = `<option value="">Nenhuma</option>`;
+    categorias
+        .filter(c => c.fAtivo && c.idCategoria !== idExcluir)
+        .forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.idCategoria;
+            opt.textContent = c.nome;
+            select.appendChild(opt);
+        });
+}
+
+// ──────────────────────────────────────────
+// MODAL NOVO
+// ──────────────────────────────────────────
 function abrirModal() {
     categoriaEdicao = null;
     document.getElementById("formCategoria").reset();
@@ -81,81 +132,83 @@ function fecharModal() {
     document.getElementById("modalCategoria").classList.remove("open");
 }
 
-// SELECT PAI
-function popularSelectPai() {
-    const select = document.getElementById("categoriaPai");
+// ──────────────────────────────────────────
+// MODAL EDIÇÃO
+// ──────────────────────────────────────────
+function abrirModalEdicao(id) {
+    categoriaEdicao = categorias.find(c => c.idCategoria === id);
+    if (!categoriaEdicao) return;
 
-    let opcoes = `<option value="">Nenhuma</option>`;
+    document.getElementById("nomeCategoria").value = categoriaEdicao.nome;
+    document.getElementById("descricao").value = categoriaEdicao.descricao || "";
+    popularSelectPai(categoriaEdicao.idCategoria);
+    document.getElementById("categoriaPai").value = categoriaEdicao.idCategoriaPai || "";
 
-    categorias.forEach(c => {
-        if (categoriaEdicao && c.id === categoriaEdicao.id) return;
-        opcoes += `<option value="${c.id}">${c.nome}</option>`;
-    });
-
-    select.innerHTML = opcoes;
-
-    if (categoriaEdicao) {
-        select.value = categoriaEdicao.pai || "";
-    }
+    document.getElementById("modalCategoria").classList.add("open");
 }
 
-// EDITAR
-function editar(id) {
-    categoriaEdicao = categorias.find(c => c.id === id);
-
-    nomeCategoria.value = categoriaEdicao.nome;
-    descricao.value = categoriaEdicao.descricao;
-
-    abrirModal();
-}
-
+// ──────────────────────────────────────────
 // CONFIRMAÇÃO
+// ──────────────────────────────────────────
 function confirmarAcao(id) {
-    categoriaAcao = categorias.find(c => c.id === id);
+    categoriaAcao = categorias.find(c => c.idCategoria === id);
+    if (!categoriaAcao) return;
 
     const acao = categoriaAcao.fAtivo ? "inativar" : "reativar";
+    document.getElementById("confirmMensagem").innerHTML =
+        `Deseja realmente <strong>${acao}</strong> a categoria <strong>"${categoriaAcao.nome}"</strong>?`;
 
-    confirmMensagem.innerHTML =
-        `Deseja realmente <strong>${acao}</strong> a categoria <strong>${categoriaAcao.nome}</strong>?`;
-
-    modalConfirmar.classList.add("open");
+    document.getElementById("modalConfirmar").classList.add("open");
 }
 
 function fecharModalConfirmar() {
-    modalConfirmar.classList.remove("open");
+    document.getElementById("modalConfirmar").classList.remove("open");
+    categoriaAcao = null;
 }
 
+// ──────────────────────────────────────────
 // EVENTOS
+// ──────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
 
-    document.getElementById("formCategoria").addEventListener("submit", function (e) {
+    document.getElementById("formCategoria").addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const nova = {
-            id: categoriaEdicao ? categoriaEdicao.id : Date.now(),
-            nome: nomeCategoria.value,
-            descricao: descricao.value,
-            pai: categoriaPai.value ? Number(categoriaPai.value) : null,
-            fAtivo: true
+        const payload = {
+            idCategoria: categoriaEdicao?.idCategoria ?? 0,
+            nome: document.getElementById("nomeCategoria").value.trim(),
+            descricao: document.getElementById("descricao").value.trim() || null,
+            idCategoriaPai: document.getElementById("categoriaPai").value
+                ? Number(document.getElementById("categoriaPai").value)
+                : null
         };
 
-        if (categoriaEdicao) {
-            Object.assign(categoriaEdicao, nova);
-        } else {
-            categorias.unshift(nova);
+        try {
+            if (categoriaEdicao) {
+                await apiPost("/CategoriaProduto/Editar", payload);
+            } else {
+                await apiPost("/CategoriaProduto/Criar", payload);
+            }
+            fecharModal();
+            await carregarCategorias();
+        } catch (err) {
+            alert("Erro ao salvar: " + err.message);
         }
-
-        fecharModal();
-        filtrar();
     });
 
-    btnConfirmar.onclick = () => {
-        categoriaAcao.fAtivo = !categoriaAcao.fAtivo;
-        fecharModalConfirmar();
-        filtrar();
-    };
+    document.getElementById("btnConfirmar").addEventListener("click", async function () {
+        if (!categoriaAcao) return;
+        try {
+            await apiPost("/CategoriaProduto/AlterarStatus", categoriaAcao.idCategoria);
+            fecharModalConfirmar();
+            await carregarCategorias();
+        } catch (err) {
+            alert("Erro ao alterar status: " + err.message);
+        }
+    });
+
+    document.getElementById("input-busca")?.addEventListener("input", filtrar);
 
     document.getElementById("btn-filtro-todos").classList.add("sel-todos");
-
-    renderizarTabela();
+    carregarCategorias();
 });

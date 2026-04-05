@@ -1,4 +1,7 @@
-﻿using WebApplication5.Models;
+﻿using Dapper;
+using MySql.Data.MySqlClient;
+using System.Data;
+using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -13,7 +16,7 @@ namespace WebApplication5.Services
         }
 
         public IEnumerable<ProdutoListaGridDto> Listar(int idEmpresa)
-            => _repo.Listar(idEmpresa);
+            => (IEnumerable<ProdutoListaGridDto>)_repo.Listar(idEmpresa);
 
         public IEnumerable<ProdutoListaGridDto> Filtrar(ProdutoFiltroDto filtro, int idEmpresa)
             => _repo.Filtrar(filtro, idEmpresa);

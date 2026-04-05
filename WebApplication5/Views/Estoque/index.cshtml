@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,44 +9,31 @@
     <link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-
 <body>
     <div class="container">
         <div id="menu"></div>
-
         <main>
             <section class="secao-estoque">
                 <div class="cabecalho-tela">
                     <h2>Gerenciamento de Estoque</h2>
-
                     <div style="display:flex; align-items:center; gap:1.5rem;">
-
-                        <!-- 🔥 LINK HISTÓRICO -->
-                        <a href="/WebApplication5/Views/EstoqueHistorico/index.html" class="link-historico">
+                        <a href="/EstoqueHistorico" class="link-historico">
                             Movimentações Estoque
                         </a>
-
-
+                        <button class="btn-novo-estoque" onclick="abrirModal()">
+                            <i class="bi bi-plus-circle-fill"></i> Novo Item
+                        </button>
                     </div>
                 </div>
 
                 <div class="table-container">
                     <div class="area-filtro">
                         <input type="text" id="input-termo-busca" class="input-filtro"
-                               placeholder="Buscar por produto ou local..." oninput="filtrarTabela()">
+                               placeholder="Buscar por produto..." oninput="filtrarTabela()">
                         <div class="filtro-status">
-                            <button id="btn-filtro-todos" class="btn-status-filtro"
-                                    onclick="setFiltroStatus('todos')">
-                                Todos
-                            </button>
-                            <button id="btn-filtro-critico" class="btn-status-filtro"
-                                    onclick="setFiltroStatus('critico')">
-                                Crítico
-                            </button>
-                            <button id="btn-filtro-normal" class="btn-status-filtro"
-                                    onclick="setFiltroStatus('normal')">
-                                Normal
-                            </button>
+                            <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                            <button id="btn-filtro-critico" class="btn-status-filtro" onclick="setFiltroStatus('critico')">Crítico</button>
+                            <button id="btn-filtro-normal" class="btn-status-filtro" onclick="setFiltroStatus('normal')">Normal</button>
                         </div>
                     </div>
 
@@ -59,8 +45,8 @@
                                 <th>Produto</th>
                                 <th>Qtde Atual</th>
                                 <th>Est. Mín</th>
-                                <th>Est. Máx</th>
-                                <th>Local</th>
+                                <th>SKU</th>
+                                <th>Categoria</th>
                                 <th>Atualização</th>
                             </tr>
                         </thead>
@@ -76,10 +62,13 @@
         </main>
     </div>
 
+    <!-- ════════════════════════════════════════
+         MODAL: NOVO PRODUTO (WIZARD)
+    ════════════════════════════════════════ -->
     <div id="modalEstoque" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitulo">Novo Item</h3>
+                <h3><i class="bi bi-plus-circle-fill"></i> Novo Produto</h3>
                 <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
             </div>
 
@@ -91,211 +80,119 @@
 
                     <!-- STEPPER -->
                     <div class="stepper">
-                        <div class="step">
-                            <div class="step-circle">1</div>
-                        </div>
+                        <div class="step active"><div class="step-circle">1</div></div>
                         <div class="step-line"></div>
-
-                        <div class="step">
-                            <div class="step-circle">2</div>
-                        </div>
+                        <div class="step"><div class="step-circle">2</div></div>
                         <div class="step-line"></div>
-
-                        <div class="step">
-                            <div class="step-circle">3</div>
-                        </div>
+                        <div class="step"><div class="step-circle">3</div></div>
                     </div>
 
-                    <!-- ETAPA 1 -->
+                    <!-- ETAPA 1: Informações do Produto -->
                     <div class="etapa ativa" id="etapa-1">
                         <p class="form-secao">Informações do Produto</p>
-
                         <div class="form-grid">
-
                             <div class="form-group">
-                                <label>Código</label>
-                                <input type="text" id="codProduto">
+                                <label>SKU / Código Interno</label>
+                                <input type="text" id="codProduto" placeholder="ex: SKU-001">
                             </div>
-
                             <div class="form-group form-col-2">
                                 <label>Nome <span class="obrigatorio">*</span></label>
-                                <input type="text" id="nome" required>
+                                <input type="text" id="nome" required placeholder="Nome do produto">
                             </div>
-
                             <div class="form-group form-col-2">
                                 <label>Descrição</label>
-                                <input type="text" id="descricao">
+                                <input type="text" id="descricao" placeholder="Descrição breve">
                             </div>
-
                             <div class="form-group">
                                 <label>Código de Barras <span class="obrigatorio">*</span></label>
-                                <input type="text" id="codBarras" required>
+                                <input type="text" id="codBarras" required placeholder="EAN / GTIN">
                             </div>
-
                             <div class="form-group">
                                 <label>Categoria</label>
-                                <select id="categoria">
+                                <select id="prod-categoria">
                                     <option value="">Selecione...</option>
-                                    <option value="1">Peças</option>
-                                    <option value="2">Máquinas</option>
-                                    <option value="3">Insumos</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
-                                <label>Preço Custo</label>
-                                <input type="number" id="precoCusto" step="0.01">
+                                <label>Preço de Custo (R$)</label>
+                                <input type="number" id="precoCusto" step="0.01" placeholder="0,00">
                             </div>
-
                             <div class="form-group">
-                                <label>Preço Venda</label>
-                                <input type="number" id="precoVenda" step="0.01">
+                                <label>Preço de Venda (R$)</label>
+                                <input type="number" id="precoVenda" step="0.01" placeholder="0,00">
                             </div>
-
                             <div class="form-group">
                                 <label>Unidade</label>
-                                <input type="text" id="unidade">
+                                <input type="text" id="unidade" placeholder="ex: UN, KG, CX">
                             </div>
-
-                            <div class="form-group">
-                                <label>Tributação (%)</label>
-                                <input type="number" id="tributacao" step="0.01">
-                            </div>
-
                         </div>
                     </div>
 
-                    <!-- ETAPA 2 -->
+                    <!-- ETAPA 2: Controle de Estoque -->
                     <div class="etapa" id="etapa-2">
                         <p class="form-secao">Controle de Estoque</p>
-
                         <div class="form-grid">
-                            <div class="form-group">
-                                <label>Qtd Atual</label>
-                                <input type="number" id="qtd">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Estoque Mín</label>
-                                <input type="number" id="min">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Estoque Máx</label>
-                                <input type="number" id="max">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Local</label>
-                                <input type="text" id="local">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ETAPA 3 -->
-                    <!-- ===================== -->
-                    <!-- ETAPA 3 - FORNECEDOR + LOTE -->
-                    <!-- ===================== -->
-                    <div class="etapa" id="etapa-3">
-                        <p class="form-secao">Fornecedor</p>
-
-                        <div class="form-grid">
-                            <div class="form-group form-col-2">
-                                <label>Fornecedor <span class="obrigatorio">*</span></label>
-                                <select id="fornecedor" required>
-                                    <option value="">Selecione...</option>
-                                    <option value="1">Fornecedor A</option>
-                                    <option value="2">Fornecedor B</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <p class="form-secao">Informações do Lote</p>
-
-                        <div class="form-grid">
-
-                            <div class="form-group">
-                                <label>Nº do Lote <span class="obrigatorio">*</span></label>
-                                <input type="text" id="numeroLote" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Data Fabricação <span class="obrigatorio">*</span></label>
-                                <input type="date" id="dthFabricacao" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Data Validade</label>
-                                <input type="date" id="dthValidade">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Data Entrada <span class="obrigatorio">*</span></label>
-                                <input type="date" id="dthEntrada" required>
-                            </div>
-
                             <div class="form-group">
                                 <label>Qtd Inicial <span class="obrigatorio">*</span></label>
-                                <input type="number" id="qtdInicial" required>
+                                <input type="number" id="qtd" min="0" placeholder="0">
                             </div>
-
                             <div class="form-group">
-                                <label>Qtd Atual <span class="obrigatorio">*</span></label>
-                                <input type="number" id="qtdAtualLote" required>
+                                <label>Estoque Mín <span class="obrigatorio">*</span></label>
+                                <input type="number" id="min" min="0" placeholder="0">
                             </div>
-
                             <div class="form-group">
-                                <label>Custo Unitário</label>
-                                <input type="number" id="custoUnit" step="0.01">
+                                <label>Estoque Máx</label>
+                                <input type="number" id="max" min="0" placeholder="0">
                             </div>
-
+                            <div class="form-group">
+                                <label>Local</label>
+                                <input type="text" id="local" placeholder="ex: Prateleira A1">
+                            </div>
                         </div>
                     </div>
 
+                    <!-- ETAPA 3: Resumo -->
+                    <div class="etapa" id="etapa-3">
+                        <p class="form-secao">Confirmar Cadastro</p>
+                        <div style="background:#f8fafc; border-radius:0.8rem; padding:1.6rem; border:1px solid #e5e7eb;">
+                            <p style="font-size:1.4rem; color:#374151; line-height:1.8;">
+                                Revise as informações antes de salvar. Após confirmar, o produto será cadastrado
+                                e a entrada inicial de estoque será registrada automaticamente.
+                            </p>
+                            <div style="margin-top:1.2rem; display:flex; flex-direction:column; gap:0.6rem;">
+                                <div style="font-size:1.3rem; color:#6b7280;">
+                                    <strong style="color:#1e3c72;">Produto:</strong>
+                                    <span id="resumo-nome">—</span>
+                                </div>
+                                <div style="font-size:1.3rem; color:#6b7280;">
+                                    <strong style="color:#1e3c72;">Código de Barras:</strong>
+                                    <span id="resumo-cod">—</span>
+                                </div>
+                                <div style="font-size:1.3rem; color:#6b7280;">
+                                    <strong style="color:#1e3c72;">Qtd Inicial:</strong>
+                                    <span id="resumo-qtd">—</span>
+                                </div>
+                                <div style="font-size:1.3rem; color:#6b7280;">
+                                    <strong style="color:#1e3c72;">Estoque Mínimo:</strong>
+                                    <span id="resumo-min">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn-secundario" onclick="voltarEtapa()">Voltar</button>
-                    <button type="button" class="btn-primario" onclick="proximaEtapa()">Próximo</button>
-                    <button type="submit" class="btn-primario" id="btnSalvar" style="display:none;">Salvar</button>
+                    <button type="button" id="btn-voltar" class="btn-secundario" style="display:none" onclick="voltarEtapa()">Voltar</button>
+                    <button type="button" id="btn-proximo" class="btn-primario" onclick="proximaEtapa()">Próximo</button>
+                    <button type="submit" id="btnSalvar" class="btn-primario" style="display:none">
+                        <i class="bi bi-check-lg"></i> Salvar
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="modal" id="modal-edicao">...</div>
-    <!-- MODAL CONFIRMAÇÃO -->
-    <div id="modal-confirmar" class="modal">
-        <div class="modal-content" style="width: 40rem;">
-
-            <div class="confirm-body">
-                <div class="confirm-icone">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-
-                <p id="confirm-mensagem">
-                    Deseja confirmar esta ação?
-                </p>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn-secundario" onclick="fecharModal('modal-confirmar')">
-                    Cancelar
-                </button>
-
-                <button class="btn-perigo" id="btnConfirmarAcao">
-                    Confirmar
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: MOVIMENTAÇÃO DE ESTOQUE
-         Substitui o modal antigo de "Novo Item" (modalEstoque)
-         Cole antes do </body>
-    ════════════════════════════════════════ -->
+    <!-- MODAL: MOVIMENTAÇÃO -->
     <div class="modal" id="modal-movimentacao">
         <div class="modal-content" style="width:44rem">
             <div class="modal-header">
@@ -304,10 +201,8 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="mov-idProduto">
-
                 <p class="form-secao">Produto</p>
                 <p id="mov-produto-nome" style="font-size:1.5rem; font-weight:600; color:#1e3c72; margin-bottom:1.6rem;"></p>
-
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Tipo <span class="obrigatorio">*</span></label>
@@ -323,7 +218,7 @@
                     </div>
                     <div class="form-group form-col-2">
                         <label>Motivo / Observação</label>
-                        <input type="text" id="mov-motivo" placeholder="Ex: Compra fornecedor, Venda pedido...">
+                        <input type="text" id="mov-motivo" placeholder="Ex: Compra fornecedor...">
                     </div>
                 </div>
             </div>
@@ -336,9 +231,7 @@
         </div>
     </div>
 
-    <!-- ════════════════════════════════════════
-         MODAL: ATUALIZAR ESTOQUE MÍNIMO
-    ════════════════════════════════════════ -->
+    <!-- MODAL: ESTOQUE MÍNIMO -->
     <div class="modal" id="modal-minimo">
         <div class="modal-content" style="width:36rem">
             <div class="modal-header">
@@ -361,8 +254,35 @@
         </div>
     </div>
 
+    <!-- MODAL: CONFIRMAÇÃO -->
+    <div id="modal-confirmar" class="modal">
+        <div class="modal-content" style="width:40rem">
+            <div class="confirm-body">
+                <div class="confirm-icone"><i class="bi bi-exclamation-triangle"></i></div>
+                <p id="confirm-mensagem">Deseja confirmar esta ação?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secundario" onclick="fecharModal('modal-confirmar')">Cancelar</button>
+                <button class="btn-perigo" id="btnConfirmarAcao">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/menuJS/menu.js"></script>
     <script src="/js/estoqueJS/estoque.js"></script>
-</body>
 
+    <script>
+        // Atualiza resumo ao entrar na etapa 3
+        const _proximaEtapaOriginal = proximaEtapa;
+        proximaEtapa = function() {
+            _proximaEtapaOriginal();
+            if (etapaProduto === 3) {
+                document.getElementById("resumo-nome").textContent = document.getElementById("nome")?.value || "—";
+                document.getElementById("resumo-cod").textContent  = document.getElementById("codBarras")?.value || "—";
+                document.getElementById("resumo-qtd").textContent  = document.getElementById("qtd")?.value || "0";
+                document.getElementById("resumo-min").textContent  = document.getElementById("min")?.value || "0";
+            }
+        };
+    </script>
+</body>
 </html>
