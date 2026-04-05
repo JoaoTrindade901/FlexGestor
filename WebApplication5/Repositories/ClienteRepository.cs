@@ -17,9 +17,14 @@ namespace WebApplication5.Repositories
         public IEnumerable<ClienteListaGridDto> ListarClientes()
         {
             using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<ClienteListaGridDto>(
+            var clientes = conn.Query<ClienteListaGridDto>(
                 "sp_ListarCliente",
                 commandType: CommandType.StoredProcedure);
+
+            foreach (var c in clientes)
+                c.fAtivo = c.fAtivo; 
+
+            return clientes;
         }
 
         public IEnumerable<ClienteListaGridDto> FiltrarClientes(ClienteFiltroDto filtro)
@@ -36,7 +41,7 @@ namespace WebApplication5.Repositories
                     Genero               = filtro.Genero,
                     Estado               = filtro.Estado,
                     Cidade               = filtro.Cidade,
-                    FAtivo               = filtro.FAtivo,
+                    fAtivo               = filtro.fAtivo,
                     DthCadastroInicio    = filtro.DthCadastroInicio,
                     DthCadastroFim       = filtro.DthCadastroFim,
                     DthNascimentoInicio  = filtro.DthNascimentoInicio,
@@ -66,7 +71,8 @@ namespace WebApplication5.Repositories
                     cliente.genero,
                     cliente.enderecoId,
                     cliente.dthNascimento,
-                    cliente.fAtivo
+                    cliente.fAtivo,
+                    cliente.saldoDevedor
                 },
                 commandType: CommandType.StoredProcedure);
         }
@@ -78,18 +84,19 @@ namespace WebApplication5.Repositories
                 "sp_EditarCliente",
                 new
                 {
-                    cliente.idCliente,
-                    cliente.nome,
-                    cliente.nomeFantasia,
-                    cliente.razaoSocial,
-                    cliente.cpfCNPJ,
-                    cliente.email,
-                    cliente.telefone,
-                    cliente.tipoCliente_id,
-                    cliente.observacao,
-                    cliente.genero,
-                    cliente.enderecoId,
-                    cliente.dthNascimento
+                    p_idCliente = cliente.idCliente,
+                    p_nome = cliente.nome,
+                    p_nomeFantasia = cliente.nomeFantasia,
+                    p_razaoSocial = cliente.razaoSocial,
+                    p_cpfCNPJ = cliente.cpfCNPJ,
+                    p_email = cliente.email,
+                    p_telefone = cliente.telefone,
+                    p_tipoCliente_id = cliente.tipoCliente_id,
+                    p_observacao = cliente.observacao,
+                    p_genero = cliente.genero,
+                    p_enderecoId = cliente.enderecoId,
+                    p_dthNascimento = cliente.dthNascimento,
+                    p_saldoDevedor = cliente.saldoDevedor
                 },
                 commandType: CommandType.StoredProcedure);
         }
@@ -99,7 +106,7 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_DeletarCliente",
-                new { idCliente },
+                new { p_idCliente = idCliente },
                 commandType: CommandType.StoredProcedure);
         }
     }

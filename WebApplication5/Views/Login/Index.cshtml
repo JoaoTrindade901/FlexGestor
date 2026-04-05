@@ -1,37 +1,38 @@
-﻿@{
-    Layout = null;
-}
-
+<!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="~/css/loginCSS/login.css">
     <title>Login</title>
 </head>
+
 <body>
     <form action="/Login/Entrar" method="POST">
         @Html.AntiForgeryToken()
         <fieldset>
-            <h1>FlexGestor</h1>
+        <h1>FlexGestor</h1>
 
-            <div class="campo">
-                <label for="doc">CNPJ</label>
-                <input maxlength="14" type="text" id="doc" name="cnpj" required autofocus placeholder="Digite o seu CNPJ">
+        <div class="campo">
+            <label for="doc">CNPJ</label>
+            <input type="number" id="doc" name="cnpj" required autofocus placeholder="Digite o seu CNPJ" maxlength="14" minlength="14">
+        </div>
 
-            </div>
-            <div class="campo">
-                <label for="login">Login</label>
-                <input type="text" id="login" name="login" required placeholder="Digite o seu Login">
-            </div>
-            <div class="campo">
-                <label for="pass">Senha</label>
-                <input type="password" id="pass" name="senha" required placeholder="Digite a sua Senha">
-                @Html.ValidationSummary(true, "", new { @class = "erro" })
-            </div>
+        <div class="campo">
+            <label for="login">Login</label>
+            <input type="text" id="login" name="login" required placeholder="Digite o seu Login" maxlength="100">
+        </div>
+
+        <div class="campo">
+            <label for="pass">Senha</label>
+            <input type="password" id="pass" name="senha" required placeholder="Digite a sua Senha" max="50">
+        </div>
+
             <a href="/Login/EsqueciSenha">Esqueceu a senha?</a>
-            <button type="submit">Entrar</button>
-        </fieldset>
-    </form>
+
+        <button type="submit">Entrar</button>
+    </fieldset>
+</form>
 </body>
 </html>

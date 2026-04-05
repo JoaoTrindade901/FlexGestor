@@ -36,6 +36,8 @@ public class ClienteController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
 
+        dto.Cliente.idEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0;
+
         var idGerado = _service.CriarCliente(dto);
         return Ok(new { idCliente = idGerado });
     }

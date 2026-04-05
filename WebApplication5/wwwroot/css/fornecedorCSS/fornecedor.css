@@ -1,0 +1,27 @@
+.filtro-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-status-filtro {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.6rem;
+    border: 1px solid #dce1e7;
+    cursor: pointer;
+    background: #fff;
+}
+
+.btn-status-filtro.sel-todos {
+    background: #1e3c72;
+    color: #fff;
+}
+
+.btn-status-filtro.sel-ativo {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.btn-status-filtro.sel-inativo {
+    background: #fee2e2;
+    color: #b91c1c;
+}

@@ -26,6 +26,13 @@ builder.Services.AddScoped<EnderecoRepository>();
 builder.Services.AddScoped<ClienteRepository>();
 builder.Services.AddScoped<ClienteService>();
 
+builder.Services.AddScoped<ProdutoRepository>();
+builder.Services.AddScoped<ProdutoService>();
+builder.Services.AddScoped<EstoqueRepository>();
+builder.Services.AddScoped<EstoqueService>();
+builder.Services.AddScoped<PedidoRepository>();
+builder.Services.AddScoped<PedidoService>();
+
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 

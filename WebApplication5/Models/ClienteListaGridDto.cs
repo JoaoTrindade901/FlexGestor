@@ -17,6 +17,7 @@
         public DateTime dthCadastro { get; set; }
         public DateTime? dthNascimento { get; set; }
         public bool fAtivo { get; set; }
+        public Decimal saldoDevedor { get; set; }
         // Endereço (JOIN na SP)
         public int tipoEndereco { get; set; }
         public string? logradouro { get; set; }

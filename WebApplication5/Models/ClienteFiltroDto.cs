@@ -9,7 +9,7 @@ namespace WebApplication5.Models
         public string? Genero { get; set; }
         public string? Estado { get; set; }
         public string? Cidade { get; set; }
-        public bool? FAtivo { get; set; }
+        public bool? fAtivo { get; set; }
         public DateTime? DthCadastroInicio { get; set; }
         public DateTime? DthCadastroFim { get; set; }
         public DateTime? DthNascimentoInicio { get; set; }

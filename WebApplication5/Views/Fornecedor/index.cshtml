@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fornecedores - FlexGestor</title>
+
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
+    <link rel="stylesheet" href="/css/fornecedorCSS/fornecedor.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+<div class="container">
+    <div id="menu"></div>
+
+    <main>
+        <section class="secao-estoque">
+
+            <div class="cabecalho-tela">
+                <h2>Cadastro de Fornecedores</h2>
+
+                <button class="btn-novo-estoque" onclick="abrirModal()">
+                    <i class="bi bi-plus-circle-fill"></i> Novo Fornecedor
+                </button>
+            </div>
+
+            <div class="table-container">
+
+                <!-- FILTROS -->
+                <div class="area-filtro">
+
+                    <input type="text" id="input-busca" class="input-filtro"
+                        placeholder="Buscar fornecedor..."
+                        oninput="filtrar()">
+
+                    <div class="filtro-status">
+                        <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                        <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
+                        <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                    </div>
+
+                </div>
+
+                <!-- TABELA -->
+                <table class="table-estoque">
+                    <thead>
+                        <tr>
+                            <th>Ações</th>
+                            <th>Status</th>
+                            <th>Nome Fantasia</th>
+                            <th>Razão Social</th>
+                            <th>CNPJ</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-fornecedor"></tbody>
+                </table>
+
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- MODAL CADASTRO -->
+<div id="modalFornecedor" class="modal">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h3>Fornecedor</h3>
+            <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
+        </div>
+
+        <form id="formFornecedor">
+
+            <div class="modal-body">
+
+                <div class="form-grid">
+
+                    <div class="form-group form-col-2">
+                        <label>Nome Fantasia *</label>
+                        <input type="text" id="nomeFantasia" required>
+                    </div>
+
+                    <div class="form-group form-col-2">
+                        <label>Razão Social</label>
+                        <input type="text" id="razaoSocial">
+                    </div>
+
+                    <div class="form-group">
+                        <label>CNPJ *</label>
+                        <input type="text" id="cnpj" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Telefone *</label>
+                        <input type="text" id="telefone" required>
+                    </div>
+
+                    <div class="form-group form-col-2">
+                        <label>Email</label>
+                        <input type="email" id="email">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+                <button type="submit" class="btn-primario">Salvar</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div id="modalConfirmar" class="modal">
+    <div class="modal-content" style="width: 40rem;">
+
+        <div class="confirm-body">
+            <div class="confirm-icone">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+
+            <p id="confirmMensagem"></p>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-secundario" onclick="fecharModalConfirmar()">Cancelar</button>
+            <button id="btnConfirmar" class="btn-perigo">Confirmar</button>
+        </div>
+
+    </div>
+</div>
+
+<script src="/js/menuJS/menu.js"></script>
+<script src="/js/fornecedorJS/fornecedor.js"></script>
+
+</body>
+</html>

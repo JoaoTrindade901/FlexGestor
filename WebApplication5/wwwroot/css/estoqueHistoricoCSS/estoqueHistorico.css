@@ -1,0 +1,229 @@
+/* =========================
+   BASE
+========================= */
+.secao-estoque {
+    padding: 2.8rem 2.4rem;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* =========================
+   CABEÇALHO
+========================= */
+.cabecalho-tela {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.cabecalho-tela h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1e3c72;
+    margin: 0;
+}
+
+/* =========================
+   BOTÃO VOLTAR
+========================= */
+.btn-voltar-estoque {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    background: #fff;
+    color: #374151;
+
+    padding: 0.8rem 1.4rem;
+    border-radius: 0.6rem;
+
+    font-size: 1.3rem;
+    font-weight: 600;
+
+    text-decoration: none;
+    border: 1px solid #dce1e7;
+
+    transition: all 0.2s ease;
+}
+
+.btn-voltar-estoque:hover {
+    background: #1e3c72;
+    color: #fff;
+}
+
+/* =========================
+   FILTROS
+========================= */
+.area-filtro {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.6rem 2rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fafbfc;
+    flex-wrap: nowrap;
+}
+
+.input-filtro,
+.select-filtro {
+    min-width: 180px;
+    height: 3.4rem;
+}
+
+/* PERÍODO INLINE */
+.filtro-periodo-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filtro-periodo-inline span {
+    font-size: 1.2rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* =========================
+   LEGENDA
+========================= */
+.legenda {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-left: auto;
+    font-size: 1.2rem;
+    color: #6b7280;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.legenda-cor {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.cor-entrada {
+    background: #16a34a;
+}
+
+.cor-saida {
+    background: #d97706;
+}
+
+/* =========================
+   TABELA - ALINHAMENTO GLOBAL
+========================= */
+.table-estoque th,
+.table-estoque td {
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* =========================
+   COLUNAS
+========================= */
+
+/* Data */
+.table-estoque th:nth-child(1),
+.table-estoque td:nth-child(1) {
+    width: 12%;
+}
+
+/* Produto */
+.table-estoque th:nth-child(2),
+.table-estoque td:nth-child(2) {
+    width: 22%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
+}
+
+/* Tipo */
+.table-estoque th:nth-child(3),
+.table-estoque td:nth-child(3) {
+    width: 12%;
+}
+
+/* Quantidade (💰 PADRÃO PROFISSIONAL) */
+.table-estoque th:nth-child(4),
+.table-estoque td:nth-child(4) {
+    width: 10%;
+    text-align: right; /* 🔥 alinhamento financeiro */
+}
+
+/* Lote */
+.table-estoque th:nth-child(5),
+.table-estoque td:nth-child(5) {
+    width: 10%;
+}
+
+/* Usuário */
+.table-estoque th:nth-child(6),
+.table-estoque td:nth-child(6) {
+    width: 12%;
+}
+
+/* Observação */
+.table-estoque th:nth-child(7),
+.table-estoque td:nth-child(7) {
+    width: auto;
+}
+
+/* =========================
+   LINHAS
+========================= */
+.table-estoque tbody tr {
+    background: #fff;
+}
+
+.table-estoque tbody tr:hover {
+    background: #eef2fb;
+}
+
+/* =========================
+   BADGES
+========================= */
+.badge-mov {
+    padding: 0.3rem 0.9rem;
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.mov-entrada {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.mov-saida {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* =========================
+   QUANTIDADE
+========================= */
+.qtd-entrada {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.qtd-saida {
+    color: #92400e;
+    font-weight: 600;
+}
+
+/* =========================
+   EMPTY
+========================= */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+}

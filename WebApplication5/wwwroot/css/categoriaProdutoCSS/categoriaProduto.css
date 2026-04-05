@@ -1,0 +1,143 @@
+/* =========================
+   BASE
+========================= */
+.secao-estoque {
+    padding: 2.8rem 2.4rem;
+}
+
+/* =========================
+   CABEÇALHO
+========================= */
+.cabecalho-tela {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* =========================
+   FILTRO
+========================= */
+.filtro-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-status-filtro {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.6rem;
+    border: 1px solid #dce1e7;
+    cursor: pointer;
+    background: #fff;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+}
+
+.btn-status-filtro.sel-todos {
+    background: #1e3c72;
+    color: #fff;
+}
+
+.btn-status-filtro.sel-ativo {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.btn-status-filtro.sel-inativo {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* =========================
+   TABELA - AJUSTES
+========================= */
+
+/* reduz padding geral */
+.secao-estoque .table-estoque td,
+.secao-estoque .table-estoque th {
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+}
+
+/* AÇÕES ULTRA COMPACTO */
+.secao-estoque .table-estoque th:nth-child(1),
+.secao-estoque .table-estoque td:nth-child(1) {
+    width: 6rem !important;
+    text-align: center;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+/* STATUS */
+.secao-estoque .table-estoque th:nth-child(2),
+.secao-estoque .table-estoque td:nth-child(2) {
+    width: 8rem !important;
+}
+
+/* NOME */
+.secao-estoque .table-estoque th:nth-child(3),
+.secao-estoque .table-estoque td:nth-child(3) {
+    width: 25%;
+}
+
+/* DESCRIÇÃO */
+.secao-estoque .table-estoque th:nth-child(4),
+.secao-estoque .table-estoque td:nth-child(4) {
+    width: 25%;
+}
+
+/* CATEGORIA PAI */
+.secao-estoque .table-estoque th:nth-child(5),
+.secao-estoque .table-estoque td:nth-child(5) {
+    width: auto;
+}
+
+/* AÇÕES CENTRALIZADAS */
+.secao-estoque .area-acoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* BOTÕES MENORES */
+.secao-estoque .btn-acao {
+    width: 2.6rem;
+    height: 2.6rem;
+    font-size: 1.3rem;
+}
+
+/* HOVER */
+.table-estoque tbody tr:hover {
+    background: #eef2fb;
+}
+
+/* =========================
+   FORM GRID (COMPACTO)
+========================= */
+.secao-estoque .form-grid {
+    gap: 0.8rem 1rem;
+}
+
+.secao-estoque .form-group {
+    margin: 0;
+}
+
+.secao-estoque .form-group label {
+    margin-bottom: 0.3rem;
+}
+
+.secao-estoque .form-group input,
+.secao-estoque .form-group select {
+    padding: 0.7rem 1rem;
+    font-size: 1.3rem;
+}
+
+/* MODAL */
+.secao-estoque .modal-body {
+    padding: 1.6rem 2rem;
+}
+
+.form-secao {
+    margin: 1rem 0 0.6rem;
+}

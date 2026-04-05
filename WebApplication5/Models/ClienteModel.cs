@@ -17,5 +17,6 @@
         public DateTime dthCadastro { get; set; }
         public DateTime? dthNascimento { get; set; }
         public bool fAtivo { get; set; }
+        public Decimal saldoDevedor { get; set; }
     }
 }

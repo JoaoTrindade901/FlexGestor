@@ -20,7 +20,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="wwwroot\css\login.css" />
+	  <None Include="wwwroot\css\loginCSS\login.css" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\js\estoqueJS\" />
+	  <Folder Include="wwwroot\js\clienteJS\" />
+	  <Folder Include="wwwroot\js\categoriaProdutoJS\" />
 	</ItemGroup>
 
 </Project>

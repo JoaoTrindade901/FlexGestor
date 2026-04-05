@@ -1,480 +1,218 @@
-﻿
-@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Usuários";
-}
-
-@section styles {
-
-    <link rel="stylesheet" href="/css/usuario.css">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/usuarioCSS/usuario.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-}
+</head>
+<body>
+    <div class="container">
+        <div id="menu"></div>
 
-<main>
-    <section class="secao-usuarios">
+        <main>
+            <section class="secao-usuarios">
 
-        <div class="cabecalho-tela">
-            <h2>Gerenciamento de Usuários</h2>
-            <button class="btn-novo-usuario" onclick="abrirModalCriar()">
-                <i class="bi bi-person-plus-fill"></i> Novo Usuário
-            </button>
-        </div>
-
-        <div class="table-container">
-
-            <!-- FILTROS -->
-            <div class="area-filtro">
-                <select id="select-tipo-filtro" class="select-filtro" onchange="filtrarTabela()">
-                    <option value="nome">Nome</option>
-                    <option value="documento">CPF</option>
-                </select>
-                <input type="text" id="input-termo-busca" class="input-filtro"
-                       placeholder="Filtrar..." oninput="filtrarTabela()">
-
-                <!-- Filtro de status -->
-                <div class="filtro-status">
-                    <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
-                    <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
-                    <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                <div class="cabecalho-tela">
+                    <h2>Gerenciamento de Usuários</h2>
+                    <button class="btn-novo-usuario" onclick="abrirModal()">
+                        <i class="bi bi-person-plus-fill"></i> Novo Usuário
+                    </button>
                 </div>
+
+                <div class="table-container">
+
+                    <!-- FILTROS -->
+                    <div class="area-filtro">
+                        <select id="select-tipo-filtro" class="select-filtro" onchange="filtrarTabela()">
+                            <option value="nome">Nome</option>
+                            <option value="documento">CPF</option>
+                        </select>
+                        <input type="text" id="input-termo-busca" class="input-filtro"
+                               placeholder="Filtrar..." oninput="filtrarTabela()">
+
+                        <div class="filtro-status">
+                            <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                            <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
+                            <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                        </div>
+                    </div>
+
+                    <!-- TABELA -->
+                    <table class="table-usuarios" id="tabela-usuarios">
+                        <thead>
+                            <tr>
+                                <th>Ações</th>
+                                <th>Status</th>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Login</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <!-- PAGINAÇÃO -->
+                    <div class="paginacao">
+                        <span class="paginacao-info"></span>
+                        <div class="paginacao-controles"></div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!--
+         MODAL: NOVO USUÁRIO
+    -->
+    <div class="modal" id="modal-novo-usuario">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="bi bi-person-plus-fill"></i> Novo Usuário</h3>
+                <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
             </div>
+            <div class="modal-body">
+                @Html.AntiForgeryToken()
+                <form id="form-usuario">
 
-            <!-- TABELA -->
-            <table class="table-usuarios" id="tabela-usuarios">
-                <thead>
-                    <tr>
-                        <th>Ações</th>
-                        <th>Status</th>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Login</th>
-                        <th>Email</th>
-                        <th>Telefone</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+                    <p class="form-secao">Acesso</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Login <span class="obrigatorio">*</span></label>
+                            <input type="text" required id="novo-login" placeholder="ex: joao.silva" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha <span class="obrigatorio">*</span></label>
+                            <input type="password" required id="novo-senha" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Perfil <span class="obrigatorio">*</span></label>
+                            <select id="novo-perfil" required>
+                                <option value="">Carregando...</option>
+                            </select>
+                        </div>
+                    </div>
 
+                    <p class="form-secao">Dados Pessoais</p>
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Nome Completo <span class="obrigatorio">*</span></label>
+                            <input type="text" required id="novo-nome" placeholder="Nome completo" required>
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Email</label>
+                            <input type="email" id="novo-email" placeholder="usuario@flexgestor.com">
+                        </div>
+                        <div class="form-group">
+                            <label>CPF</label>
+                            <input type="text" id="novo-cpf" placeholder="000.000.000-00">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" id="novo-telefone" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
 
-            <!-- PAGINAÇÃO -->
-            <div class="paginacao">
-                <span class="paginacao-info"></span>
-                <div class="paginacao-controles"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+                        <button type="submit" class="btn-primario"><i class="bi bi-check-lg"></i> Salvar</button>
+                    </div>
+                </form>
             </div>
-        </div>
-
-    </section>
-</main>
-<div class="modal-overlay" id="modalForm">
-    <div class="modal">
-        <div class="modal-header">
-            <div>
-                <h3 class="modal-titulo" id="modalTitulo">Novo Usuário</h3>
-                <p class="modal-sub" id="modalSub">Preencha os dados do novo usuário.</p>
-            </div>
-            <button class="modal-fechar" onclick="fecharModal('modalForm')">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="formId" />
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="formNome">Nome <span class="obrigatorio">*</span></label>
-                    <input type="text" id="formNome" placeholder="Nome completo" />
-                </div>
-                <div class="form-group">
-                    <label for="formCPF">CPF</label>
-                    <input type="text" maxlength="14" id="formCPF" placeholder="000.000.000-00" />
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="formLogin">Login <span class="obrigatorio">*</span></label>
-                    <input type="text" id="formLogin" placeholder="Login de acesso" />
-                </div>
-                <div class="form-group">
-                    <label for="formSenha">Senha</label>
-                    <input type="password" id="formSenha" placeholder="******" />
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="formEmail">E-mail</label>
-                    <input type="email" id="formEmail" placeholder="email@exemplo.com" />
-                </div>
-                <div class="form-group">
-                    <label for="formTelefone" >Telefone</label>
-                    <input type="text" maxlength="15" id="formTelefone" placeholder="(01) 01001-0000" />
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="formCargo">Perfil <span class="obrigatorio">*</span></label>
-                    <select id="formCargo">
-                        <option value="">Selecione</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secundario" onclick="fecharModal('modalForm')">Cancelar</button>
-            <button class="btn-primario" onclick="salvarUsuario()">Salvar</button>
         </div>
     </div>
-</div>
 
-<!-- MODAL INATIVAR -->
-<div class="modal-overlay" id="modalInativar">
-    <div class="modal modal-confirmacao">
-        <div class="modal-header">
-            <h3 class="modal-titulo">Inativar Usuário</h3>
-            <button class="modal-fechar" onclick="fecharModal('modalInativar')">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p>Tem certeza que deseja inativar o usuário <strong id="nomeInativar"></strong>?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secundario" onclick="fecharModal('modalInativar')">Cancelar</button>
-            <button class="btn-perigo" onclick="confirmarInativar()">Inativar</button>
+    <!--
+         MODAL: EDIÇÃO
+     -->
+    <div class="modal" id="modal-edicao">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="bi bi-pencil-fill"></i> Editar Usuário</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalEdicao()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edicao">
+
+                    <p class="form-secao">Acesso</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Login <span class="obrigatorio">*</span></label>
+                            <input type="text" id="edit-login" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nova Senha</label>
+                            <input type="password" id="edit-senha" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label>Perfil</label>
+                            <select id="edit-perfil">
+                                <option value="">Carregando...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Criado em</label>
+                            <input type="text" id="edit-criacao" readonly>
+                        </div>
+                    </div>
+
+                    <p class="form-secao">Dados Pessoais</p>
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Nome Completo <span class="obrigatorio">*</span></label>
+                            <input type="text" id="edit-nome" required>
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Email</label>
+                            <input type="email" placeholder="Email" id="edit-email">
+                        </div>
+                        <div class="form-group">
+                            <label>CPF</label>
+                            <input type="text" id="edit-cpf">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" id="edit-telefone">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalEdicao()">Cancelar</button>
+                        <button type="submit" class="btn-primario"><i class="bi bi-check-lg"></i> Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL ATIVAR -->
-<div class="modal-overlay" id="modalAtivar">
-    <div class="modal modal-confirmacao">
-        <div class="modal-header">
-            <h3 class="modal-titulo">Reativar Usuário</h3>
-            <button class="modal-fechar" onclick="fecharModal('modalAtivar')">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p>Tem certeza que deseja reativar o usuário <strong id="nomeAtivar"></strong>?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secundario" onclick="fecharModal('modalAtivar')">Cancelar</button>
-            <button class="btn-primario" onclick="confirmarAtivar()">Reativar</button>
+    <!--
+         MODAL: CONFIRMAÇÃO INATIVAÇÃO / REATIVAÇÃO
+     -->
+    <div class="modal" id="modal-confirmar">
+        <div class="modal-content" style="width:420px">
+            <div class="modal-header">
+                <h3><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i> Confirmação</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalConfirmar()">&times;</button>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-icone">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <p id="confirm-mensagem">Deseja alterar o status deste usuário?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModalConfirmar()">Não, cancelar</button>
+                <button type="button" class="btn-perigo" id="confirm-btn-sim">Confirmar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="toast-container" id="toastContainer"></div>
-@Html.AntiForgeryToken()
-
-@section scripts {
-    <script>
-                let idPendente = null, filtroAtual = 'todos', todos = [];
-        let paginaAtual = 1;
-        const itensPorPagina = 10;
-        let dadosFiltrados = [];
-
-        async function carregar() {
-            try {
-                const r = await fetch('/Usuario/Listar');
-                if (!r.ok) throw 0;
-                todos = await r.json();
-                aplicarFiltro(filtroAtual);
-                carregarCargos();
-            } catch {
-                toast('Erro ao carregar usuários.', 'error');
-            }
-        }
-
-        function aplicarFiltro(t) {
-            filtroAtual = t;
-
-            document.querySelectorAll('.btn-status-filtro').forEach(b => b.classList.remove('ativo-sel'));
-            const mapa = { todos: 'btn-filtro-todos', ativo: 'btn-filtro-ativo', inativo: 'btn-filtro-inativo' };
-            document.getElementById(mapa[t])?.classList.add('ativo-sel');
-
-            const termo = document.getElementById('input-termo-busca').value.toLowerCase();
-            const tipo  = document.getElementById('select-tipo-filtro').value;
-
-            let base = t === 'ativo'   ? todos.filter(u => u.fAtivo)
-                     : t === 'inativo' ? todos.filter(u => !u.fAtivo)
-                     : todos;
-
-            if (termo) {
-                base = base.filter(u => {
-                    const val = tipo === 'documento' ? (u.cpf ?? '') : (u.nome ?? '');
-                    return val.toLowerCase().includes(termo);
-                });
-            }
-
-            dadosFiltrados = base;
-            paginaAtual = 1;
-            renderizarTabela();
-        }
-
-        function filtrarTabela() { aplicarFiltro(filtroAtual); }
-        function setFiltroStatus(t) { aplicarFiltro(t); }
-
-        function renderizarTabela() {
-            const tbody = document.querySelector('#tabela-usuarios tbody');
-            tbody.innerHTML = '';
-
-            const total  = dadosFiltrados.length;
-            const inicio = (paginaAtual - 1) * itensPorPagina;
-            const fim    = Math.min(inicio + itensPorPagina, total);
-            const pagina = dadosFiltrados.slice(inicio, fim);
-
-            if (pagina.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum registro encontrado.</td></tr>`;
-            } else {
-                pagina.forEach(u => {
-                    const statusBadge = u.fAtivo
-                        ? `<span class="status-pill status-ativo">Ativo</span>`
-                        : `<span class="status-pill status-inativo">Inativo</span>`;
-
-                    const btnToggle = u.fAtivo
-                        ? `<button class="btn-acao btn-inativar" title="Inativar" onclick="abrirInativar(${u.idUsuario},'${u.nome}')">
-                               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                               </svg>
-                           </button>`
-                        : `<button class="btn-acao btn-reativar" title="Reativar" onclick="abrirAtivar(${u.idUsuario},'${u.nome}')">
-                               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                               </svg>
-                           </button>`;
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>
-                            <div class="area-acoes">
-                                <button class="btn-acao btn-editar" title="Editar" onclick="abrirEditar(${u.idUsuario})">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                </button>
-                                ${btnToggle}
-                            </div>
-                        </td>
-                        <td>${statusBadge}</td>
-                        <td>${u.nome ?? ''}</td>
-                        <td>${formatarCPF(u.cpf)}</td>
-                        <td>${u.login ?? ''}</td>
-                        <td>${u.email ?? ''}</td>
-                        <td>${formatarTelefone(u.telefone)}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            renderizarPaginacao(total, inicio, fim);
-        }
-
-        function renderizarPaginacao(total, inicio, fim) {
-            const totalPaginas = Math.ceil(total / itensPorPagina) || 1;
-
-            document.querySelector('.paginacao-info').textContent =
-                total === 0 ? '0 registros'
-                            : `${inicio + 1}–${fim} de ${total} registro${total !== 1 ? 's' : ''}`;
-
-            const controles = document.querySelector('.paginacao-controles');
-            controles.innerHTML = '';
-
-            const btnAnt = document.createElement('button');
-            btnAnt.className = 'btn-pagina';
-            btnAnt.textContent = '‹';
-            btnAnt.disabled = paginaAtual === 1;
-            btnAnt.onclick = () => { paginaAtual--; renderizarTabela(); };
-            controles.appendChild(btnAnt);
-
-            for (let i = 1; i <= totalPaginas; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'btn-pagina' + (i === paginaAtual ? ' ativo' : '');
-                btn.textContent = i;
-                btn.onclick = () => { paginaAtual = i; renderizarTabela(); };
-                controles.appendChild(btn);
-            }
-
-            const btnProx = document.createElement('button');
-            btnProx.className = 'btn-pagina';
-            btnProx.textContent = '›';
-            btnProx.disabled = paginaAtual === totalPaginas;
-            btnProx.onclick = () => { paginaAtual++; renderizarTabela(); };
-            controles.appendChild(btnProx);
-        }
-
-        async function carregarCargos() {
-            try {
-                const r = await fetch('/Usuario/ListarCargos');
-                if (!r.ok) throw 0;
-                const cs = await r.json();
-                const s = document.getElementById('formCargo');
-                s.innerHTML = '<option value="">Selecione</option>';
-                cs.forEach(c => {
-                    const o = document.createElement('option');
-                    o.value = c.idCargo;
-                    o.textContent = c.nome;
-                    s.appendChild(o);
-                });
-            } catch {
-                toast('Erro ao carregar cargos.', 'error');
-            }
-        }
-
-        function abrirModal(id)  { document.getElementById(id).classList.add('open'); }
-        function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
-
-        document.querySelectorAll('.modal-overlay').forEach(o =>
-            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
-        );
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape')
-                document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-        });
-
-        function abrirModalCriar() {
-            document.getElementById('modalTitulo').textContent = 'Novo Usuário';
-            document.getElementById('modalSub').textContent    = 'Preencha os dados do novo usuário.';
-            ['formId','formNome','formLogin','formSenha','formCPF','formEmail','formTelefone']
-                .forEach(i => document.getElementById(i).value = '');
-            document.getElementById('formCargo').value = '';
-            abrirModal('modalForm');
-        }
-
-        function abrirEditar(id) {
-            const u = todos.find(u => u.idUsuario === id);
-            if (!u) return;
-            document.getElementById('modalTitulo').textContent = 'Editar Usuário';
-            document.getElementById('modalSub').textContent    = `Editando: ${u.nome}`;
-            document.getElementById('formId').value       = u.idUsuario;
-            document.getElementById('formNome').value     = u.nome;
-            document.getElementById('formLogin').value    = u.login;
-            document.getElementById('formSenha').value    = '';
-            document.getElementById('formCargo').value    = u.cargo_id ?? '';
-            document.getElementById('formCPF').value      = formatarCPF(u.cpf ?? '');
-            document.getElementById('formTelefone').value = formatarTelefone(u.telefone ?? '');
-            document.getElementById('formEmail').value    = u.email ?? '';
-            abrirModal('modalForm');
-        }
-
-        function abrirInativar(id, nome) {
-            idPendente = id;
-            document.getElementById('nomeInativar').textContent = nome;
-            abrirModal('modalInativar');
-        }
-
-        function abrirAtivar(id, nome) {
-            idPendente = id;
-            document.getElementById('nomeAtivar').textContent = nome;
-            abrirModal('modalAtivar');
-        }
-
-                async function salvarUsuario() {
-            const id = document.getElementById('formId').value;
-            const p = {
-                idUsuario : id ? parseInt(id) : 0,
-                nome      : document.getElementById('formNome').value,
-                login     : document.getElementById('formLogin').value,
-                senha     : document.getElementById('formSenha').value,
-                cpf       : document.getElementById('formCPF').value.replace(/\D/g, ''),
-                email     : document.getElementById('formEmail').value || null,
-                telefone  : document.getElementById('formTelefone').value.replace(/\D/g, ''),
-                cargo_id  : parseInt(document.getElementById('formCargo').value)
-            };
-            if (!p.nome || !p.login) { toast('Preencha os campos obrigatórios.', 'error'); return; }
-            try {
-                const r = await fetch(id ? '/Usuario/Editar' : '/Usuario/Criar', {
-                    method  : 'POST',
-                    headers : { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
-                    body    : JSON.stringify(p)
-                });
-                if (!r.ok) throw 0;
-                fecharModal('modalForm');
-                await carregar();
-                toast(id ? 'Usuário atualizado!' : 'Usuário criado!');
-            } catch {
-                toast('Erro ao salvar.', 'error');
-            }
-        }
-
-        async function confirmarInativar() {
-            try {
-                const r = await fetch(`/Usuario/AlterarStatus/${idPendente}`, {
-                    method: 'POST', headers: { 'RequestVerificationToken': getToken() }
-                });
-                if (!r.ok) throw 0;
-                fecharModal('modalInativar');
-                await carregar();
-                toast('Usuário inativado.');
-            } catch {
-                toast('Erro ao inativar.', 'error');
-            }
-        }
-
-        async function confirmarAtivar() {
-            try {
-                const r = await fetch(`/Usuario/AlterarStatus/${idPendente}`, {
-                    method: 'POST', headers: { 'RequestVerificationToken': getToken() }
-                });
-                if (!r.ok) throw 0;
-                fecharModal('modalAtivar');
-                await carregar();
-                toast('Usuário reativado.');
-            } catch {
-                toast('Erro ao reativar.', 'error');
-            }
-        }
-
-                function toast(msg, tipo = 'success') {
-            const c = document.getElementById('toastContainer');
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.innerHTML = `<span class="toast-icon ${tipo}"></span><span class="toast-msg">${msg}</span>`;
-            c.appendChild(t);
-            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 200); }, 2500);
-        }
-
-        function getToken() {
-            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
-        }
-
-
-        function mascararCPF(v) {
-            v = v.replace(/\D/g, '').slice(0, 11);
-            if (v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            if (v.length > 6) return v.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-            if (v.length > 3) return v.replace(/(\d{3})(\d+)/, '$1.$2');
-            return v;
-        }
-
-        function mascararTelefone(v) {
-            v = v.replace(/\D/g, '').slice(0, 11);
-            if (v.length > 10) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            if (v.length > 6)  return v.replace(/(\d{2})(\d{4,5})(\d*)/, '($1) $2-$3');
-            if (v.length > 2)  return v.replace(/(\d{2})(\d+)/, '($1) $2');
-            return v;
-        }
-
-                function formatarCPF(v) {
-            if (!v) return '';
-            v = v.replace(/\D/g, '');
-            return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        }
-
-        function formatarTelefone(v) {
-            if (!v) return '';
-            v = v.replace(/\D/g, '');
-            if (v.length === 11) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            if (v.length === 10) return v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-            return v;
-        }
-
-                document.getElementById('formCPF').addEventListener('input', function() {
-            this.value = mascararCPF(this.value);
-        });
-
-        document.getElementById('formTelefone').addEventListener('input', function() {
-            this.value = mascararTelefone(this.value);
-        });
-
-        carregar();
-    </script>
-}
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/usuarioJS/usuario.js"></script>
+</body>
+</html>

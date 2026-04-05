@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caixa - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="~/css/caixaCSS/caixa.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="container">
+    <div id="menu"></div>
+
+    <main>
+        <section class="secao-caixa">
+
+            <div class="cabecalho-tela">
+                <h2>Controle de Caixa</h2>
+            </div>
+
+            <!-- ── PAINEL DE STATUS ── -->
+            <div class="caixa-painel">
+
+                <!-- Status -->
+                <div class="caixa-card">
+                    <span class="caixa-card-label">Status do Caixa</span>
+                    <span id="caixa-status-badge" class="caixa-status-badge aberto">
+                        <i class="bi bi-unlock-fill"></i> Aberto
+                    </span>
+                    <span class="caixa-card-sub" id="caixa-abertura">—</span>
+                </div>
+
+                <!-- Saldo Atual -->
+                <div class="caixa-card">
+                    <span class="caixa-card-label">Saldo Atual</span>
+                    <span id="caixa-saldo-atual" class="caixa-card-valor verde">R$ 0,00</span>
+                    <span class="caixa-card-sub">Saldo inicial + entradas − saídas</span>
+                </div>
+
+                <!-- Entradas / Saídas -->
+                <div class="caixa-card">
+                    <span class="caixa-card-label">Entradas do Dia</span>
+                    <span id="caixa-entradas" class="caixa-card-valor verde">R$ 0,00</span>
+                    <span class="caixa-card-label" style="margin-top:1rem">Saídas do Dia</span>
+                    <span id="caixa-saidas" class="caixa-card-valor vermelho">R$ 0,00</span>
+                </div>
+
+                <!-- Ações -->
+                <div class="caixa-acoes">
+                    <button id="btn-abrir" class="btn-abrir-caixa" onclick="abrirModalAbrirCaixa()">
+                        <i class="bi bi-unlock-fill"></i> Abrir Caixa
+                    </button>
+                    <button id="btn-fechar" class="btn-fechar-caixa" onclick="abrirModalFecharCaixa()">
+                        <i class="bi bi-lock-fill"></i> Fechar Caixa
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── BOTÕES ENTRADA / SAÍDA ── -->
+            <div class="lancamento-acoes">
+                <button id="btn-entrada" class="btn-entrada" onclick="abrirModalLancamento('entrada')">
+                    <i class="bi bi-arrow-down-circle-fill"></i> Lançar Entrada
+                </button>
+                <button id="btn-saida" class="btn-saida" onclick="abrirModalLancamento('saida')">
+                    <i class="bi bi-arrow-up-circle-fill"></i> Lançar Saída
+                </button>
+            </div>
+
+            <!-- ── ABAS ── -->
+            <div class="table-container">
+                <div class="abas">
+                    <button id="aba-lancamentos" class="aba-btn ativa" onclick="mudarAba('lancamentos')">
+                        <i class="bi bi-list-ul"></i> Lançamentos do Caixa
+                    </button>
+                    <button id="aba-historico" class="aba-btn" onclick="mudarAba('historico')">
+                        <i class="bi bi-clock-history"></i> Histórico de Caixas
+                    </button>
+                </div>
+
+                <!-- Lançamentos -->
+                <div id="conteudo-lancamentos">
+                    <table class="table-lancamentos" id="tabela-lancamentos">
+                        <thead>
+                            <tr>
+                                <th>Data / Hora</th>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Forma Pgto</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="paginacao" id="paginacao-lancamentos">
+                        <span class="paginacao-info"></span>
+                        <div class="paginacao-controles"></div>
+                    </div>
+                </div>
+
+                <!-- Histórico -->
+                <div id="conteudo-historico" style="display:none">
+                    <table class="table-historico" id="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Abertura</th>
+                                <th>Fechamento</th>
+                                <th>Saldo Inicial</th>
+                                <th>Saldo Final</th>
+                                <th>Resultado</th>
+                                <th>Operador</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: ABRIR CAIXA
+════════════════════════════════════════ -->
+<div class="modal" id="modal-abrir-caixa">
+    <div class="modal-content" style="width:42rem">
+        <div class="modal-header">
+            <h3><i class="bi bi-unlock-fill" style="color:#15803d"></i> Abrir Caixa</h3>
+            <button class="btn-fechar-modal" onclick="fecharModalAbrirCaixa()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-abrir-caixa">
+                <div class="form-grid">
+                    <div class="form-group form-col-2">
+                        <label>Saldo Inicial (R$) <span class="obrigatorio">*</span></label>
+                        <input type="number" id="abrir-saldo-inicial" min="0" step="0.01"
+                               placeholder="0,00" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secundario" onclick="fecharModalAbrirCaixa()">Cancelar</button>
+                    <button type="submit" class="btn-primario verde">
+                        <i class="bi bi-unlock-fill"></i> Abrir Caixa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: FECHAR CAIXA
+════════════════════════════════════════ -->
+<div class="modal" id="modal-fechar-caixa">
+    <div class="modal-content" style="width:44rem">
+        <div class="modal-header">
+            <h3><i class="bi bi-lock-fill" style="color:#dc2626"></i> Fechar Caixa</h3>
+            <button class="btn-fechar-modal" onclick="fecharModalFecharCaixa()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-body" style="padding:1.5rem 0 0.5rem">
+                <div class="confirm-icone perigo">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <p>Deseja <strong>fechar o caixa</strong> agora?<br>O saldo final será registrado automaticamente.</p>
+            </div>
+            <div class="form-grid" style="margin-top:1.5rem">
+                <div class="form-group form-col-2">
+                    <label>Saldo Final Calculado (R$)</label>
+                    <input type="number" id="fechar-saldo-final" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secundario" onclick="fecharModalFecharCaixa()">Cancelar</button>
+            <button type="button" class="btn-perigo" id="confirm-fechar-sim">
+                <i class="bi bi-lock-fill"></i> Sim, fechar caixa
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: LANÇAMENTO ENTRADA / SAÍDA
+════════════════════════════════════════ -->
+<div class="modal" id="modal-lancamento">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="bi bi-arrow-down-circle-fill" style="color:#15803d"></i> Lançar Entrada</h3>
+            <button class="btn-fechar-modal" onclick="fecharModalLancamento()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-lancamento">
+                <p class="form-secao">Classificação</p>
+                <div class="form-grid">
+                    <div class="form-group form-col-2">
+                        <label>Categoria Financeira <span class="obrigatorio">*</span></label>
+                        <select id="lanc-categoria" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Forma de Pagamento <span class="obrigatorio">*</span></label>
+                        <select id="lanc-formapgto" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor (R$) <span class="obrigatorio">*</span></label>
+                        <input type="number" id="lanc-valor" min="0.01" step="0.01"
+                               placeholder="0,00" required>
+                    </div>
+                </div>
+
+                <p class="form-secao">Detalhes</p>
+                <div class="form-grid">
+                    <div class="form-group form-col-2">
+                        <label>Descrição</label>
+                        <input type="text" id="lanc-descricao" placeholder="Descreva o lançamento...">
+                    </div>
+                    <div class="form-group form-col-2">
+                        <label>Referência</label>
+                        <input type="text" id="lanc-referencia" placeholder="Ex: Pedido #123, Cliente X...">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secundario" onclick="fecharModalLancamento()">Cancelar</button>
+                    <button type="submit" class="btn-primario verde" id="btn-confirm-lancamento">
+                        <i class="bi bi-check-lg"></i> Confirmar Entrada
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/menuJS/menu.js"></script>
+<script src="/js/caixaJS/caixa.js"></script>
+</body>
+</html>

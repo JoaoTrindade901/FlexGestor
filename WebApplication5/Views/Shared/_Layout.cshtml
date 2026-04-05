@@ -1,18 +1,5 @@
 ﻿@{
     string rota = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    string nomeUsuario = ViewBag.NomeUsuario as string ?? "Usuario";
-    string cargo = ViewBag.CargoUsuario as string ?? "Administrador";
-    string inicial = nomeUsuario.Length > 0 ? nomeUsuario.Substring(0, 1).ToUpper() : "U";
-
-    string aHome = rota == "Home" ? "nav-item active" : "nav-item";
-    string aUsuario = rota == "Usuario" ? "nav-item active" : "nav-item";
-    string aCliente = rota == "Cliente" ? "nav-item active" : "nav-item";
-
-    string aEmpresaGroup = rota == "Empresa" ? "nav-group open" : "nav-group";
-    string aEmpresaParent = rota == "Empresa" ? "nav-parent active" : "nav-parent";
-    string aEmpresaSub = rota == "Empresa" ? "nav-sub-item active" : "nav-sub-item";
-
-    string aML = rota == "ML" ? "nav-item active" : "nav-item";
 }
 
 <!DOCTYPE html>
@@ -23,45 +10,18 @@
     <title>FlexGestor - @ViewBag.Title</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/menu.css">
 
     @RenderSection("styles", required: false)
 </head>
-<body>
 
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <h1>FlexGestor</h1>
-        </div>
+<body data-rota="@rota">
 
-        <nav class="sidebar-nav">
-
-            <a href="/Home" class="@aHome">
-                <span class="lbl">Home</span>
-            </a>
-
-            <a href="/Usuario" class="@aUsuario">
-                <span class="lbl">Usuários</span>
-            </a>
-
-
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-card">
-                <div class="user-avatar">@inicial</div>
-                <div class="user-info">
-                    <div class="user-name">@nomeUsuario</div>
-                    <div class="user-role">@cargo</div>
-                </div>
-                <a href="/Login/Sair" class="logout-btn">Sair</a>
-            </div>
-        </div>
-    </aside>
+    <div id="menu"></div>
 
     <div class="main">
-
         <div class="topbar">
             <div class="topbar-title">@ViewBag.Title</div>
             <a href="/Login/Sair" class="logout-top">Sair</a>
@@ -70,14 +30,9 @@
         <main class="page-content">
             @RenderBody()
         </main>
-
     </div>
 
-    <script>
-        function toggleNav(id) {
-            document.getElementById(id).classList.toggle('open');
-        }
-    </script>
+    <script src="/js/menu.js"></script>
 
     @RenderSection("scripts", required: false)
 </body>

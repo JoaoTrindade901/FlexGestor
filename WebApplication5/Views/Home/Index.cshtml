@@ -1,153 +1,139 @@
-﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Página Inicial";
-}
 
-@section styles {
-    <link rel="stylesheet" href="/css/home.css">
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-}
+    <title>Início - FlexGestor</title>
+</head>
+<body>
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <h2>Bem-vindo ao FlexGestor!</h2>
+            <div class="cards">
 
-<main>
-    <h2>Bem-vindo, @(ViewBag.NomeUsuario ?? "Usuário")!</h2>
-
-    <div class="cards">
-
-        <!-- Ticket Médio -->
-        <div class="card">
-            <div class="card-topo">
-                <span class="kpi-label">Ticket Médio</span>
-                <div class="kpi-icon kpi-icon-verde">
-                    <i class="bi bi-graph-up-arrow"></i>
+                <!-- 1: Ticket Médio -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Ticket Médio</span>
+                        <div class="kpi-icon kpi-icon-verde"><i class="bi bi-graph-up-arrow"></i></div>
+                    </div>
+                    <div class="kpi-valor kpi-valor-verde">R$ 312,50</div>
+                    <p class="kpi-sub">Média por venda este mês</p>
+                    <div class="kpi-barra-label">
+                        <span>Meta: R$ 350,00</span>
+                        <span>89%</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-verde" style="width:89%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao positiva"><i class="bi bi-arrow-up-short"></i> +5,2% vs mês anterior</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
                 </div>
-            </div>
-            <div class="kpi-valor kpi-valor-verde" id="ticketMedio">-</div>
-            <p class="kpi-sub">Média por venda este mês</p>
-            <div class="kpi-barra-label">
-                <span>Meta</span>
-                <span id="ticketPercent">-</span>
-            </div>
-            <div class="kpi-barra">
-                <div class="kpi-barra-fill fill-verde" id="ticketBarra" style="width:0%"></div>
-            </div>
-            <div class="card-rodape">
-                <span class="kpi-variacao positiva" id="ticketVariacao"></span>
-                <span class="kpi-periodo">Atual</span>
-            </div>
-        </div>
 
-        <!-- Clientes Ativos -->
-        <div class="card">
-            <div class="card-topo">
-                <span class="kpi-label">Clientes Ativos</span>
-                <div class="kpi-icon kpi-icon-azul">
-                    <i class="bi bi-people-fill"></i>
+                <!-- 2: Clientes Ativos -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Clientes Ativos</span>
+                        <div class="kpi-icon kpi-icon-azul"><i class="bi bi-people-fill"></i></div>
+                    </div>
+                    <div class="kpi-valor">248</div>
+                    <p class="kpi-sub">De 261 cadastrados</p>
+                    <div class="kpi-barra-label">
+                        <span>Taxa de atividade</span>
+                        <span>95%</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-azul" style="width:95%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao positiva"><i class="bi bi-arrow-up-short"></i> +12 novos este mês</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
                 </div>
-            </div>
-            <div class="kpi-valor" id="clientesAtivos">-</div>
-            <p class="kpi-sub" id="clientesTotal">-</p>
-            <div class="kpi-barra-label">
-                <span>Taxa</span>
-                <span id="clientesPercent">-</span>
-            </div>
-            <div class="kpi-barra">
-                <div class="kpi-barra-fill fill-azul" id="clientesBarra" style="width:0%"></div>
-            </div>
-            <div class="card-rodape">
-                <span class="kpi-variacao positiva" id="clientesVariacao"></span>
-                <span class="kpi-periodo">Atual</span>
-            </div>
-        </div>
 
-        <!-- Usuários -->
-        <div class="card">
-            <div class="card-topo">
-                <span class="kpi-label">Usuários</span>
-                <div class="kpi-icon kpi-icon-ciano">
-                    <i class="bi bi-person-badge-fill"></i>
+                <!-- 3: Saldo Devedor -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Saldo Devedor Total</span>
+                        <div class="kpi-icon kpi-icon-vermelho"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    </div>
+                    <div class="kpi-valor kpi-valor-alerta">R$ 14.720</div>
+                    <p class="kpi-sub">Em aberto com 3 clientes</p>
+                    <div class="kpi-barra-label">
+                        <span>% sobre faturamento</span>
+                        <span>38%</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-vermelho" style="width:38%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao negativa"><i class="bi bi-arrow-up-short"></i> +R$ 1.200 vs mês anterior</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
                 </div>
-            </div>
-            <div class="kpi-valor kpi-valor-ciano" id="totalUsuarios">-</div>
-            <p class="kpi-sub">Total no sistema</p>
-            <div class="kpi-barra-label">
-                <span>Atividade</span>
-                <span id="usuariosPercent">-</span>
-            </div>
-            <div class="kpi-barra">
-                <div class="kpi-barra-fill fill-ciano" id="usuariosBarra" style="width:0%"></div>
-            </div>
-            <div class="card-rodape">
-                <span class="kpi-variacao neutra">Sem alterações</span>
-                <span class="kpi-periodo">Atual</span>
-            </div>
-        </div>
 
-        <!-- Empresas -->
-        <div class="card">
-            <div class="card-topo">
-                <span class="kpi-label">Empresas</span>
-                <div class="kpi-icon kpi-icon-roxo">
-                    <i class="bi bi-building"></i>
+                <!-- 4: Faturamento Mensal -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Faturamento Mensal</span>
+                        <div class="kpi-icon kpi-icon-roxo"><i class="bi bi-currency-dollar"></i></div>
+                    </div>
+                    <div class="kpi-valor kpi-valor-roxo">R$ 38.450</div>
+                    <p class="kpi-sub">122 transações realizadas</p>
+                    <div class="kpi-barra-label">
+                        <span>Meta: R$ 45.000</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-roxo" style="width:85%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao positiva"><i class="bi bi-arrow-up-short"></i> +8,3% vs mês anterior</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
                 </div>
-            </div>
-            <div class="kpi-valor kpi-valor-roxo" id="totalEmpresas">-</div>
-            <p class="kpi-sub">Empresas cadastradas</p>
-            <div class="kpi-barra-label">
-                <span>Crescimento</span>
-                <span>-</span>
-            </div>
-            <div class="kpi-barra">
-                <div class="kpi-barra-fill fill-roxo" style="width:60%"></div>
-            </div>
-            <div class="card-rodape">
-                <span class="kpi-variacao positiva">+ crescimento</span>
-                <span class="kpi-periodo">Atual</span>
-            </div>
-        </div>
 
+                <!-- 5: Usuários do Sistema -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Usuários do Sistema</span>
+                        <div class="kpi-icon kpi-icon-ciano"><i class="bi bi-person-badge-fill"></i></div>
+                    </div>
+                    <div class="kpi-valor kpi-valor-ciano">12</div>
+                    <p class="kpi-sub">10 ativos · 2 inativos</p>
+                    <div class="kpi-barra-label">
+                        <span>Taxa de atividade</span>
+                        <span>83%</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-ciano" style="width:83%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao neutra"><i class="bi bi-dash"></i> Sem alterações este mês</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
+                </div>
+
+                <!-- 6: Taxa de Inadimplência -->
+                <div class="card">
+                    <div class="card-topo">
+                        <span class="kpi-label">Taxa de Inadimplência</span>
+                        <div class="kpi-icon kpi-icon-laranja"><i class="bi bi-slash-circle-fill"></i></div>
+                    </div>
+                    <div class="kpi-valor kpi-valor-laranja">1,2%</div>
+                    <p class="kpi-sub">3 clientes inadimplentes</p>
+                    <div class="kpi-barra-label">
+                        <span>Limite saudável: 3%</span>
+                        <span>Ótimo</span>
+                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-laranja" style="width:40%"></div></div>
+                    <div class="card-rodape">
+                        <span class="kpi-variacao negativa"><i class="bi bi-arrow-up-short"></i> +1 inadimplente</span>
+                        <span class="kpi-periodo">Mar 2026</span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
-</main>
-
-@section scripts {
-    <script>
-        async function carregarDashboard() {
-            try {
-                const [resUsuarios, resEmpresas] = await Promise.all([
-                    fetch('/Usuario/Total'),
-                    fetch('/Empresa/Total')
-                ]);
-
-                if (resUsuarios.ok) {
-                    const total = await resUsuarios.text();
-                    document.getElementById('totalUsuarios').textContent = total;
-
-                    // exemplo simples de % fake
-                    document.getElementById('usuariosPercent').textContent = "80%";
-                    document.getElementById('usuariosBarra').style.width = "80%";
-                }
-
-                if (resEmpresas.ok) {
-                    const total = await resEmpresas.text();
-                    document.getElementById('totalEmpresas').textContent = total;
-                }
-
-                // MOCK (depois você liga na API real)
-                document.getElementById('ticketMedio').textContent = "R$ 312,50";
-                document.getElementById('ticketPercent').textContent = "89%";
-                document.getElementById('ticketBarra').style.width = "89%";
-                document.getElementById('ticketVariacao').innerHTML = '<i class="bi bi-arrow-up-short"></i> +5%';
-
-                document.getElementById('clientesAtivos').textContent = "248";
-                document.getElementById('clientesTotal').textContent = "de 261 cadastrados";
-                document.getElementById('clientesPercent').textContent = "95%";
-                document.getElementById('clientesBarra').style.width = "95%";
-                document.getElementById('clientesVariacao').innerHTML = '<i class="bi bi-arrow-up-short"></i> +12 novos';
-
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        carregarDashboard();
-    </script>
-}
+    <script src="~/js/menuJS/menu.js"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@
     public string? Email { get; set; }
     public string? Telefone { get; set; }
     public DateTime dthCriacao { get; set; }
-    public byte cargo_id { get; set; }
+    public int cargo_id { get; set; }
     public bool fAtivo { get; set; }
     public int idEmpresa { get; set; }
 }
