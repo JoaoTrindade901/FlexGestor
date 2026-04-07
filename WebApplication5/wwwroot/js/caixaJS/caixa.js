@@ -45,11 +45,19 @@ function fmtDataHora(s) {
 }
 
 // ──────────────────────────────────────────
+// HELPERS — detecta se lançamento é entrada
+// Suporta tipoCategoria como número (1=entrada, 2=saida) ou string ("entrada"/"saida")
+// ──────────────────────────────────────────
+function isEntrada(lancamento) {
+    const t = lancamento.tipoCategoria;
+    return Number(t) === 1 || (typeof t === "string" && t.toLowerCase() === "entrada");
+}
+
+// ──────────────────────────────────────────
 // CARREGAR TUDO
 // ──────────────────────────────────────────
 async function inicializar() {
     try {
-        // Carrega em paralelo
         const [statusData, histData, fpData, catData] = await Promise.all([
             apiGet("/Caixa/Status"),
             apiGet("/Caixa/Historico"),
@@ -71,25 +79,28 @@ async function inicializar() {
         atualizarPainel();
     } catch (err) {
         console.error("Erro ao inicializar caixa:", err);
+        flexToast("Erro ao carregar dados do caixa. Tente recarregar a página.", "erro");
     }
 }
 
 // ──────────────────────────────────────────
-// CÁLCULOS LOCAIS (sobre os lançamentos carregados)
+// CÁLCULOS — CORRIGIDOS
 // ──────────────────────────────────────────
 function calcularEntradas() {
     return lancamentos
-        .filter(l => l.tipoCategoria === "entrada")
-        .reduce((acc, l) => acc + l.valor, 0);
+        .filter(l => isEntrada(l))
+        .reduce((acc, l) => acc + Number(l.valor), 0);
 }
+
 function calcularSaidas() {
     return lancamentos
-        .filter(l => l.tipoCategoria === "saida")
-        .reduce((acc, l) => acc + l.valor, 0);
+        .filter(l => !isEntrada(l))
+        .reduce((acc, l) => acc + Number(l.valor), 0);
 }
+
 function calcularSaldo() {
     if (!caixaAtual) return 0;
-    return caixaAtual.saldoInicial + calcularEntradas() - calcularSaidas();
+    return Number(caixaAtual.saldoInicial) + calcularEntradas() - calcularSaidas();
 }
 
 // ──────────────────────────────────────────
@@ -140,12 +151,12 @@ function renderizarAba() {
 }
 
 // ──────────────────────────────────────────
-// TABELA DE LANÇAMENTOS
+// TABELA DE LANÇAMENTOS — CORRIGIDA
 // ──────────────────────────────────────────
 function renderizarLancamentos() {
     const tbody = document.querySelector("#tabela-lancamentos tbody");
     if (!caixaAtual) {
-        tbody.innerHTML = `<tr><td colspan="6" class="caixa-fechado-msg"><i class="bi bi-lock-fill"></i>Abra o caixa para ver os lançamentos.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="caixa-fechado-msg"><i class="bi bi-lock-fill"></i> Abra o caixa para ver os lançamentos.</td></tr>`;
         renderizarPaginacao("paginacao-lancamentos", 0, 0);
         return;
     }
@@ -157,14 +168,15 @@ function renderizarLancamentos() {
         tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nenhum lançamento ainda.</td></tr>`;
     } else {
         tbody.innerHTML = pagina.map(l => {
-            const tipo = l.tipoCategoria;
-            const classeValor = tipo === "entrada" ? "valor-entrada" : "valor-saida";
-            const sinal = tipo === "entrada" ? "+" : "-";
-            const classeTipo = tipo === "entrada" ? "tipo-entrada" : "tipo-saida";
+            const entrada = isEntrada(l);
+            const classeValor = entrada ? "valor-entrada" : "valor-saida";
+            const sinal = entrada ? "+" : "-";
+            const classeTipo = entrada ? "tipo-entrada" : "tipo-saida";
+            const labelTipo = entrada ? "↑ Entrada" : "↓ Saída";
             return `<tr>
                 <td>${fmtDataHora(l.dthLancamento)}</td>
-                <td><span class="${classeTipo}">${tipo === "entrada" ? "↑ Entrada" : "↓ Saída"}</span></td>
-                <td title="${l.nomeCategoria}">${l.nomeCategoria || "—"}</td>
+                <td><span class="${classeTipo}">${labelTipo}</span></td>
+                <td title="${l.nomeCategoria || ''}">${l.nomeCategoria || "—"}</td>
                 <td>${l.nomeFormaPagamento || "—"}</td>
                 <td title="${l.descricao || ''}">${l.descricao || "—"}</td>
                 <td><span class="${classeValor}">${sinal} ${fmtMoeda(l.valor)}</span></td>
@@ -179,7 +191,7 @@ function renderizarLancamentos() {
 // ──────────────────────────────────────────
 function renderizarHistorico() {
     const tbody = document.querySelector("#tabela-historico tbody");
-    const todos = [...historicoList].filter(c => !c.fAtivo); // só fechados
+    const todos = [...historicoList].filter(c => !c.fAtivo);
 
     if (todos.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum caixa anterior.</td></tr>`;
@@ -252,11 +264,12 @@ document.getElementById("form-abrir-caixa").addEventListener("submit", async fun
     e.preventDefault();
     const saldoInicial = Number(document.getElementById("abrir-saldo-inicial").value) || 0;
     try {
-        const data = await apiPost("/Caixa/Abrir", { SaldoInicial: saldoInicial });
+        await apiPost("/Caixa/Abrir", { SaldoInicial: saldoInicial });
         fecharModalAbrirCaixa();
         await inicializar();
+        flexToast("Caixa aberto com sucesso!", "sucesso");
     } catch (err) {
-        alert("Erro ao abrir caixa: " + err.message);
+        flexToast("Erro ao abrir caixa: " + err.message, "erro");
     }
 });
 
@@ -281,25 +294,31 @@ document.getElementById("confirm-fechar-sim").addEventListener("click", async fu
         });
         fecharModalFecharCaixa();
         await inicializar();
+        flexToast("Caixa fechado com sucesso!", "sucesso");
     } catch (err) {
-        alert("Erro ao fechar caixa: " + err.message);
+        flexToast("Erro ao fechar caixa: " + err.message, "erro");
     }
 });
 
 // ──────────────────────────────────────────
-// MODAL LANÇAMENTO
+// MODAL LANÇAMENTO — CORRIGIDO
 // ──────────────────────────────────────────
 function abrirModalLancamento(tipo) {
-    if (!caixaAtual) return;
+    // Bloqueia se caixa estiver fechado
+    if (!caixaAtual) {
+        flexToast("O caixa está fechado. Abra o caixa antes de realizar lançamentos.", "aviso");
+        return;
+    }
+
     tipoLancamentoAtual = tipo;
 
-    // Popula categorias filtradas por tipo
+    // Filtra categorias pelo tipo: 1 = entrada, 2 = saida
     const tipoNum = tipo === "entrada" ? 1 : 2;
     const cats = categorias.filter(c => Number(c.tipo) === tipoNum);
     const select = document.getElementById("lanc-categoria");
-    select.innerHTML = cats.map(c =>
-        `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`
-    ).join('');
+    select.innerHTML = cats.length > 0
+        ? cats.map(c => `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`).join('')
+        : `<option value="">Nenhuma categoria cadastrada</option>`;
 
     // Popula formas de pagamento
     document.getElementById("lanc-formapgto").innerHTML = formasPagamento.map(f =>
@@ -330,6 +349,14 @@ function fecharModalLancamento() {
 
 document.getElementById("form-lancamento").addEventListener("submit", async function (e) {
     e.preventDefault();
+
+    // Validação extra: garante que o caixa ainda está aberto no momento do submit
+    if (!caixaAtual) {
+        flexToast("O caixa está fechado. Não é possível realizar lançamentos.", "aviso");
+        fecharModalLancamento();
+        return;
+    }
+
     try {
         await apiPost("/Caixa/Lancar", {
             IdCaixa: caixaAtual.idCaixa,
@@ -340,11 +367,11 @@ document.getElementById("form-lancamento").addEventListener("submit", async func
             Referencia: document.getElementById("lanc-referencia").value || null
         });
         fecharModalLancamento();
-        // Recarrega apenas lançamentos (mais rápido)
         lancamentos = await apiGet("/Caixa/Lancamentos");
         atualizarPainel();
+        flexToast(`${tipoLancamentoAtual === "entrada" ? "Entrada" : "Saída"} lançada com sucesso!`, "sucesso");
     } catch (err) {
-        alert("Erro ao lançar: " + err.message);
+        flexToast("Erro ao lançar: " + err.message, "erro");
     }
 });
 
