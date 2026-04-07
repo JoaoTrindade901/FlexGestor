@@ -22,6 +22,8 @@ namespace WebApplication5.Services
 
         public int Lancar(int idEmpresa, int idUsuario, LancarCaixaDto dto)
         {
+            if (dto.Valor <= 0)
+                throw new InvalidOperationException("Valor deve ser maior que zero.");
             // Busca caixa aberto — lança no caixa atual
             var caixa = _repo.BuscarAberto(idEmpresa)
                 ?? throw new InvalidOperationException("Nenhum caixa aberto.");

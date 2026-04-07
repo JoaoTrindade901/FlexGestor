@@ -46,6 +46,7 @@
         public int IdCaixa { get; set; }
         public int IdFormaPagamento { get; set; }
         public int IdCategoriaFinanceira { get; set; }
+        public short Tipo { get; set; }
         public decimal Valor { get; set; }
         public string? Descricao { get; set; }
         public string? Referencia { get; set; }
