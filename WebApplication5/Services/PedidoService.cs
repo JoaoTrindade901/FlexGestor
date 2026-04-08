@@ -51,18 +51,16 @@ namespace WebApplication5.Services
             return idPedido;
         }
 
-        public void AtualizarStatus(int idPedido, int statusPedidoId)
-            => _repo.AtualizarStatus(idPedido, statusPedidoId);
+        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario)
+            => _repo.AtualizarStatus(idPedido, statusPedidoId, idUsuario);
 
         public void Cancelar(int idPedido)
             => _repo.Cancelar(idPedido);
 
         public void Editar(PedidoEditarDto dto, int idEmpresa, int idUsuario)
         {
-            // 1. Atualiza status se necessário
-            _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId);
+            _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario, dto.Observacao);
 
-            // 2. Deleta itens antigos e reinserindo os novos
             _repo.DeletarItens(dto.IdPedido);
 
             decimal valorTotal = 0;
@@ -74,9 +72,22 @@ namespace WebApplication5.Services
                 _repo.InserirItem(item);
             }
 
-            // 3. Atualiza cabeçalho do pedido
             valorTotal = valorTotal + dto.ValorFrete - dto.Desconto;
             _repo.AtualizarCabecalho(dto.IdPedido, valorTotal, dto.Desconto, dto.ValorFrete, dto.Observacao);
+
+            // Salva pagamentos
+            _repo.DeletarPagamentos(dto.IdPedido);
+            foreach (var pag in dto.Pagamentos)
+            {
+                pag.IdPedido = dto.IdPedido;
+                _repo.InserirPagamento(pag);
+            }
         }
+
+        public IEnumerable<PedidoPagamentoModel> ListarPagamentos(int idPedido)
+            => _repo.ListarPagamentos(idPedido);
+
+        public IEnumerable<dynamic> ListarHistoricoStatus(int idPedido)
+             => _repo.ListarHistoricoStatus(idPedido);
     }
 }

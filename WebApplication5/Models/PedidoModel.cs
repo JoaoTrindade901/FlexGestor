@@ -72,4 +72,13 @@ namespace WebApplication5.Models
         public int IdPedido { get; set; }
         public int StatusPedidoId { get; set; }
     }
+
+    public class PedidoPagamentoModel
+    {
+        public int IdPagamento { get; set; }
+        public int IdPedido { get; set; }
+        public int FormaPagamento_id { get; set; }
+        public decimal Valor { get; set; }
+        public DateTime DthPagamento { get; set; }
+    }
 }

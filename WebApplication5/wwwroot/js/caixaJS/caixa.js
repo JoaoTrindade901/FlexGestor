@@ -304,13 +304,15 @@ document.getElementById("confirm-fechar-sim").addEventListener("click", async fu
 // MODAL LANÇAMENTO — CORRIGIDO
 // ──────────────────────────────────────────
 function abrirModalLancamento(tipo) {
-    // Bloqueia se caixa estiver fechado
     if (!caixaAtual) {
         flexToast("O caixa está fechado. Abra o caixa antes de realizar lançamentos.", "aviso");
         return;
     }
 
     tipoLancamentoAtual = tipo;
+
+    // Reset ANTES de popular os selects
+    document.getElementById("form-lancamento").reset();
 
     // Filtra categorias pelo tipo: 1 = entrada, 2 = saida
     const tipoNum = tipo === "entrada" ? 1 : 2;
@@ -339,7 +341,6 @@ function abrirModalLancamento(tipo) {
         btnConfirm.innerHTML = `<i class="bi bi-check-lg"></i> Confirmar Saída`;
     }
 
-    document.getElementById("form-lancamento").reset();
     modal.classList.add("open");
 }
 

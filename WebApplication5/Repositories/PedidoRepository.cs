@@ -89,12 +89,18 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void AtualizarStatus(int idPedido, int statusPedidoId)
+        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario, string? observacao = null)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AtualizarStatusPedido",
-                new { p_idPedido = idPedido, p_statusPedido_id = statusPedidoId },
+                new
+                {
+                    p_idPedido = idPedido,
+                    p_statusPedido_id = statusPedidoId,
+                    p_idUsuario = idUsuario,
+                    p_observacao = observacao
+                },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -103,6 +109,46 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_CancelarPedido",
+                new { p_idPedido = idPedido },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void DeletarPagamentos(int idPedido)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "DELETE FROM PedidoPagamento WHERE idPedido = @idPedido",
+                new { idPedido });
+        }
+
+        public void InserirPagamento(PedidoPagamentoModel pagamento)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "INSERT INTO PedidoPagamento (idPedido, formaPagamento_id, valor, dthPagamento) VALUES (@idPedido, @formaPagamento_id, @valor, @dthPagamento)",
+                new
+                {
+                    idPedido = pagamento.IdPedido,
+                    formaPagamento_id = pagamento.FormaPagamento_id,
+                    valor = pagamento.Valor,
+                    dthPagamento = DateTime.Now
+                });
+        }
+
+        public IEnumerable<PedidoPagamentoModel> ListarPagamentos(int idPedido)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.Query<PedidoPagamentoModel>(
+                "sp_ListarPagamentosPedido",
+                new { p_idPedido = idPedido },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public IEnumerable<dynamic> ListarHistoricoStatus(int idPedido)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.Query(
+                "sp_ListarHistoricoStatus",
                 new { p_idPedido = idPedido },
                 commandType: CommandType.StoredProcedure);
         }

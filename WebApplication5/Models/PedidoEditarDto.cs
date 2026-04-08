@@ -8,4 +8,5 @@ public class PedidoEditarDto
     public decimal ValorFrete { get; set; }
     public string? Observacao { get; set; }
     public List<PedidoItemModel> Itens { get; set; } = new();
+    public List<PedidoPagamentoModel> Pagamentos { get; set; } = new();
 }
