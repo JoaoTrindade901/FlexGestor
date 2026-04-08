@@ -148,7 +148,6 @@ main { overflow-x: hidden; min-width: 0; }
     border-bottom: 1px solid #f0f2f5;
     vertical-align: middle;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
