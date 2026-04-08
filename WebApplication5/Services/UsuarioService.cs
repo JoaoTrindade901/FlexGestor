@@ -1,4 +1,6 @@
-﻿using WebApplication5.Models;
+﻿using MySql.Data.MySqlClient;
+using WebApplication5.Exceptions;
+using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -21,19 +23,33 @@ namespace WebApplication5.Services
 
         public void Criar(UsuarioModel usuario)
         {
-            usuario.Senha = _password.Hash(usuario.Senha);
-            usuario.dthCriacao = DateTime.Now;
-            usuario.fAtivo = true;
+            try
+            {
+                usuario.Senha = _password.Hash(usuario.Senha);
+                usuario.dthCriacao = DateTime.Now;
+                usuario.fAtivo = true;
 
-            _repo.Inserir(usuario); 
+                _repo.Inserir(usuario);
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                throw new RegraNegocioException("CPF já cadastrado.");
+            }
         }
 
         public void Editar(UsuarioModel usuario)
         {
-            if (!string.IsNullOrEmpty(usuario.Senha))
-                usuario.Senha = _password.Hash(usuario.Senha);
+            try
+            {
+                if (!string.IsNullOrEmpty(usuario.Senha))
+                    usuario.Senha = _password.Hash(usuario.Senha);
 
-            _repo.Atualizar(usuario);
+                _repo.Atualizar(usuario);
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                throw new RegraNegocioException("CPF já cadastrado.");
+            }
         }
 
         public void AlterarStatus(int idUsuario)

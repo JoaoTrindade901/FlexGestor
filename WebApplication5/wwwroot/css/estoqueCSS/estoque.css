@@ -149,7 +149,6 @@ main {
     border-bottom: 1px solid #f0f2f5;
     vertical-align: middle;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -210,6 +209,7 @@ main {
     border-radius: 2rem;
     font-size: 1.1rem;
     font-weight: 600;
+
 }
 .status-normal  { background: #dcfce7; color: #15803d; }
 .status-critico { background: #fee2e2; color: #b91c1c; }

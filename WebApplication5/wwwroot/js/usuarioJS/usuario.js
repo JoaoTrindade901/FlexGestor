@@ -24,13 +24,27 @@ async function apiGet(url) {
 async function apiPost(url, body) {
     const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "RequestVerificationToken": getCsrfToken() },
+        headers: {
+            "Content-Type": "application/json",
+            "RequestVerificationToken": getCsrfToken()
+        },
         body: JSON.stringify(body)
     });
+
     if (!res.ok) {
-        const texto = await res.text().catch(() => "");
-        throw new Error(texto || `POST ${url} → ${res.status}`);
+        let mensagem = "Erro ao processar.";
+
+        try {
+            const data = await res.json();
+            mensagem = data.mensagem || data.title || mensagem;
+        } catch {
+            const texto = await res.text();
+            mensagem = texto || mensagem;
+        }
+
+        throw new Error(mensagem);
     }
+
     return res;
 }
 
@@ -274,16 +288,19 @@ function fecharModal() {
 
 document.getElementById("form-usuario").addEventListener("submit", async function (e) {
     e.preventDefault();
+
     if (!validarFormUsuario("novo")) return;
 
     const btn = this.querySelector('[type="submit"]');
     setBotaoCarregando(btn, true);
 
+    const cpfInput = document.getElementById("novo-cpf");
+
     const payload = {
         Login: document.getElementById("novo-login").value.trim(),
         Senha: document.getElementById("novo-senha").value,
         Nome: document.getElementById("novo-nome").value.trim(),
-        CPF: (document.getElementById("novo-cpf").value.trim() || "").replace(/\D/g, "") || null,
+        CPF: (cpfInput.value.trim() || "").replace(/\D/g, "") || null,
         Email: document.getElementById("novo-email").value.trim() || null,
         Telefone: (document.getElementById("novo-telefone").value.trim() || "").replace(/\D/g, "") || null,
         cargo_id: Number(document.getElementById("novo-perfil").value) || 0
@@ -291,11 +308,19 @@ document.getElementById("form-usuario").addEventListener("submit", async functio
 
     try {
         await apiPost("/Usuario/Criar", payload);
+
         fecharModal();
         await carregarUsuarios();
+
         flexToast("Usuário criado com sucesso!", "sucesso");
+
     } catch (err) {
-        flexToast("Erro ao criar usuário: " + err.message, "erro");
+        if (err.message.toLowerCase().includes("cpf")) {
+            marcarErro(cpfInput, err.message);
+        }
+
+        flexToast(err.message, "erro");
+
     } finally {
         setBotaoCarregando(btn, false);
     }
@@ -315,7 +340,8 @@ async function abrirModalEdicao(id) {
     document.getElementById("edit-login").value = usuarioEmEdicao.login || "";
     document.getElementById("edit-nome").value = usuarioEmEdicao.nome || "";
     document.getElementById("edit-email").value = usuarioEmEdicao.email || "";
-    document.getElementById("edit-cpf").value = usuarioEmEdicao.cpf || "";
+    document.getElementById("edit-cpf").value =
+        (usuarioEmEdicao.cpf || "").replace(/\D/g, "");
     document.getElementById("edit-telefone").value = usuarioEmEdicao.telefone || "";
     document.getElementById("edit-perfil").value = usuarioEmEdicao.cargo_id;
     document.getElementById("edit-senha").value = "";
@@ -344,8 +370,8 @@ document.getElementById("form-edicao").addEventListener("submit", async function
         Login: document.getElementById("edit-login").value.trim(),
         Nome: document.getElementById("edit-nome").value.trim(),
         Email: document.getElementById("edit-email").value.trim() || null,
-        CPF: document.getElementById("edit-cpf").value.trim() || null,
-        Telefone: document.getElementById("edit-telefone").value.trim() || null,
+        CPF: (document.getElementById("edit-cpf").value.trim() || "").replace(/\D/g, "") || null,
+        Telefone: (document.getElementById("edit-telefone").value.trim() || "").replace(/\D/g, "") || null,
         cargo_id: Number(document.getElementById("edit-perfil").value) || 0,
         Senha: document.getElementById("edit-senha")?.value || ""
     };
@@ -356,7 +382,14 @@ document.getElementById("form-edicao").addEventListener("submit", async function
         await carregarUsuarios();
         flexToast("Usuário atualizado com sucesso!", "sucesso");
     } catch (err) {
-        flexToast("Erro ao salvar usuário: " + err.message, "erro");
+        const cpfInput = document.getElementById("edit-cpf");
+
+        // Se erro for de CPF duplicado → marca campo
+        if (err.message && err.message.toLowerCase().includes("cpf")) {
+            marcarErro(cpfInput, err.message);
+        }
+
+        flexToast(err.message || "Erro ao salvar usuário.", "erro");
     } finally {
         setBotaoCarregando(btn, false);
     }
