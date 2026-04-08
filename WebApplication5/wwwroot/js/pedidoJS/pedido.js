@@ -825,4 +825,4 @@ document.getElementById("modal-busca-produto")?.addEventListener("click", functi
 // INIT
 // ──────────────────────────────────────────
 document.getElementById("btn-f-todos").classList.add("sel-todos");
-carregarPedidos();
+carregarPedidos(); 

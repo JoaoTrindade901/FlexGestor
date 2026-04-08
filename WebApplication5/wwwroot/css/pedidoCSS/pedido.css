@@ -130,7 +130,7 @@ main {
         background: #ede9fe;
         border-color: #7c3aed;
         color: #5b21b6;
-    }
+    } 
 
     .btn-status-filtro.sel-enviado {
         background: #e0f2fe;
@@ -214,37 +214,30 @@ main {
     color: #92400e;
 }
 
-/ amarelo âmbar /
 .status-confirmado {
     background: #dbeafe;
     color: #1e40af;
 }
 
-/ azul claro /
 .status-separando {
     background: #ede9fe;
     color: #5b21b6;
 }
 
-/ roxo claro /
 .status-enviado {
     background: #e0f2fe;
     color: #0369a1;
 }
 
-/ azul ciano /
 .status-concluido {
     background: #dcfce7;
     color: #15803d;
 }
 
-/ verde /
 .status-cancelado {
     background: #fee2e2;
     color: #b91c1c;
 }
-
-/ vermelho
 
 .valor-total {
     font-weight: 700;

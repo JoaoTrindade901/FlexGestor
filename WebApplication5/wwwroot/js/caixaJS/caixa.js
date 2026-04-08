@@ -71,7 +71,7 @@ async function inicializar() {
         categorias = catData;
 
         if (caixaAtual) {
-            lancamentos = await apiGet("/Caixa/Lancamentos");
+            lancamentos = await apiGet("/Caixa/Lancamentos"); 
         } else {
             lancamentos = [];
         }

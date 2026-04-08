@@ -53,7 +53,7 @@ public class CaixaController : BaseController
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         return Json(_service.ListarCategorias(idEmpresa));
     }
-
+     
     [HttpPost]
     public IActionResult Abrir([FromBody] AbrirCaixaDto dto)
     {

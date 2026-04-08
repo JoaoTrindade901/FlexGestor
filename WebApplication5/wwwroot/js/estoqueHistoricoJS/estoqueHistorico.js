@@ -93,7 +93,7 @@ function filtrarHistorico() {
     });
 
     renderizarHistorico();
-}
+} 
 
 document.addEventListener("DOMContentLoaded", () => {
     carregarHistorico();
