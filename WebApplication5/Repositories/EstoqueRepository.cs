@@ -58,5 +58,20 @@ namespace WebApplication5.Repositories
                 new { p_produto_id = idProduto, p_estoqueMin = estoqueMinimo },
                 commandType: CommandType.StoredProcedure);
         }
+
+        public void AssociarFornecedor(int idFornecedor, int idProduto, int idEmpresa, decimal precoCompra)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_AssociarFornecedorProduto",
+                new
+                {
+                    p_fornecedor_id = idFornecedor,
+                    p_produto_id = idProduto,
+                    p_idEmpresa = idEmpresa,
+                    p_precoCompra = precoCompra
+                },
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

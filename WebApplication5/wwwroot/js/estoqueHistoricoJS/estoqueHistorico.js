@@ -97,4 +97,4 @@ function filtrarHistorico() {
 
 document.addEventListener("DOMContentLoaded", () => {
     carregarHistorico();
-});
+}); 

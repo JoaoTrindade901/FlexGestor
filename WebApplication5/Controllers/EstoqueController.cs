@@ -46,10 +46,26 @@ public class EstoqueController : BaseController
         _service.AtualizarMinimo(dto.IdProduto, dto.EstoqueMinimo);
         return Ok();
     }
+
+    [HttpPost]
+    public IActionResult AssociarFornecedor([FromBody] AssociarFornecedorDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        _service.AssociarFornecedor(dto.IdFornecedor, dto.IdProduto, idEmpresa, dto.PrecoCompra);
+        return Ok();
+    }
 }
 
 public class AtualizarMinimoDto
 {
     public int IdProduto { get; set; }
     public int EstoqueMinimo { get; set; }
+}
+
+public class AssociarFornecedorDto
+{
+    public int IdFornecedor { get; set; }
+    public int IdProduto { get; set; }
+    public decimal PrecoCompra { get; set; }
 }

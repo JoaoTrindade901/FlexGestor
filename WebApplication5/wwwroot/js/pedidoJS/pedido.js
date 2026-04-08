@@ -15,6 +15,8 @@ let _buscaProdutoIdx = null;
 let _buscaProdutoPrefixo = null;
 let _pedidoEmEdicao = null;
 
+// IDs alinhados com tabela StatusPedido do banco:
+// 1=PENDENTE 2=CONFIRMADO 3=SEPARANDO 4=ENVIADO 5=ENTREGUE 6=CANCELADO
 const STATUS_MAP = {
     1: { nome: "Pendente", classe: "pendente" },
     2: { nome: "Confirmado", classe: "confirmado" },
@@ -22,6 +24,34 @@ const STATUS_MAP = {
     4: { nome: "Enviado", classe: "enviado" },
     5: { nome: "Entregue", classe: "concluido" },
     6: { nome: "Cancelado", classe: "cancelado" },
+};
+
+// Fallback: resolve statusPedidoId a partir do nome textual que a SP pode retornar
+const STATUS_NOME_PARA_ID = {
+    "PENDENTE": 1,
+    "CONFIRMADO": 2,
+    "SEPARANDO": 3,
+    "ENVIADO": 4,
+    "ENTREGUE": 5,
+    "CANCELADO": 6,
+};
+
+function resolverStatusId(pedido) {
+    if (pedido.statusPedidoId && pedido.statusPedidoId > 0) return pedido.statusPedidoId;
+    if (pedido.statusPedido_id && pedido.statusPedido_id > 0) return pedido.statusPedido_id;
+    if (pedido.status) return STATUS_NOME_PARA_ID[pedido.status.toUpperCase()] ?? 0;
+    return 0;
+}
+
+// Mapa: valor do filtro → IDs de status que ele abrange
+const FILTRO_STATUS_IDS = {
+    todos: [1, 2, 3, 4, 5, 6],
+    pendente: [1],
+    confirmado: [2],
+    separando: [3],
+    enviado: [4],
+    concluido: [5],
+    cancelado: [6],
 };
 
 const FORMAS_PAGAMENTO = [
@@ -67,9 +97,11 @@ function fmtData(s) {
 }
 function fmtDataHora(s) {
     if (!s) return "—";
-    // Remove o Z para tratar como horário local em vez de UTC
     const local = s.endsWith("Z") ? s.slice(0, -1) : s;
-    return new Date(local).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return new Date(local).toLocaleString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+    });
 }
 function highlight(texto, busca) {
     if (!busca || !texto) return texto ?? "";
@@ -82,7 +114,12 @@ function highlight(texto, busca) {
 // ──────────────────────────────────────────
 async function carregarPedidos() {
     try {
-        todosPedidos = await apiGet("/Pedido/Listar");
+        const raw = await apiGet("/Pedido/Listar");
+        // Normaliza statusPedidoId para garantir que sempre seja número
+        todosPedidos = raw.map(p => ({
+            ...p,
+            statusPedidoId: resolverStatusId(p)
+        }));
         aplicarFiltros();
     } catch (err) {
         flexToast("Erro ao carregar pedidos: " + err.message, "erro");
@@ -90,34 +127,23 @@ async function carregarPedidos() {
 }
 
 async function carregarClientes() {
-    try {
-        clientesCache = await apiGet("/Cliente/Listar");
-    } catch (err) {
-        console.warn("Clientes indisponíveis:", err.message);
-    }
+    try { clientesCache = await apiGet("/Cliente/Listar"); }
+    catch (err) { console.warn("Clientes indisponíveis:", err.message); }
 }
 
 async function carregarProdutos() {
-    try {
-        produtosCache = await apiGet("/Produto/Listar");
-    } catch (err) {
-        console.warn("Produtos indisponíveis:", err.message);
-    }
+    try { produtosCache = await apiGet("/Produto/Listar"); }
+    catch (err) { console.warn("Produtos indisponíveis:", err.message); }
 }
 
 // ──────────────────────────────────────────
 // FILTROS
 // ──────────────────────────────────────────
 function aplicarFiltros() {
+    const idsPermitidos = FILTRO_STATUS_IDS[filtroStatusPedido] ?? FILTRO_STATUS_IDS.todos;
+
     pedidosFiltrados = todosPedidos.filter(p => {
-        const FILTRO_CLASSE_MAP = {
-            pendente: [1], confirmado: [2], separando: [3],
-            enviado: [4], concluido: [5], cancelado: [6]
-        };
-        if (filtroStatusPedido !== "todos") {
-            const ids = FILTRO_CLASSE_MAP[filtroStatusPedido] ?? [];
-            if (!ids.includes(p.statusPedidoId)) return false;
-        }
+        if (!idsPermitidos.includes(p.statusPedidoId)) return false;
         if (filtroClienteStr) {
             const q = filtroClienteStr.toLowerCase();
             if (!p.nomeCliente?.toLowerCase().includes(q) &&
@@ -136,12 +162,14 @@ function filtrarCliente() {
 
 function setFiltroStatus(valor) {
     filtroStatusPedido = valor;
+
     document.querySelectorAll(".btn-status-filtro").forEach(b =>
-        b.classList.remove(
-            "sel-todos", "sel-pendente", "sel-confirmado",
-            "sel-separando", "sel-enviado", "sel-concluido", "sel-cancelado"
-        ));
-    document.getElementById(btn - f - ${ valor }).classList.add(sel - ${ valor });
+        b.className = b.className.replace(/\bsel-\S+/g, "").trim()
+    );
+
+    const btn = document.getElementById(`btn-f-${valor}`);
+    if (btn) btn.classList.add(`sel-${valor}`);
+
     aplicarFiltros();
 }
 
@@ -157,7 +185,7 @@ function renderizarTabela() {
         tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Nenhum pedido encontrado.</td></tr>`;
     } else {
         tbody.innerHTML = pagina.map(p => {
-            const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status, classe: "aguardando" };
+            const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status ?? "Desconhecido", classe: "pendente" };
             const cancelado = p.statusPedidoId === 6;
             return `<tr>
                 <td class="area-acoes">
@@ -198,7 +226,8 @@ function renderizarTabela() {
         if (i === paginaAtual) btn.classList.add("ativo");
         controles.appendChild(btn);
     }
-    controles.appendChild(criarBtn("›", paginaAtual >= totalPaginas || totalPaginas === 0, () => { paginaAtual++; renderizarTabela(); }));
+    controles.appendChild(criarBtn("›", paginaAtual >= totalPaginas || totalPaginas === 0,
+        () => { paginaAtual++; renderizarTabela(); }));
 }
 
 function criarBtn(label, disabled, onClick) {
@@ -229,8 +258,10 @@ function calcularTotalPedido(prefixo) {
     const subtotal = itensPedidoAtual.reduce((acc, i) => acc + (i.Qtde * i.precoUnit), 0);
     const descontoItens = itensPedidoAtual.reduce((acc, i) => acc + i.Desconto, 0);
     const descontoGeral = Number(document.getElementById(`${prefixo}-desconto`)?.value || 0);
-    const frete = Number(document.getElementById(`${prefixo}-frete`)?.value ||
-        document.getElementById("novo-frete")?.value || 0);
+    const frete = Number(
+        document.getElementById(`${prefixo}-frete`)?.value ||
+        document.getElementById("novo-frete")?.value || 0
+    );
     return Math.max(subtotal - descontoItens - descontoGeral + frete, 0);
 }
 
@@ -276,8 +307,14 @@ function renderizarPagamentos(prefixo) {
 
     resumo.innerHTML = `
         <div class="pagamentos-resumo-grid">
-            <div class="pag-resumo-item"><span class="pag-resumo-label">Total do pedido</span><span class="pag-resumo-valor">${fmtMoeda(totalPedido)}</span></div>
-            <div class="pag-resumo-item"><span class="pag-resumo-label">Total pago</span><span class="pag-resumo-valor">${fmtMoeda(totalPago)}</span></div>
+            <div class="pag-resumo-item">
+                <span class="pag-resumo-label">Total do pedido</span>
+                <span class="pag-resumo-valor">${fmtMoeda(totalPedido)}</span>
+            </div>
+            <div class="pag-resumo-item">
+                <span class="pag-resumo-label">Total pago</span>
+                <span class="pag-resumo-valor">${fmtMoeda(totalPago)}</span>
+            </div>
             <div class="pag-resumo-item pag-resumo-${stClass}">
                 <span class="pag-resumo-label"><i class="bi ${stIcon}"></i> ${stLabel}</span>
                 <span class="pag-resumo-valor">${fmtMoeda(Math.abs(restante))}</span>
@@ -301,7 +338,8 @@ function removerPagamento(idx, prefixo) {
 }
 
 function atualizarPagamento(idx, campo, valor, prefixo) {
-    pagamentosPedidoAtual[idx][campo] = campo === "valor" || campo === "formaPagamento_id" ? Number(valor) : valor;
+    pagamentosPedidoAtual[idx][campo] =
+        campo === "valor" || campo === "formaPagamento_id" ? Number(valor) : valor;
     renderizarPagamentos(prefixo);
 }
 
@@ -372,7 +410,8 @@ function fecharBuscaProduto() {
             renderizarItens(_buscaProdutoPrefixo);
         }
     }
-    _buscaProdutoIdx = null; _buscaProdutoPrefixo = null;
+    _buscaProdutoIdx = null;
+    _buscaProdutoPrefixo = null;
 }
 function filtrarListaProdutos(q) {
     const filtrado = q
@@ -408,7 +447,8 @@ function selecionarProduto(id) {
     item.precoUnit = p.precoVenda;
     item.Subtotal = (item.Qtde * item.precoUnit) - item.Desconto;
     const prefixo = _buscaProdutoPrefixo;
-    _buscaProdutoIdx = null; _buscaProdutoPrefixo = null;
+    _buscaProdutoIdx = null;
+    _buscaProdutoPrefixo = null;
     document.getElementById("modal-busca-produto").classList.remove("open");
     renderizarItens(prefixo);
 }
@@ -423,8 +463,7 @@ function renderizarItens(prefixo) {
         <tr>
             <td class="col-produto">
                 <div class="produto-cell">
-                    <input type="text" readonly
-                        value="${item.nomeProduto || ""}"
+                    <input type="text" readonly value="${item.nomeProduto || ""}"
                         placeholder="Selecionar produto..."
                         onclick="abrirBuscaProduto(${idx}, '${prefixo}')">
                     <button type="button" class="btn-buscar-produto"
@@ -489,6 +528,18 @@ function atualizarResumo(prefixo) {
 }
 
 // ──────────────────────────────────────────
+// HELPER: monta <select> de status para modal de edição
+// Exclui "Cancelado" — cancelamento é feito pelo botão dedicado
+// ──────────────────────────────────────────
+function montarSelectStatus(statusAtualId) {
+    return Object.entries(STATUS_MAP)
+        .filter(([id]) => Number(id) !== 6)   // Cancelado não aparece no select de edição
+        .map(([id, s]) =>
+            `<option value="${id}" ${Number(id) === statusAtualId ? "selected" : ""}>${s.nome}</option>`
+        ).join("");
+}
+
+// ──────────────────────────────────────────
 // MODAL NOVO PEDIDO
 // ──────────────────────────────────────────
 async function abrirModal() {
@@ -520,32 +571,23 @@ document.getElementById("form-pedido").addEventListener("submit", async function
 
     const desconto = Number(document.getElementById("novo-desconto").value) || 0;
     const frete = Number(document.getElementById("novo-frete")?.value || 0);
-
     const btnSalvar = this.querySelector('[type="submit"]');
     btnSalvar.disabled = true;
 
     try {
         await apiPost("/Pedido/Criar", {
             Pedido: {
-                IdCliente: clienteId,
-                EnderecoId: enderecoId,
-                Canal: "PROPRIO",
-                NumeroExterno: null,
+                IdCliente: clienteId, EnderecoId: enderecoId,
+                Canal: "PROPRIO", NumeroExterno: null,
                 Observacao: document.getElementById("novo-obs").value || null,
-                ValorFrete: frete,
-                Desconto: desconto,
-                ValorTotal: 0
+                ValorFrete: frete, Desconto: desconto, ValorTotal: 0
             },
             Itens: itensValidos.map(i => ({
-                IdProduto: i.produto_id,
-                Quantidade: i.Qtde,
-                ValorUnitario: i.precoUnit,
-                Desconto: i.Desconto,
-                ValorTotal: i.Subtotal
+                IdProduto: i.produto_id, Quantidade: i.Qtde,
+                ValorUnitario: i.precoUnit, Desconto: i.Desconto, ValorTotal: i.Subtotal
             })),
             Pagamentos: pagamentosPedidoAtual.map(p => ({
-                FormaPagamento_id: p.formaPagamento_id,
-                Valor: p.valor
+                FormaPagamento_id: p.formaPagamento_id, Valor: p.valor
             }))
         });
         fecharModal();
@@ -567,48 +609,37 @@ async function abrirEdicao(idPedido) {
 
     await Promise.all([carregarClientes(), carregarProdutos()]);
 
-    document.getElementById("edit-numero").value = `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
+    document.getElementById("edit-numero").value =
+        `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
     document.getElementById("edit-cliente-nome").value = _pedidoEmEdicao.nomeCliente;
     document.getElementById("edit-cliente-id").value = _pedidoEmEdicao.idCliente ?? "";
     document.getElementById("edit-desconto").value = _pedidoEmEdicao.desconto ?? 0;
     document.getElementById("edit-obs").value = _pedidoEmEdicao.observacao ?? "";
     document.getElementById("novo-frete").value = _pedidoEmEdicao.valorFrete ?? 0;
 
-    const selStatus = document.getElementById("edit-status");
-    selStatus.innerHTML = Object.entries(STATUS_MAP).map(([id, s]) =>
-        `<option value="${id}" ${Number(id) === _pedidoEmEdicao.statusPedidoId ? "selected" : ""}>${s.nome}</option>`
-    ).join("");
+    // Popula select de status (sem Cancelado)
+    document.getElementById("edit-status").innerHTML =
+        montarSelectStatus(_pedidoEmEdicao.statusPedidoId);
 
-    // Carrega itens
     try {
         const itensBackend = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
         itensPedidoAtual = itensBackend.map(i => ({
-            produto_id: i.idProduto,
-            nomeProduto: i.nomeProduto,
-            Qtde: i.quantidade,
-            precoUnit: i.valorUnitario,
-            Desconto: i.desconto ?? 0,
-            Subtotal: i.valorTotal
+            produto_id: i.idProduto, nomeProduto: i.nomeProduto,
+            Qtde: i.quantidade, precoUnit: i.valorUnitario,
+            Desconto: i.desconto ?? 0, Subtotal: i.valorTotal
         }));
-    } catch {
-        itensPedidoAtual = [];
-    }
+    } catch { itensPedidoAtual = []; }
 
-    // Carrega pagamentos existentes
     try {
         const pagamentosBackend = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
         pagamentosPedidoAtual = pagamentosBackend.map(p => ({
-            formaPagamento_id: p.formaPagamento_id,
-            valor: p.valor
+            formaPagamento_id: p.formaPagamento_id, valor: p.valor
         }));
-    } catch {
-        pagamentosPedidoAtual = [];
-    }
+    } catch { pagamentosPedidoAtual = []; }
 
     mudarAba("edit", "pedido");
     renderizarItens("edit");
     renderizarPagamentos("edit");
-
     document.getElementById("modal-edicao").classList.add("open");
 }
 
@@ -632,27 +663,20 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     const statusId = Number(document.getElementById("edit-status").value);
     const desconto = Number(document.getElementById("edit-desconto").value) || 0;
     const frete = Number(document.getElementById("novo-frete")?.value || 0);
-
     const btnSalvar = this.querySelector('[type="submit"]');
     btnSalvar.disabled = true;
 
     try {
         await apiPost("/Pedido/Editar", {
-            IdPedido: _pedidoEmEdicao.idPedido,
-            StatusPedidoId: statusId,
-            Desconto: desconto,
-            ValorFrete: frete,
+            IdPedido: _pedidoEmEdicao.idPedido, StatusPedidoId: statusId,
+            Desconto: desconto, ValorFrete: frete,
             Observacao: document.getElementById("edit-obs").value || null,
             Itens: itensValidos.map(i => ({
-                IdProduto: i.produto_id,
-                Quantidade: i.Qtde,
-                ValorUnitario: i.precoUnit,
-                Desconto: i.Desconto,
-                ValorTotal: i.Subtotal
+                IdProduto: i.produto_id, Quantidade: i.Qtde,
+                ValorUnitario: i.precoUnit, Desconto: i.Desconto, ValorTotal: i.Subtotal
             })),
             Pagamentos: pagamentosPedidoAtual.map(p => ({
-                FormaPagamento_id: p.formaPagamento_id,
-                Valor: p.valor
+                FormaPagamento_id: p.formaPagamento_id, Valor: p.valor
             }))
         });
         fecharEdicao();
@@ -671,17 +695,17 @@ document.getElementById("form-edicao").addEventListener("submit", async function
 async function abrirDetalhes(idPedido) {
     const p = todosPedidos.find(x => x.idPedido === idPedido);
     if (!p) return;
-    const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status, classe: "aguardando" };
+    const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status ?? "Desconhecido", classe: "pendente" };
 
     document.getElementById("det-numero").textContent = `#${p.numeroPedido}`;
-    document.getElementById("det-status").innerHTML = `<span class="status-pill status-${st.classe}">${st.nome}</span>`;
+    document.getElementById("det-status").innerHTML =
+        `<span class="status-pill status-${st.classe}">${st.nome}</span>`;
     document.getElementById("det-cliente").textContent = p.nomeCliente;
     document.getElementById("det-data").textContent = fmtData(p.dthCriacao);
     document.getElementById("det-desconto").textContent = p.desconto > 0 ? fmtMoeda(p.desconto) : "—";
     document.getElementById("det-total").textContent = fmtMoeda(p.valorTotal);
     document.getElementById("det-obs").textContent = p.observacao || "—";
 
-    // Itens
     try {
         const itens = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
         document.getElementById("det-itens-body").innerHTML = itens.map(i => `
@@ -697,10 +721,9 @@ async function abrirDetalhes(idPedido) {
             `<tr><td colspan="5" class="empty-state">Erro ao carregar itens.</td></tr>`;
     }
 
-    // Pagamentos
     try {
         const pagamentos = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
-        if (pagamentos.length === 0) {
+        if (!pagamentos.length) {
             document.getElementById("det-pagamentos").innerHTML =
                 `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Nenhum pagamento registrado.</span></div>`;
         } else {
@@ -708,15 +731,12 @@ async function abrirDetalhes(idPedido) {
             document.getElementById("det-pagamentos").innerHTML = `
                 <table class="table-itens" style="margin-bottom:1rem">
                     <thead>
-                        <tr>
-                            <th>Forma de Pagamento</th>
-                            <th>Valor</th>
-                            <th>Data</th>
-                        </tr>
+                        <tr><th>Forma de Pagamento</th><th>Valor</th><th>Data</th></tr>
                     </thead>
                     <tbody>
                         ${pagamentos.map(pg => {
-                const forma = FORMAS_PAGAMENTO.find(f => f.id === pg.formaPagamento_id)?.nome ?? `#${pg.formaPagamento_id}`;
+                const forma = FORMAS_PAGAMENTO.find(f => f.id === pg.formaPagamento_id)?.nome
+                    ?? `#${pg.formaPagamento_id}`;
                 return `<tr>
                                 <td>${forma}</td>
                                 <td style="font-weight:700">${fmtMoeda(pg.valor)}</td>
@@ -736,15 +756,15 @@ async function abrirDetalhes(idPedido) {
             `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Erro ao carregar pagamentos.</span></div>`;
     }
 
-    // Histórico de status
     try {
         const historico = await apiGet(`/Pedido/ListarHistoricoStatus?idPedido=${idPedido}`);
-        if (historico.length === 0) {
+        if (!historico.length) {
             document.getElementById("det-historico").innerHTML =
                 `<div class="empty-state">Nenhum histórico registrado.</div>`;
         } else {
             document.getElementById("det-historico").innerHTML = historico.map(h => {
-                const stH = STATUS_MAP[h.statusPedido_id] ?? { nome: `Status ${h.statusPedido_id}`, classe: "aguardando" };
+                const stH = STATUS_MAP[h.statusPedido_id] ??
+                    { nome: `Status ${h.statusPedido_id}`, classe: "pendente" };
                 return `<div class="historico-item">
                     <div class="historico-dot"><i class="bi bi-check-lg"></i></div>
                     <div class="historico-conteudo">
@@ -825,4 +845,4 @@ document.getElementById("modal-busca-produto")?.addEventListener("click", functi
 // INIT
 // ──────────────────────────────────────────
 document.getElementById("btn-f-todos").classList.add("sel-todos");
-carregarPedidos(); 
+carregarPedidos();

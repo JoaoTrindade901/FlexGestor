@@ -5,7 +5,12 @@ let listaFiltrada = [];
 let filtroTexto = "";
 let filtroStatus = "todos";
 let etapaProduto = 1;
+const TOTAL_ETAPAS = 4;
 let categorias = [];
+let fornecedores = [];
+
+// Fornecedor selecionado no passo 3
+let fornecedorSelecionado = null; // { idFornecedor, nomeFantasia, precoCompra }
 
 // ──────────────────────────────────────────
 // FETCH HELPERS
@@ -35,7 +40,6 @@ function mostrarErro(msg) {
     el.textContent = msg;
     el.style.display = "block";
 }
-
 function esconderErro() {
     const el = document.getElementById("mensagemErro");
     if (el) el.style.display = "none";
@@ -70,18 +74,24 @@ async function carregarCategorias() {
     }
 }
 
+async function carregarFornecedores() {
+    try {
+        fornecedores = await apiGet("/Fornecedor/Listar");
+    } catch (err) {
+        console.warn("Fornecedores indisponíveis:", err.message);
+        fornecedores = [];
+    }
+}
+
 // ──────────────────────────────────────────
 // STATUS / FILTROS
 // ──────────────────────────────────────────
 function classificarStatus(item) {
-    if (item.estoqueCritico) return "critico";
-    return "normal";
+    return item.estoqueCritico ? "critico" : "normal";
 }
-
 function labelStatus(status) {
     return { normal: "Normal", critico: "Crítico" }[status] ?? status;
 }
-
 function formatarData(data) {
     if (!data) return "—";
     return new Date(data).toLocaleDateString("pt-BR");
@@ -143,21 +153,24 @@ function renderizarTabela() {
             <td>${item.quantidade}</td>
             <td>${item.estoqueMinimo}</td>
             <td>${item.skuProduto || "—"}</td>
-            <td>${item.local || "—"}</td>
+            <td>${item.nomeCategoria || "—"}</td>
             <td>${formatarData(item.dthUltimaAtualizacao)}</td>
         </tr>`;
     }).join("");
 }
 
 // ──────────────────────────────────────────
-// WIZARD NOVO PRODUTO
+// WIZARD — 4 PASSOS
 // ──────────────────────────────────────────
 async function abrirModal() {
     etapaProduto = 1;
+    fornecedorSelecionado = null;
     document.getElementById("formEstoque").reset();
     esconderErro();
+    limparSelecaoFornecedor();
+    await Promise.all([carregarCategorias(), carregarFornecedores()]);
+    renderizarListaFornecedores("");
     atualizarEtapas();
-    await carregarCategorias();
     document.getElementById("modalEstoque").classList.add("open");
 }
 
@@ -166,9 +179,13 @@ function fecharModal(id = "modalEstoque") {
 }
 
 function atualizarEtapas() {
-    document.querySelectorAll(".etapa").forEach(e => e.classList.remove("ativa"));
-    document.getElementById(`etapa-${etapaProduto}`)?.classList.add("ativa");
+    // Mostra só a etapa ativa
+    for (let i = 1; i <= TOTAL_ETAPAS; i++) {
+        const el = document.getElementById(`etapa-${i}`);
+        if (el) el.classList.toggle("ativa", i === etapaProduto);
+    }
 
+    // Atualiza stepper visual
     document.querySelectorAll(".step").forEach((step, i) => {
         step.classList.toggle("active", i < etapaProduto);
     });
@@ -177,55 +194,186 @@ function atualizarEtapas() {
     const btnSalvar = document.getElementById("btnSalvar");
     const btnVoltar = document.getElementById("btn-voltar");
 
-    if (btnProximo) btnProximo.style.display = etapaProduto === 3 ? "none" : "inline-flex";
-    if (btnSalvar) btnSalvar.style.display = etapaProduto === 3 ? "inline-flex" : "none";
+    if (btnProximo) btnProximo.style.display = etapaProduto === TOTAL_ETAPAS ? "none" : "inline-flex";
+    if (btnSalvar) btnSalvar.style.display = etapaProduto === TOTAL_ETAPAS ? "inline-flex" : "none";
     if (btnVoltar) btnVoltar.style.display = etapaProduto === 1 ? "none" : "inline-flex";
+
+    // Ao entrar no passo 4 (resumo), atualiza os dados exibidos
+    if (etapaProduto === TOTAL_ETAPAS) atualizarResumo();
 }
 
 function proximaEtapa() {
     if (!validarEtapaAtual()) return;
-    if (etapaProduto < 3) { etapaProduto++; atualizarEtapas(); }
+    if (etapaProduto < TOTAL_ETAPAS) {
+        etapaProduto++;
+        atualizarEtapas();
+    }
 }
 
 function voltarEtapa() {
-    if (etapaProduto > 1) { etapaProduto--; atualizarEtapas(); }
+    if (etapaProduto > 1) {
+        etapaProduto--;
+        atualizarEtapas();
+    }
 }
 
-// 1. validarEtapaAtual() — adiciona categoria como obrigatória na etapa 1
+// ──────────────────────────────────────────
+// VALIDAÇÃO POR ETAPA
+// ──────────────────────────────────────────
 function validarEtapaAtual() {
     esconderErro();
+
     if (etapaProduto === 1) {
         const nome = document.getElementById("nome");
         const cod = document.getElementById("codBarras");
         const cat = document.getElementById("prod-categoria");
         let ok = true;
 
-        if (!validarObrigatorio(nome, "Nome")) ok = false;
-        if (!validarObrigatorio(cod, "Código de Barras")) ok = false;
-        if (!cat.value) {
-            marcarErro(cat, "Selecione uma categoria.");
-            ok = false;
-        } else {
-            limparErro(cat);
-        }
+        if (!nome?.value?.trim()) { marcarErroSimples(nome, "Nome é obrigatório."); ok = false; }
+        if (!cod?.value?.trim()) { marcarErroSimples(cod, "Código de Barras é obrigatório."); ok = false; }
+        if (!cat?.value) { marcarErroSimples(cat, "Selecione uma categoria."); ok = false; }
 
         if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
         return ok;
     }
+
     if (etapaProduto === 2) {
         const qtd = document.getElementById("qtd");
         const min = document.getElementById("min");
         let ok = true;
-        if (!validarObrigatorio(qtd, "Quantidade inicial")) ok = false;
-        if (!validarObrigatorio(min, "Estoque mínimo")) ok = false;
+        if (!qtd?.value && qtd?.value !== "0") { marcarErroSimples(qtd, "Quantidade inicial é obrigatória."); ok = false; }
+        if (!min?.value && min?.value !== "0") { marcarErroSimples(min, "Estoque mínimo é obrigatório."); ok = false; }
         if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
         return ok;
     }
+
+    // Passo 3 (fornecedor) é opcional — pode avançar sem selecionar
     return true;
 }
 
+function marcarErroSimples(el, msg) {
+    if (!el) return;
+    el.style.borderColor = "#dc2626";
+    el.style.boxShadow = "0 0 0 0.3rem rgba(220,38,38,0.12)";
+    const wrapper = el.closest(".form-group") ?? el.parentElement;
+    let span = wrapper?.querySelector(".val-msg");
+    if (!span) {
+        span = document.createElement("span");
+        span.className = "val-msg";
+        span.style.cssText = "display:block;font-size:1.1rem;color:#dc2626;margin-top:0.3rem;";
+        wrapper?.appendChild(span);
+    }
+    span.textContent = msg;
+    el.addEventListener("input", () => {
+        el.style.borderColor = "";
+        el.style.boxShadow = "";
+        span.remove();
+    }, { once: true });
+}
+
 // ──────────────────────────────────────────
-// SALVAR PRODUTO (etapa 3 → botão Salvar)
+// PASSO 3 — FORNECEDOR
+// ──────────────────────────────────────────
+function renderizarListaFornecedores(termo) {
+    const container = document.getElementById("lista-fornecedores");
+    if (!container) return;
+
+    const ativos = fornecedores.filter(f =>
+        f.fAtivo !== false &&
+        (!termo || f.nomeFantasia?.toLowerCase().includes(termo.toLowerCase()) ||
+            f.cnpj?.includes(termo))
+    );
+
+    if (ativos.length === 0) {
+        container.innerHTML = `
+            <div class="forn-vazio">
+                <i class="bi bi-building-x"></i>
+                <span>${fornecedores.length === 0
+                ? 'Nenhum fornecedor cadastrado. Cadastre em Cadastros → Fornecedores.'
+                : 'Nenhum fornecedor encontrado para esse termo.'}</span>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = ativos.map(f => {
+        const selecionado = fornecedorSelecionado?.idFornecedor === f.idFornecedor;
+        return `
+        <div class="forn-item ${selecionado ? 'selecionado' : ''}"
+             onclick="selecionarFornecedor(${f.idFornecedor})">
+            <div class="forn-check">
+                <i class="bi bi-${selecionado ? 'check-circle-fill' : 'circle'}"></i>
+            </div>
+            <div class="forn-info">
+                <span class="forn-nome">${f.nomeFantasia || f.razaoSocial}</span>
+                <span class="forn-cnpj">CNPJ: ${f.cnpj || "—"}</span>
+            </div>
+        </div>`;
+    }).join("");
+}
+
+function selecionarFornecedor(id) {
+    const f = fornecedores.find(x => x.idFornecedor === id);
+    if (!f) return;
+
+    if (fornecedorSelecionado?.idFornecedor === id) {
+        // Deseleciona se clicar no mesmo
+        limparSelecaoFornecedor();
+    } else {
+        fornecedorSelecionado = {
+            idFornecedor: f.idFornecedor,
+            nomeFantasia: f.nomeFantasia || f.razaoSocial
+        };
+        document.getElementById("painel-preco-compra").style.display = "block";
+    }
+
+    const termo = document.getElementById("busca-fornecedor")?.value ?? "";
+    renderizarListaFornecedores(termo);
+}
+
+function limparSelecaoFornecedor() {
+    fornecedorSelecionado = null;
+    const painel = document.getElementById("painel-preco-compra");
+    if (painel) painel.style.display = "none";
+    const input = document.getElementById("preco-compra");
+    if (input) input.value = "";
+}
+
+// ──────────────────────────────────────────
+// PASSO 4 — RESUMO
+// ──────────────────────────────────────────
+function atualizarResumo() {
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val ?? "—";
+    };
+
+    set("resumo-nome", document.getElementById("nome")?.value || "—");
+    set("resumo-cod", document.getElementById("codBarras")?.value || "—");
+    set("resumo-qtd", document.getElementById("qtd")?.value || "0");
+    set("resumo-min", document.getElementById("min")?.value || "0");
+
+    // Categoria
+    const catSel = document.getElementById("prod-categoria");
+    set("resumo-categoria", catSel?.options[catSel.selectedIndex]?.text || "—");
+
+    // Preço de venda
+    const pv = document.getElementById("precoVenda")?.value;
+    set("resumo-preco-venda", pv ? `R$ ${Number(pv).toFixed(2).replace(".", ",")}` : "—");
+
+    // Fornecedor
+    const blocoForn = document.getElementById("resumo-bloco-fornecedor");
+    if (fornecedorSelecionado) {
+        const pc = document.getElementById("preco-compra")?.value;
+        set("resumo-fornecedor", fornecedorSelecionado.nomeFantasia);
+        set("resumo-preco-compra", pc ? `R$ ${Number(pc).toFixed(2).replace(".", ",")}` : "—");
+        if (blocoForn) blocoForn.style.display = "";
+    } else {
+        if (blocoForn) blocoForn.style.display = "none";
+    }
+}
+
+// ──────────────────────────────────────────
+// SALVAR (passo 4 → botão Salvar)
 // ──────────────────────────────────────────
 async function salvarNovoProduto() {
     const btnSalvar = document.getElementById("btnSalvar");
@@ -255,7 +403,6 @@ async function salvarNovoProduto() {
             PrecoVenda: Number(document.getElementById("precoVenda")?.value || 0),
             Unidade: document.getElementById("unidade")?.value || null
         });
-
         const { idProduto } = await resProduto.json();
 
         // 2. Entrada inicial de estoque
@@ -276,8 +423,19 @@ async function salvarNovoProduto() {
             });
         }
 
+        // 4. Associa fornecedor (se selecionado)
+        if (fornecedorSelecionado) {
+            const precoCompra = Number(document.getElementById("preco-compra")?.value || 0);
+            await apiPost("/Estoque/AssociarFornecedor", {
+                IdFornecedor: fornecedorSelecionado.idFornecedor,
+                IdProduto: idProduto,
+                PrecoCompra: precoCompra
+            });
+        }
+
         fecharModal();
         await carregarEstoque();
+        flexToast("Produto cadastrado com sucesso!", "sucesso");
 
     } catch (err) {
         mostrarErro("Erro ao cadastrar produto: " + err.message);
@@ -298,12 +456,10 @@ function abrirModalMovimentacao(idProduto, nomeProduto) {
     document.getElementById("mov-motivo").value = "";
     document.getElementById("modal-movimentacao").classList.add("open");
 }
-
 function fecharModalMovimentacao() {
     document.getElementById("modal-movimentacao").classList.remove("open");
 }
 
-// 2. salvarMovimentacao() — troca o alert de quantidade inválida
 async function salvarMovimentacao() {
     const idProduto = Number(document.getElementById("mov-idProduto").value);
     const tipoMovimentacao = document.getElementById("mov-tipo").value;
@@ -312,11 +468,10 @@ async function salvarMovimentacao() {
     const motivo = document.getElementById("mov-motivo").value.trim() || null;
 
     if (!quantidade || quantidade <= 0) {
-        marcarErro(qtdEl, "Informe uma quantidade maior que zero.");
+        marcarErroSimples(qtdEl, "Informe uma quantidade maior que zero.");
         flexToast("Quantidade inválida.", "aviso");
         return;
     }
-    limparErro(qtdEl);
 
     try {
         await apiPost("/Estoque/Movimentar", {
@@ -341,23 +496,20 @@ function abrirModalMinimo(idProduto, minimoAtual) {
     document.getElementById("min-valor").value = minimoAtual;
     document.getElementById("modal-minimo").classList.add("open");
 }
-
 function fecharModalMinimo() {
     document.getElementById("modal-minimo").classList.remove("open");
 }
 
-// 3. salvarMinimo() — troca o alert de valor inválido
 async function salvarMinimo() {
     const idProduto = Number(document.getElementById("min-idProduto").value);
     const minEl = document.getElementById("min-valor");
     const estoqueMinimo = Number(minEl.value);
 
     if (isNaN(estoqueMinimo) || estoqueMinimo < 0) {
-        marcarErro(minEl, "Informe um valor válido (mínimo 0).");
+        marcarErroSimples(minEl, "Informe um valor válido (mínimo 0).");
         flexToast("Valor inválido.", "aviso");
         return;
     }
-    limparErro(minEl);
 
     try {
         await apiPost("/Estoque/AtualizarMinimo", {
@@ -371,6 +523,7 @@ async function salvarMinimo() {
         flexToast("Erro ao atualizar mínimo: " + err.message, "erro");
     }
 }
+
 // ──────────────────────────────────────────
 // EVENTOS DO WIZARD (botões do footer)
 // ──────────────────────────────────────────
@@ -380,6 +533,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btnSalvar")?.addEventListener("click", function (e) {
         e.preventDefault();
         salvarNovoProduto();
+    });
+
+    // Busca de fornecedor no passo 3
+    document.getElementById("busca-fornecedor")?.addEventListener("input", function () {
+        renderizarListaFornecedores(this.value);
     });
 });
 

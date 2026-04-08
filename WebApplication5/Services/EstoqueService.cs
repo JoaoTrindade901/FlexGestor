@@ -27,6 +27,9 @@ namespace WebApplication5.Services
         public void AtualizarMinimo(int idProduto, int estoqueMinimo)
             => _repo.AtualizarMinimo(idProduto, estoqueMinimo);
 
+        public void AssociarFornecedor(int idFornecedor, int idProduto, int idEmpresa, decimal precoCompra)
+            => _repo.AssociarFornecedor(idFornecedor, idProduto, idEmpresa, precoCompra);
+
         // Chamado pelo PedidoService ao criar pedido
         public void DescontarEstoque(int idProduto, int quantidade, int idEmpresa, int idUsuario)
         {

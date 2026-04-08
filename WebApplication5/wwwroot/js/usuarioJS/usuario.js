@@ -29,7 +29,7 @@ async function apiPost(url, body) {
             "RequestVerificationToken": getCsrfToken()
         },
         body: JSON.stringify(body)
-    });
+    }); 
     if (!res.ok) {
         let mensagem = "Erro ao processar.";
         const texto = await res.text();
