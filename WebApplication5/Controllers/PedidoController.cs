@@ -41,7 +41,8 @@ public class PedidoController : BaseController
     public IActionResult AtualizarStatus([FromBody] AtualizarStatusPedidoDto dto)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId);
+        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
+        _service.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario);
         return Ok();
     }
 
@@ -61,5 +62,17 @@ public class PedidoController : BaseController
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.Editar(dto, idEmpresa, idUsuario);
         return Ok();
+    }
+
+    public IActionResult ListarPagamentos(int idPedido)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarPagamentos(idPedido));
+    }
+
+    public IActionResult ListarHistoricoStatus(int idPedido)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarHistoricoStatus(idPedido));
     }
 }

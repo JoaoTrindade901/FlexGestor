@@ -8,7 +8,6 @@ namespace WebApplication5.Repositories
     public class CaixaRepository
     {
         private readonly string _connectionString;
-
         public CaixaRepository(IConfiguration config)
             => _connectionString = config.GetConnectionString("Default")!;
 
@@ -26,12 +25,7 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             return conn.ExecuteScalar<int>(
                 "sp_AbrirCaixa",
-                new
-                {
-                    p_idEmpresa = idEmpresa,
-                    p_idUsuario = idUsuario,
-                    p_saldoInicial = saldoInicial
-                },
+                new { p_idEmpresa = idEmpresa, p_idUsuario = idUsuario, p_saldoInicial = saldoInicial },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -40,12 +34,7 @@ namespace WebApplication5.Repositories
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_FecharCaixa",
-                new
-                {
-                    p_idCaixa = idCaixa,
-                    p_idUsuario = idUsuario,
-                    p_saldoFinal = saldoFinal
-                },
+                new { p_idCaixa = idCaixa, p_idUsuario = idUsuario, p_saldoFinal = saldoFinal },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -58,15 +47,13 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        // 🔥 CORRIGIDO
         public int Lancar(int idCaixa, int idEmpresa, int idUsuario, LancarCaixaDto dto)
         {
             using var conn = new MySqlConnection(_connectionString);
-
             return conn.ExecuteScalar<int>(
                 "sp_LancarCaixa",
                 new
-                {
+                {  
                     p_idCaixa = idCaixa,
                     p_idEmpresa = idEmpresa,
                     p_idUsuario = idUsuario,
@@ -82,7 +69,6 @@ namespace WebApplication5.Repositories
         public IEnumerable<LancamentoCaixaModel> ListarLancamentos(int idCaixa)
         {
             using var conn = new MySqlConnection(_connectionString);
-
             return conn.Query<LancamentoCaixaModel>(
                 "sp_ListarLancamentosCaixa",
                 new { p_idCaixa = idCaixa },

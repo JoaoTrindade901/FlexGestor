@@ -13,7 +13,7 @@ let pagamentosPedidoAtual = [];
 let _buscaClientePrefixo = null;
 let _buscaProdutoIdx = null;
 let _buscaProdutoPrefixo = null;
-let _pedidoEmEdicao = null; // guarda o pedido sendo editado
+let _pedidoEmEdicao = null;
 
 const STATUS_MAP = {
     1: { nome: "Pendente", classe: "pendente" },
@@ -55,12 +55,21 @@ async function apiPost(url, body) {
     return res;
 }
 
+// ──────────────────────────────────────────
+// FORMATTERS
+// ──────────────────────────────────────────
 function fmtMoeda(v) {
     return `R$ ${Number(v || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
 function fmtData(s) {
     if (!s) return "—";
     return new Date(s).toLocaleDateString("pt-BR");
+}
+function fmtDataHora(s) {
+    if (!s) return "—";
+    // Remove o Z para tratar como horário local em vez de UTC
+    const local = s.endsWith("Z") ? s.slice(0, -1) : s;
+    return new Date(local).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 function highlight(texto, busca) {
     if (!busca || !texto) return texto ?? "";
@@ -76,7 +85,7 @@ async function carregarPedidos() {
         todosPedidos = await apiGet("/Pedido/Listar");
         aplicarFiltros();
     } catch (err) {
-        flexToast("Erro ao carregar pedidos: " + err.message, "erro")
+        flexToast("Erro ao carregar pedidos: " + err.message, "erro");
     }
 }
 
@@ -469,7 +478,6 @@ function atualizarResumo(prefixo) {
     const subtotal = itensPedidoAtual.reduce((a, i) => a + (i.Qtde * i.precoUnit), 0);
     const descontoItens = itensPedidoAtual.reduce((a, i) => a + i.Desconto, 0);
     const descontoGeral = Number(document.getElementById(`${prefixo}-desconto`)?.value || 0);
-    // frete: no modal de edição o campo tem id "novo-frete" (mesmo campo reutilizado)
     const freteEl = document.getElementById(`${prefixo}-frete`) ?? document.getElementById("novo-frete");
     const frete = Number(freteEl?.value || 0);
     const total = subtotal - descontoItens - descontoGeral + frete;
@@ -496,6 +504,7 @@ async function abrirModal() {
     await Promise.all([carregarClientes(), carregarProdutos()]);
     document.getElementById("modal-novo-pedido").classList.add("open");
 }
+
 function fecharModal() {
     document.getElementById("modal-novo-pedido").classList.remove("open");
 }
@@ -533,10 +542,15 @@ document.getElementById("form-pedido").addEventListener("submit", async function
                 ValorUnitario: i.precoUnit,
                 Desconto: i.Desconto,
                 ValorTotal: i.Subtotal
+            })),
+            Pagamentos: pagamentosPedidoAtual.map(p => ({
+                FormaPagamento_id: p.formaPagamento_id,
+                Valor: p.valor
             }))
         });
         fecharModal();
         await carregarPedidos();
+        flexToast("Pedido criado com sucesso!", "sucesso");
     } catch (err) {
         flexToast("Erro ao salvar pedido: " + err.message, "erro");
     } finally {
@@ -553,7 +567,6 @@ async function abrirEdicao(idPedido) {
 
     await Promise.all([carregarClientes(), carregarProdutos()]);
 
-    // Preenche campos básicos
     document.getElementById("edit-numero").value = `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
     document.getElementById("edit-cliente-nome").value = _pedidoEmEdicao.nomeCliente;
     document.getElementById("edit-cliente-id").value = _pedidoEmEdicao.idCliente ?? "";
@@ -561,16 +574,14 @@ async function abrirEdicao(idPedido) {
     document.getElementById("edit-obs").value = _pedidoEmEdicao.observacao ?? "";
     document.getElementById("novo-frete").value = _pedidoEmEdicao.valorFrete ?? 0;
 
-    // Popula select de status
     const selStatus = document.getElementById("edit-status");
     selStatus.innerHTML = Object.entries(STATUS_MAP).map(([id, s]) =>
         `<option value="${id}" ${Number(id) === _pedidoEmEdicao.statusPedidoId ? "selected" : ""}>${s.nome}</option>`
     ).join("");
 
-    // Carrega itens do pedido do backend
+    // Carrega itens
     try {
         const itensBackend = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
-        // Converte para o formato interno do JS
         itensPedidoAtual = itensBackend.map(i => ({
             produto_id: i.idProduto,
             nomeProduto: i.nomeProduto,
@@ -583,7 +594,16 @@ async function abrirEdicao(idPedido) {
         itensPedidoAtual = [];
     }
 
-    pagamentosPedidoAtual = [];
+    // Carrega pagamentos existentes
+    try {
+        const pagamentosBackend = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
+        pagamentosPedidoAtual = pagamentosBackend.map(p => ({
+            formaPagamento_id: p.formaPagamento_id,
+            valor: p.valor
+        }));
+    } catch {
+        pagamentosPedidoAtual = [];
+    }
 
     mudarAba("edit", "pedido");
     renderizarItens("edit");
@@ -607,7 +627,7 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     if (!clienteId) { flexToast("Selecione um cliente.", "aviso"); return; }
 
     const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
-    if (!itensValidos.length) { alert("Adicione pelo menos um item."); return; }
+    if (!itensValidos.length) { flexToast("Adicione pelo menos um item.", "aviso"); return; }
 
     const statusId = Number(document.getElementById("edit-status").value);
     const desconto = Number(document.getElementById("edit-desconto").value) || 0;
@@ -629,11 +649,15 @@ document.getElementById("form-edicao").addEventListener("submit", async function
                 ValorUnitario: i.precoUnit,
                 Desconto: i.Desconto,
                 ValorTotal: i.Subtotal
+            })),
+            Pagamentos: pagamentosPedidoAtual.map(p => ({
+                FormaPagamento_id: p.formaPagamento_id,
+                Valor: p.valor
             }))
         });
         fecharEdicao();
         await carregarPedidos();
-        mostrarToast("Pedido atualizado com sucesso!");
+        flexToast("Pedido atualizado com sucesso!", "sucesso");
     } catch (err) {
         flexToast("Erro ao salvar pedido: " + err.message, "erro");
     } finally {
@@ -657,6 +681,7 @@ async function abrirDetalhes(idPedido) {
     document.getElementById("det-total").textContent = fmtMoeda(p.valorTotal);
     document.getElementById("det-obs").textContent = p.observacao || "—";
 
+    // Itens
     try {
         const itens = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
         document.getElementById("det-itens-body").innerHTML = itens.map(i => `
@@ -672,31 +697,76 @@ async function abrirDetalhes(idPedido) {
             `<tr><td colspan="5" class="empty-state">Erro ao carregar itens.</td></tr>`;
     }
 
-    document.getElementById("det-pagamentos").innerHTML =
-        `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Pagamentos não registrados nesta versão.</span></div>`;
-    document.getElementById("det-historico").innerHTML = "";
+    // Pagamentos
+    try {
+        const pagamentos = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
+        if (pagamentos.length === 0) {
+            document.getElementById("det-pagamentos").innerHTML =
+                `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Nenhum pagamento registrado.</span></div>`;
+        } else {
+            const totalPago = pagamentos.reduce((acc, pg) => acc + pg.valor, 0);
+            document.getElementById("det-pagamentos").innerHTML = `
+                <table class="table-itens" style="margin-bottom:1rem">
+                    <thead>
+                        <tr>
+                            <th>Forma de Pagamento</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pagamentos.map(pg => {
+                const forma = FORMAS_PAGAMENTO.find(f => f.id === pg.formaPagamento_id)?.nome ?? `#${pg.formaPagamento_id}`;
+                return `<tr>
+                                <td>${forma}</td>
+                                <td style="font-weight:700">${fmtMoeda(pg.valor)}</td>
+                                <td>${fmtData(pg.dthPagamento)}</td>
+                            </tr>`;
+            }).join("")}
+                        <tr style="border-top:2px solid #eaecf0">
+                            <td style="font-weight:700">Total pago</td>
+                            <td style="font-weight:700;color:#15803d">${fmtMoeda(totalPago)}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>`;
+        }
+    } catch {
+        document.getElementById("det-pagamentos").innerHTML =
+            `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Erro ao carregar pagamentos.</span></div>`;
+    }
+
+    // Histórico de status
+    try {
+        const historico = await apiGet(`/Pedido/ListarHistoricoStatus?idPedido=${idPedido}`);
+        if (historico.length === 0) {
+            document.getElementById("det-historico").innerHTML =
+                `<div class="empty-state">Nenhum histórico registrado.</div>`;
+        } else {
+            document.getElementById("det-historico").innerHTML = historico.map(h => {
+                const stH = STATUS_MAP[h.statusPedido_id] ?? { nome: `Status ${h.statusPedido_id}`, classe: "aguardando" };
+                return `<div class="historico-item">
+                    <div class="historico-dot"><i class="bi bi-check-lg"></i></div>
+                    <div class="historico-conteudo">
+                        <div class="historico-status">
+                            <span class="status-pill status-${stH.classe}">${stH.nome}</span>
+                        </div>
+                        <div class="historico-data">${fmtDataHora(h.dthAlteracao)} — ${h.nomeUsuario}</div>
+                        ${h.observacao ? `<div class="historico-obs">${h.observacao}</div>` : ""}
+                    </div>
+                </div>`;
+            }).join("");
+        }
+    } catch {
+        document.getElementById("det-historico").innerHTML =
+            `<div class="empty-state">Erro ao carregar histórico.</div>`;
+    }
 
     document.getElementById("modal-detalhes").classList.add("open");
 }
+
 function fecharDetalhes() {
     document.getElementById("modal-detalhes").classList.remove("open");
-}
-
-// ──────────────────────────────────────────
-// TOAST
-// ──────────────────────────────────────────
-function mostrarToast(msg, erro = false) {
-    // Reutiliza padrão existente no CSS de pedido
-    let t = document.querySelector(".toast");
-    if (!t) {
-        t = document.createElement("div");
-        t.className = "toast";
-        document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    t.className = `toast${erro ? " toast-erro" : ""}`;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 3000);
 }
 
 // ──────────────────────────────────────────
@@ -711,6 +781,7 @@ function confirmarCancelamento(idPedido) {
         `Deseja <strong>cancelar</strong> o pedido <strong>#${p?.numeroPedido}</strong>?`;
     document.getElementById("modal-confirmar").classList.add("open");
 }
+
 function fecharConfirmar() {
     document.getElementById("modal-confirmar").classList.remove("open");
     _pedidoParaCancelar = null;
@@ -723,6 +794,7 @@ document.getElementById("confirm-btn-sim").addEventListener("click", async funct
         await apiPost("/Pedido/Cancelar", _pedidoParaCancelar);
         fecharConfirmar();
         await carregarPedidos();
+        flexToast("Pedido cancelado.", "sucesso");
     } catch (err) {
         flexToast("Erro ao cancelar: " + err.message, "erro");
     } finally {

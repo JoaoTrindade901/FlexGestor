@@ -19,17 +19,22 @@
         public int idCaixa { get; set; }
         public int idEmpresa { get; set; }
         public int idUsuario { get; set; }
+
         public int idFormaPagamento { get; set; }
         public string? nomeFormaPagamento { get; set; }
+
         public int idCategoriaFinanceira { get; set; }
         public string? nomeCategoria { get; set; }
-        public string? tipoCategoria { get; set; } // "entrada" | "saida"
+
+        // 🔥 CORRIGIDO (era string)
+        public int tipoCategoria { get; set; } // 1 = entrada, 2 = saída
+
         public decimal valor { get; set; }
         public DateTime dthLancamento { get; set; }
+
         public string? descricao { get; set; }
         public string? referencia { get; set; }
     }
-
     public class AbrirCaixaDto
     {
         public decimal SaldoInicial { get; set; }
@@ -43,12 +48,13 @@
 
     public class LancarCaixaDto
     {
-        public int IdCaixa { get; set; }
         public int IdFormaPagamento { get; set; }
         public int IdCategoriaFinanceira { get; set; }
-        public short Tipo { get; set; }
         public decimal Valor { get; set; }
         public string? Descricao { get; set; }
         public string? Referencia { get; set; }
+
+        public int? ReferenciaId { get; set; }
+        public string? ReferenciaTipo { get; set; }
     }
 }
