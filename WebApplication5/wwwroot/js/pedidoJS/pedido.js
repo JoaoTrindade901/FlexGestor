@@ -16,10 +16,10 @@ let _buscaProdutoPrefixo = null;
 let _pedidoEmEdicao = null; // guarda o pedido sendo editado
 
 const STATUS_MAP = {
-    1: { nome: "Pendente", classe: "aguardando" },
-    2: { nome: "Confirmado", classe: "andamento" },
-    3: { nome: "Separando", classe: "andamento" },
-    4: { nome: "Enviado", classe: "andamento" },
+    1: { nome: "Pendente", classe: "pendente" },
+    2: { nome: "Confirmado", classe: "confirmado" },
+    3: { nome: "Separando", classe: "separando" },
+    4: { nome: "Enviado", classe: "enviado" },
     5: { nome: "Entregue", classe: "concluido" },
     6: { nome: "Cancelado", classe: "cancelado" },
 };
@@ -101,8 +101,14 @@ async function carregarProdutos() {
 // ──────────────────────────────────────────
 function aplicarFiltros() {
     pedidosFiltrados = todosPedidos.filter(p => {
-        const st = STATUS_MAP[p.statusPedidoId] ?? STATUS_MAP[1];
-        if (filtroStatusPedido !== "todos" && st.classe !== filtroStatusPedido) return false;
+        const FILTRO_CLASSE_MAP = {
+            pendente: [1], confirmado: [2], separando: [3],
+            enviado: [4], concluido: [5], cancelado: [6]
+        };
+        if (filtroStatusPedido !== "todos") {
+            const ids = FILTRO_CLASSE_MAP[filtroStatusPedido] ?? [];
+            if (!ids.includes(p.statusPedidoId)) return false;
+        }
         if (filtroClienteStr) {
             const q = filtroClienteStr.toLowerCase();
             if (!p.nomeCliente?.toLowerCase().includes(q) &&
@@ -122,8 +128,11 @@ function filtrarCliente() {
 function setFiltroStatus(valor) {
     filtroStatusPedido = valor;
     document.querySelectorAll(".btn-status-filtro").forEach(b =>
-        b.classList.remove("sel-todos", "sel-aguardando", "sel-andamento", "sel-concluido", "sel-cancelado"));
-    document.getElementById(`btn-f-${valor}`).classList.add(`sel-${valor}`);
+        b.classList.remove(
+            "sel-todos", "sel-pendente", "sel-confirmado",
+            "sel-separando", "sel-enviado", "sel-concluido", "sel-cancelado"
+        ));
+    document.getElementById(btn - f - ${ valor }).classList.add(sel - ${ valor });
     aplicarFiltros();
 }
 

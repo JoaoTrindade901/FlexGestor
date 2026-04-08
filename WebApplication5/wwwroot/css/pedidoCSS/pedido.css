@@ -103,12 +103,52 @@ main {
     transition: all 0.2s;
     white-space: nowrap;
 }
-.btn-status-filtro:hover { border-color: #1e3c72; color: #1e3c72; }
-.btn-status-filtro.sel-todos      { background: #1e3c72; border-color: #1e3c72; color: #fff; }
-.btn-status-filtro.sel-aguardando { background: #fef3c7; border-color: #d97706; color: #92400e; }
-.btn-status-filtro.sel-andamento  { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
-.btn-status-filtro.sel-concluido  { background: #dcfce7; border-color: #16a34a; color: #15803d; }
-.btn-status-filtro.sel-cancelado  { background: #fee2e2; border-color: #dc2626; color: #b91c1c; }
+    .btn-status-filtro:hover {
+        border-color: #1e3c72;
+        color: #1e3c72;
+    }
+
+    .btn-status-filtro.sel-todos {
+        background: #1e3c72;
+        border-color: #1e3c72;
+        color: #fff;
+    }
+
+    .btn-status-filtro.sel-pendente {
+        background: #fef3c7;
+        border-color: #d97706;
+        color: #92400e;
+    }
+
+    .btn-status-filtro.sel-confirmado {
+        background: #dbeafe;
+        border-color: #2563eb;
+        color: #1e40af;
+    }
+
+    .btn-status-filtro.sel-separando {
+        background: #ede9fe;
+        border-color: #7c3aed;
+        color: #5b21b6;
+    }
+
+    .btn-status-filtro.sel-enviado {
+        background: #e0f2fe;
+        border-color: #0284c7;
+        color: #0369a1;
+    }
+
+    .btn-status-filtro.sel-concluido {
+        background: #dcfce7;
+        border-color: #16a34a;
+        color: #15803d;
+    }
+
+    .btn-status-filtro.sel-cancelado {
+        background: #fee2e2;
+        border-color: #dc2626;
+        color: #b91c1c;
+    }
 
 /* TABELA */
 .table-pedidos {
@@ -169,12 +209,47 @@ main {
     font-weight: 600;
     white-space: nowrap;
 }
-.status-aguardando { background: #fef3c7; color: #92400e; }
-.status-andamento  { background: #dbeafe; color: #1e40af; }
-.status-concluido  { background: #dcfce7; color: #15803d; }
-.status-cancelado  { background: #fee2e2; color: #b91c1c; }
+.status-pendente {
+    background: #fef3c7;
+    color: #92400e;
+}
 
-.valor-total    { font-weight: 700; color: #1e3c72; }
+/ amarelo âmbar /
+.status-confirmado {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/ azul claro /
+.status-separando {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+/ roxo claro /
+.status-enviado {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/ azul ciano /
+.status-concluido {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/ verde /
+.status-cancelado {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/ vermelho
+
+.valor-total {
+    font-weight: 700;
+    color: #1e3c72;
+}
 .desconto-valor { color: #dc2626; font-weight: 600; }
 
 /* AÇÕES */

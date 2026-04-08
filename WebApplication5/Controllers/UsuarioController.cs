@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WebApplication5.Exceptions;
 using WebApplication5.Models;
 using WebApplication5.Repositories;
 using WebApplication5.Services;
@@ -40,8 +41,15 @@ public class UsuarioController : BaseController
     public IActionResult Criar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.Criar(usuario);
-        return Ok();
+        try
+        {
+            _service.Criar(usuario);
+            return Ok();
+        }
+        catch (RegraNegocioException ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -49,8 +57,15 @@ public class UsuarioController : BaseController
     public IActionResult Editar([FromBody] UsuarioModel usuario)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.Editar(usuario);
-        return Ok();
+        try
+        {
+            _service.Editar(usuario);
+            return Ok();
+        }
+        catch (RegraNegocioException ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
     [HttpPost]

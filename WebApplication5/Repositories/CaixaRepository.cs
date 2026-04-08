@@ -74,11 +74,7 @@ namespace WebApplication5.Repositories
                     p_idCategoriaFinanceira = dto.IdCategoriaFinanceira,
                     p_valor = dto.Valor,
                     p_descricao = dto.Descricao,
-                    p_referencia = dto.Referencia,
-
-                    // ✅ NOVOS CAMPOS (caso esteja usando)
-                    p_referencia_id = dto.ReferenciaId,
-                    p_referencia_tipo = dto.ReferenciaTipo
+                    p_referencia = dto.Referencia
                 },
                 commandType: CommandType.StoredProcedure);
         }

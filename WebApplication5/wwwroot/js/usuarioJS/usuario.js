@@ -30,21 +30,17 @@ async function apiPost(url, body) {
         },
         body: JSON.stringify(body)
     });
-
     if (!res.ok) {
         let mensagem = "Erro ao processar.";
-
+        const texto = await res.text();
         try {
-            const data = await res.json();
-            mensagem = data.mensagem || data.title || mensagem;
+            const data = JSON.parse(texto);
+            mensagem = data.mensagem || data.title || texto || mensagem;
         } catch {
-            const texto = await res.text();
             mensagem = texto || mensagem;
         }
-
         throw new Error(mensagem);
     }
-
     return res;
 }
 
@@ -52,7 +48,10 @@ async function apiPostForm(url, params) {
     const form = new URLSearchParams(params);
     const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded", "RequestVerificationToken": getCsrfToken() },
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "RequestVerificationToken": getCsrfToken()
+        },
         body: form.toString()
     });
     if (!res.ok) throw new Error(`POST ${url} → ${res.status}`);
@@ -198,6 +197,22 @@ function criarBtnPagina(label, disabled, onClick) {
     return btn;
 }
 
+function formatarCPF(digits) {
+    const d = String(digits || "").replace(/\D/g, "").substring(0, 11);
+    return d
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+}
+
+function formatarTelefone(digits) {
+    const d = String(digits || "").replace(/\D/g, "").substring(0, 11);
+    if (d.length > 10) return d.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    if (d.length > 6) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+    if (d.length > 2) return d.replace(/(\d{2})(\d{0,5})/, "($1) $2");
+    return d.length > 0 ? `(${d}` : d;
+}
+
 function setBotaoCarregando(btnEl, carregando) {
     if (carregando) {
         btnEl.disabled = true;
@@ -224,11 +239,8 @@ function validarFormUsuario(prefixo) {
 
     if (!validarObrigatorio(login, "Login")) ok = false;
     if (!validarObrigatorio(nome, "Nome")) ok = false;
-
-    // Email é opcional mas se preenchido deve ser válido
     if (!validarCampoEmail(email, false)) ok = false;
 
-    // CPF é opcional mas se preenchido deve ser válido
     if (cpf && !campoVazio(cpf.value)) {
         if (!validarCPF(cpf.value.replace(/\D/g, ""))) {
             marcarErro(cpf, "CPF inválido. Verifique os dígitos.");
@@ -238,7 +250,6 @@ function validarFormUsuario(prefixo) {
         }
     }
 
-    // Telefone é opcional mas se preenchido deve ser válido
     if (tel && !campoVazio(tel.value)) {
         if (!validarTelefone(tel.value)) {
             marcarErro(tel, "Telefone inválido. Use (XX) XXXXX-XXXX.");
@@ -255,7 +266,6 @@ function validarFormUsuario(prefixo) {
         limparErro(perfil);
     }
 
-    // Senha obrigatória apenas no cadastro novo
     if (prefixo === "novo") {
         const senha = document.getElementById("novo-senha");
         if (!validarObrigatorio(senha, "Senha")) ok = false;
@@ -288,13 +298,11 @@ function fecharModal() {
 
 document.getElementById("form-usuario").addEventListener("submit", async function (e) {
     e.preventDefault();
-
     if (!validarFormUsuario("novo")) return;
 
     const btn = this.querySelector('[type="submit"]');
-    setBotaoCarregando(btn, true);
-
     const cpfInput = document.getElementById("novo-cpf");
+    setBotaoCarregando(btn, true);
 
     const payload = {
         Login: document.getElementById("novo-login").value.trim(),
@@ -308,19 +316,16 @@ document.getElementById("form-usuario").addEventListener("submit", async functio
 
     try {
         await apiPost("/Usuario/Criar", payload);
-
         fecharModal();
         await carregarUsuarios();
-
         flexToast("Usuário criado com sucesso!", "sucesso");
-
     } catch (err) {
-        if (err.message.toLowerCase().includes("cpf")) {
-            marcarErro(cpfInput, err.message);
+        if (err.message?.toLowerCase().includes("cpf")) {
+            marcarErro(cpfInput, "Usuário já existente com esse CPF.");
+            flexToast("Usuário já existente com esse CPF.", "erro");
+        } else {
+            flexToast(err.message || "Erro ao criar usuário.", "erro");
         }
-
-        flexToast(err.message, "erro");
-
     } finally {
         setBotaoCarregando(btn, false);
     }
@@ -340,15 +345,20 @@ async function abrirModalEdicao(id) {
     document.getElementById("edit-login").value = usuarioEmEdicao.login || "";
     document.getElementById("edit-nome").value = usuarioEmEdicao.nome || "";
     document.getElementById("edit-email").value = usuarioEmEdicao.email || "";
-    document.getElementById("edit-cpf").value =
-        (usuarioEmEdicao.cpf || "").replace(/\D/g, "");
-    document.getElementById("edit-telefone").value = usuarioEmEdicao.telefone || "";
-    document.getElementById("edit-perfil").value = usuarioEmEdicao.cargo_id;
     document.getElementById("edit-senha").value = "";
+    document.getElementById("edit-perfil").value = usuarioEmEdicao.cargo_id;
+
+    document.getElementById("edit-cpf").value =
+        formatarCPF((usuarioEmEdicao.cpf || "").replace(/\D/g, ""));
+
+    document.getElementById("edit-telefone").value =
+        formatarTelefone((usuarioEmEdicao.telefone || "").replace(/\D/g, ""));
+
     const criacao = document.getElementById("edit-criacao");
     if (criacao && usuarioEmEdicao.dthCriacao) {
         criacao.value = new Date(usuarioEmEdicao.dthCriacao).toLocaleDateString("pt-BR");
     }
+
     document.getElementById("modal-edicao").classList.add("open");
 }
 
@@ -363,6 +373,7 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     if (!validarFormUsuario("edit")) return;
 
     const btn = this.querySelector('[type="submit"]');
+    const cpfInput = document.getElementById("edit-cpf");
     setBotaoCarregando(btn, true);
 
     const payload = {
@@ -370,7 +381,7 @@ document.getElementById("form-edicao").addEventListener("submit", async function
         Login: document.getElementById("edit-login").value.trim(),
         Nome: document.getElementById("edit-nome").value.trim(),
         Email: document.getElementById("edit-email").value.trim() || null,
-        CPF: (document.getElementById("edit-cpf").value.trim() || "").replace(/\D/g, "") || null,
+        CPF: (cpfInput.value.trim() || "").replace(/\D/g, "") || null,
         Telefone: (document.getElementById("edit-telefone").value.trim() || "").replace(/\D/g, "") || null,
         cargo_id: Number(document.getElementById("edit-perfil").value) || 0,
         Senha: document.getElementById("edit-senha")?.value || ""
@@ -382,21 +393,19 @@ document.getElementById("form-edicao").addEventListener("submit", async function
         await carregarUsuarios();
         flexToast("Usuário atualizado com sucesso!", "sucesso");
     } catch (err) {
-        const cpfInput = document.getElementById("edit-cpf");
-
-        // Se erro for de CPF duplicado → marca campo
-        if (err.message && err.message.toLowerCase().includes("cpf")) {
-            marcarErro(cpfInput, err.message);
+        if (err.message?.toLowerCase().includes("cpf")) {
+            marcarErro(cpfInput, "Usuário já existente com esse CPF.");
+            flexToast("Usuário já existente com esse CPF.", "erro");
+        } else {
+            flexToast(err.message || "Erro ao salvar usuário.", "erro");
         }
-
-        flexToast(err.message || "Erro ao salvar usuário.", "erro");
     } finally {
         setBotaoCarregando(btn, false);
     }
 });
 
 // ──────────────────────────────────────────
-// INATIVAR / REATIVAR (exclusão lógica)
+// INATIVAR / REATIVAR
 // ──────────────────────────────────────────
 function confirmarAlterarStatus(id) {
     usuarioParaAlterarStatus = todoUsuarios.find(u => u.idUsuario === id);
@@ -442,7 +451,6 @@ function fecharModalConfirmar() {
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-filtro-todos").classList.add("ativo-sel");
 
-    // Máscaras
     const cpfNovo = document.getElementById("novo-cpf");
     const cpfEdit = document.getElementById("edit-cpf");
     if (cpfNovo) aplicarMascaraCPF(cpfNovo);
@@ -453,7 +461,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (telNovo) aplicarMascaraTelefone(telNovo);
     if (telEdit) aplicarMascaraTelefone(telEdit);
 
-    // Limpeza de erro ao digitar
     document.querySelectorAll("input, select").forEach(el => {
         el.addEventListener("input", () => limparErro(el));
         el.addEventListener("change", () => limparErro(el));
