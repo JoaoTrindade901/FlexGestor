@@ -8,18 +8,19 @@ public class UsuarioController : BaseController
 {
     private readonly UsuarioService _service;
     private readonly CargoRepository _cargoRepository;
+    private readonly AuditoriaService _auditoria;
 
-    public UsuarioController(UsuarioService service, CargoRepository cargoRepository)
+    public UsuarioController(UsuarioService service, CargoRepository cargoRepository, AuditoriaService auditoria)
     {
         _service = service;
         _cargoRepository = cargoRepository;
+        _auditoria = auditoria;
     }
 
     public IActionResult Index()
     {
         if (HttpContext.Session.GetInt32("idUsuario") == null)
             return RedirectToAction("Index", "Login");
-
         return View();
     }
 
@@ -44,6 +45,7 @@ public class UsuarioController : BaseController
         try
         {
             _service.Criar(usuario);
+            Auditar("USUARIO", "CRIAR", $"Usuário '{usuario.Nome}' criado");
             return Ok();
         }
         catch (RegraNegocioException ex)
@@ -60,6 +62,7 @@ public class UsuarioController : BaseController
         try
         {
             _service.Editar(usuario);
+            Auditar("USUARIO", "EDITAR", $"Usuário '{usuario.Nome}' editado");
             return Ok();
         }
         catch (RegraNegocioException ex)
@@ -74,6 +77,21 @@ public class UsuarioController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.AlterarStatus(id);
+        Auditar("USUARIO", "ALTERAR_STATUS", $"Status do usuário #{id} alterado");
         return Ok();
+    }
+
+    private void Auditar(string modulo, string acao, string descricao)
+    {
+        _auditoria.Registrar(new RegistrarAuditoriaDto
+        {
+            IdEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0,
+            IdUsuario = HttpContext.Session.GetInt32("idUsuario"),
+            NomeUsuario = HttpContext.Session.GetString("nomeUsuario"),
+            Modulo = modulo,
+            Acao = acao,
+            Descricao = descricao,
+            IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
     }
 }

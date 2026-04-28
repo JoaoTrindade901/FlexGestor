@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/auditoriaCSS/auditoria.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body data-rota="Auditoria">
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-auditoria">
+
+                <div class="cabecalho-tela">
+                    <h2><i class="bi bi-shield-check"></i> Auditoria do Sistema</h2>
+                </div>
+
+                <!-- FILTROS -->
+                <div class="auditoria-filtros">
+                    <div class="filtro-grupo">
+                        <label>Módulo</label>
+                        <select id="filtro-modulo">
+                            <option value="">Todos</option>
+                            <option value="AUTH">Autenticação</option>
+                            <option value="CAIXA">Caixa</option>
+                            <option value="PRODUTO">Produto</option>
+                            <option value="CLIENTE">Cliente</option>
+                            <option value="PEDIDO">Pedido</option>
+                            <option value="ESTOQUE">Estoque</option>
+                            <option value="USUARIO">Usuário</option>
+                        </select>
+                    </div>
+                    <div class="filtro-grupo">
+                        <label>Usuário</label>
+                        <input type="text" id="filtro-usuario" placeholder="Nome do usuário...">
+                    </div>
+                    <div class="filtro-grupo">
+                        <label>Data Início</label>
+                        <input type="date" id="filtro-data-inicio">
+                    </div>
+                    <div class="filtro-grupo">
+                        <label>Data Fim</label>
+                        <input type="date" id="filtro-data-fim">
+                    </div>
+                    <button class="btn-filtrar" onclick="carregarLogs()">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <button class="btn-limpar" onclick="limparFiltros()">
+                        <i class="bi bi-x-circle"></i> Limpar
+                    </button>
+                </div>
+
+                <!-- TABELA -->
+                <div class="auditoria-container">
+                    <div class="auditoria-header">
+                        <span id="auditoria-total" class="auditoria-total">—</span>
+                    </div>
+                    <table class="table-auditoria" id="tabela-auditoria">
+                        <thead>
+                            <tr>
+                                <th>Data / Hora</th>
+                                <th>Usuário</th>
+                                <th>Módulo</th>
+                                <th>Ação</th>
+                                <th>Descrição</th>
+                                <th>IP</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-auditoria">
+                            <tr><td colspan="7" class="empty-state">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="paginacao">
+                        <span class="paginacao-info" id="audit-pag-info"></span>
+                        <div class="paginacao-controles" id="audit-pag-ctrl"></div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: DETALHE DO LOG -->
+    <div class="modal" id="modal-detalhe-log">
+        <div class="modal-content" style="width:60rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-info-circle"></i> Detalhe do Registro</h3>
+                <button class="btn-fechar-modal" onclick="fecharDetalhe()">&times;</button>
+            </div>
+            <div class="modal-body" id="detalhe-corpo"></div>
+            <div class="modal-footer">
+                <button class="btn-secundario" onclick="fecharDetalhe()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/auditoriaJS/auditoria.js"></script>
+</body>
+</html>

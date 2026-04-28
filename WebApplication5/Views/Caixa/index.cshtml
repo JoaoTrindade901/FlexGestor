@@ -6,236 +6,508 @@
     <title>Caixa - FlexGestor</title>
     <link rel="stylesheet" href="/css/homeCSS/home.css">
     <link rel="stylesheet" href="/css/menuCSS/menu.css">
-    <link rel="stylesheet" href="~/css/caixaCSS/caixa.css">
+    <link rel="stylesheet" href="/css/caixaCSS/caixa.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
-<div class="container">
-    <div id="menu"></div>
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-caixa">
 
-    <main>
-        <section class="secao-caixa">
-
-            <div class="cabecalho-tela">
-                <h2>Controle de Caixa</h2>
-            </div>
-
-            <!-- ── PAINEL DE STATUS ── -->
-            <div class="caixa-painel">
-
-                <!-- Status -->
-                <div class="caixa-card">
-                    <span class="caixa-card-label">Status do Caixa</span>
-                    <span id="caixa-status-badge" class="caixa-status-badge aberto">
-                        <i class="bi bi-unlock-fill"></i> Aberto
-                    </span>
-                    <span class="caixa-card-sub" id="caixa-abertura">—</span>
+                <div class="cabecalho-tela">
+                    <h2>Controle de Caixa</h2>
                 </div>
 
-                <!-- Saldo Atual -->
-                <div class="caixa-card">
-                    <span class="caixa-card-label">Saldo Atual</span>
-                    <span id="caixa-saldo-atual" class="caixa-card-valor verde">R$ 0,00</span>
-                    <span class="caixa-card-sub">Saldo inicial + entradas − saídas</span>
+                <!-- PAINEL SUPERIOR -->
+                <div class="caixa-painel">
+                    <div class="caixa-card">
+                        <span class="caixa-card-label">Status</span>
+                        <span id="caixa-status-badge" class="caixa-status-badge fechado">
+                            <i class="bi bi-lock-fill"></i> Fechado
+                        </span>
+                        <span class="caixa-card-sub">
+                            <i class="bi bi-person-fill"></i>
+                            <span id="caixa-operador">—</span>
+                        </span>
+                        <span class="caixa-card-sub" id="caixa-abertura">—</span>
+                    </div>
+
+                    <div class="caixa-card">
+                        <span class="caixa-card-label">Saldo em Caixa</span>
+                        <span id="caixa-saldo-atual" class="caixa-card-valor verde">R$ 0,00</span>
+                        <span class="caixa-card-sub">Inicial + entradas − saídas</span>
+                        <div class="caixa-card-mini">
+                            <span class="mini-label">Inicial</span>
+                            <span id="caixa-saldo-inicial" class="mini-valor">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div class="caixa-card caixa-card-resumo">
+                        <span class="caixa-card-label">Resumo do Dia</span>
+                        <div class="resumo-linha">
+                            <span class="resumo-label"><i class="bi bi-arrow-down-circle-fill" style="color:#15803d"></i> Ganhos</span>
+                            <span id="caixa-entradas" class="resumo-valor verde">R$ 0,00</span>
+                        </div>
+                        <div class="resumo-linha">
+                            <span class="resumo-label"><i class="bi bi-arrow-up-circle-fill" style="color:#dc2626"></i> Perdas</span>
+                            <span id="caixa-saidas" class="resumo-valor vermelho">R$ 0,00</span>
+                        </div>
+                        <div class="resumo-linha resumo-liquido">
+                            <span class="resumo-label"><i class="bi bi-graph-up-arrow"></i> Líquido</span>
+                            <span id="caixa-liquido" class="resumo-valor">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div class="caixa-card">
+                        <span class="caixa-card-label">Troco Disponível</span>
+                        <span id="caixa-troco" class="caixa-card-valor">R$ 0,00</span>
+                        <span class="caixa-card-sub">Saldo em dinheiro físico</span>
+                    </div>
+
+                    <div class="caixa-acoes">
+                        <button id="btn-abrir" class="btn-abrir-caixa" onclick="abrirModalAbrirCaixa()">
+                            <i class="bi bi-unlock-fill"></i> Abrir Caixa
+                        </button>
+                        <button id="btn-fechar" class="btn-fechar-caixa" style="display:none" onclick="abrirModalFecharCaixa()">
+                            <i class="bi bi-lock-fill"></i> Fechar Caixa
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Entradas / Saídas -->
-                <div class="caixa-card">
-                    <span class="caixa-card-label">Entradas do Dia</span>
-                    <span id="caixa-entradas" class="caixa-card-valor verde">R$ 0,00</span>
-                    <span class="caixa-card-label" style="margin-top:1rem">Saídas do Dia</span>
-                    <span id="caixa-saidas" class="caixa-card-valor vermelho">R$ 0,00</span>
+                <!-- BREAKDOWN -->
+                <div class="breakdown-container">
+                    <div class="breakdown-titulo">
+                        <i class="bi bi-bar-chart-fill"></i> Formas de Pagamento — Tempo Real
+                    </div>
+                    <div id="breakdown-lista" class="breakdown-lista">
+                        <div class="breakdown-empty">Abra o caixa para ver o detalhamento.</div>
+                    </div>
                 </div>
 
-                <!-- Ações -->
-                <div class="caixa-acoes">
-                    <button id="btn-abrir" class="btn-abrir-caixa" onclick="abrirModalAbrirCaixa()">
-                        <i class="bi bi-unlock-fill"></i> Abrir Caixa
+                <!-- BOTÕES DE AÇÃO -->
+                <div class="lancamento-acoes">
+                    <button class="btn-acao-caixa btn-venda" disabled onclick="abrirModalVendaRapida()">
+                        <i class="bi bi-cart-fill"></i> Venda Rápida
                     </button>
-                    <button id="btn-fechar" class="btn-fechar-caixa" onclick="abrirModalFecharCaixa()">
-                        <i class="bi bi-lock-fill"></i> Fechar Caixa
+                    <button class="btn-acao-caixa btn-despesa" disabled onclick="abrirModalLancamento('DESPESA')">
+                        <i class="bi bi-arrow-up-circle-fill"></i> Despesa
+                    </button>
+                    <button class="btn-acao-caixa btn-sangria" disabled onclick="abrirModalLancamento('SANGRIA')">
+                        <i class="bi bi-dash-circle-fill"></i> Sangria
+                    </button>
+                    <button class="btn-acao-caixa btn-suprimento" disabled onclick="abrirModalLancamento('SUPRIMENTO')">
+                        <i class="bi bi-plus-circle-fill"></i> Suprimento
                     </button>
                 </div>
-            </div>
 
-            <!-- ── BOTÕES ENTRADA / SAÍDA ── -->
-            <div class="lancamento-acoes">
-                <button id="btn-entrada" class="btn-entrada" onclick="abrirModalLancamento('entrada')">
-                    <i class="bi bi-arrow-down-circle-fill"></i> Lançar Entrada
+                <!-- ABAS -->
+                <div class="table-container">
+                    <div class="abas">
+                        <button id="aba-lancamentos" class="aba-btn ativa" onclick="mudarAba('lancamentos')">
+                            <i class="bi bi-list-ul"></i> Lançamentos
+                        </button>
+                        <button id="aba-contas" class="aba-btn" onclick="mudarAba('contas')">
+                            <i class="bi bi-person-lines-fill"></i> Contas a Receber
+                            <span id="badge-contas-vencidas" class="badge-vencido" style="display:none">0</span>
+                        </button>
+                        <button id="aba-historico" class="aba-btn" onclick="mudarAba('historico')">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </button>
+                    </div>
+
+                    <div id="conteudo-lancamentos">
+                        <table class="table-lancamentos" id="tabela-lancamentos">
+                            <thead>
+                                <tr>
+                                    <th>Data / Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Categoria</th>
+                                    <th>Forma Pgto</th>
+                                    <th>Cliente</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="paginacao">
+                            <span class="paginacao-info"></span>
+                            <div class="paginacao-controles"></div>
+                        </div>
+                    </div>
+
+                    <div id="conteudo-contas" style="display:none">
+                        <table class="table-lancamentos" id="tabela-contas">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Cliente</th>
+                                    <th>Descrição</th>
+                                    <th>Vencimento</th>
+                                    <th>Total</th>
+                                    <th>Pago</th>
+                                    <th>Restante</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div id="conteudo-historico" style="display:none">
+                        <table class="table-historico" id="tabela-historico">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Operador</th>
+                                    <th>Abertura</th>
+                                    <th>Fechamento</th>
+                                    <th>Saldo Inicial</th>
+                                    <th>Saldo Final</th>
+                                    <th>Diferença</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: ABRIR CAIXA -->
+    <div class="modal" id="modal-abrir-caixa">
+        <div class="modal-content" style="width:42rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-unlock-fill" style="color:#15803d"></i> Abrir Caixa</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalAbrirCaixa()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-abrir-caixa">
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Saldo Inicial em Dinheiro (R$) <span class="obrigatorio">*</span></label>
+                            <input type="number" id="abrir-saldo-inicial" min="0" step="0.01" placeholder="0,00" required>
+                            <span class="form-hint">Pré-preenchido com o saldo do último caixa</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalAbrirCaixa()">Cancelar</button>
+                        <button type="submit" class="btn-primario verde">
+                            <i class="bi bi-unlock-fill"></i> Abrir Caixa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: FECHAR CAIXA -->
+    <div class="modal" id="modal-fechar-caixa">
+        <div class="modal-content" style="width:50rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-lock-fill" style="color:#dc2626"></i> Fechar Caixa</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalFecharCaixa()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="form-secao">Resumo do Dia</p>
+                <div class="fechamento-resumo">
+                    <div class="fechamento-linha">
+                        <span>Saldo Inicial</span>
+                        <span id="fechar-saldo-inicial-label" class="fechamento-valor-sub">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha">
+                        <span><i class="bi bi-arrow-down-circle-fill" style="color:#15803d"></i> Ganhos do dia</span>
+                        <span id="fechar-entradas-label" class="fechamento-valor-sub verde">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha">
+                        <span><i class="bi bi-arrow-up-circle-fill" style="color:#dc2626"></i> Perdas do dia</span>
+                        <span id="fechar-saidas-label" class="fechamento-valor-sub vermelho">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha fechamento-linha-total">
+                        <span><strong>Saldo Final em Caixa</strong></span>
+                        <span id="fechar-saldo-calculado-label" class="fechamento-valor">R$ 0,00</span>
+                        <input type="hidden" id="fechar-saldo-calculado">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-top:1.6rem">
+                    <div class="form-group form-col-2">
+                        <label>Observação</label>
+                        <textarea id="fechar-obs" placeholder="Opcional..." rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModalFecharCaixa()">Cancelar</button>
+                <button type="button" class="btn-perigo" id="confirm-fechar-sim">
+                    <i class="bi bi-lock-fill"></i> Confirmar Fechamento
                 </button>
-                <button id="btn-saida" class="btn-saida" onclick="abrirModalLancamento('saida')">
-                    <i class="bi bi-arrow-up-circle-fill"></i> Lançar Saída
-                </button>
             </div>
+        </div>
+    </div>
 
-            <!-- ── ABAS ── -->
-            <div class="table-container">
-                <div class="abas">
-                    <button id="aba-lancamentos" class="aba-btn ativa" onclick="mudarAba('lancamentos')">
-                        <i class="bi bi-list-ul"></i> Lançamentos do Caixa
-                    </button>
-                    <button id="aba-historico" class="aba-btn" onclick="mudarAba('historico')">
-                        <i class="bi bi-clock-history"></i> Histórico de Caixas
-                    </button>
-                </div>
+    <!-- MODAL: LANÇAMENTO -->
+    <div class="modal" id="modal-lancamento">
+        <div class="modal-content" style="width:48rem">
+            <div class="modal-header">
+                <h3>Lançamento</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalLancamento()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-lancamento">
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Categoria <span class="obrigatorio">*</span></label>
+                            <select id="lanc-categoria" required></select>
+                        </div>
+                        <div class="form-group" id="grupo-formapgto">
+                            <label>Forma de Pagamento</label>
+                            <select id="lanc-formapgto"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor (R$) <span class="obrigatorio">*</span></label>
+                            <input type="number" id="lanc-valor" min="0.01" step="0.01" placeholder="0,00" required>
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Descrição</label>
+                            <input type="text" id="lanc-descricao" placeholder="Descreva o lançamento...">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalLancamento()">Cancelar</button>
+                        <button type="submit" class="btn-primario" id="btn-confirm-lancamento">
+                            <i class="bi bi-check-lg"></i> Confirmar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                <!-- Lançamentos -->
-                <div id="conteudo-lancamentos">
-                    <table class="table-lancamentos" id="tabela-lancamentos">
+    <!-- MODAL: VENDA RÁPIDA -->
+    <div class="modal" id="modal-venda-rapida">
+        <div class="modal-content" style="width:72rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-cart-fill" style="color:#15803d"></i> Venda Rápida</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalVendaRapida()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-venda-rapida">
+                    <div class="itens-header">
+                        <span class="form-secao" style="margin:0;border:none;padding:0">Itens</span>
+                        <button type="button" class="btn-add-item" onclick="adicionarItemVenda()">
+                            <i class="bi bi-plus-lg"></i> Adicionar Item
+                        </button>
+                    </div>
+                    <table class="table-itens">
                         <thead>
                             <tr>
-                                <th>Data / Hora</th>
-                                <th>Tipo</th>
-                                <th>Categoria</th>
-                                <th>Forma Pgto</th>
-                                <th>Descrição</th>
-                                <th>Valor</th>
+                                <th class="col-produto">Produto</th>
+                                <th class="col-qtde">Qtde</th>
+                                <th class="col-preco">Preço Unit.</th>
+                                <th class="col-sub">Subtotal</th>
+                                <th class="col-del"></th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="vr-itens-body"></tbody>
                     </table>
-                    <div class="paginacao" id="paginacao-lancamentos">
-                        <span class="paginacao-info"></span>
-                        <div class="paginacao-controles"></div>
-                    </div>
-                </div>
 
-                <!-- Histórico -->
-                <div id="conteudo-historico" style="display:none">
-                    <table class="table-historico" id="tabela-historico">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Abertura</th>
-                                <th>Fechamento</th>
-                                <th>Saldo Inicial</th>
-                                <th>Saldo Final</th>
-                                <th>Resultado</th>
-                                <th>Operador</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                    <div class="vr-total-linha">
+                        <span>Total</span>
+                        <span id="vr-total" class="vr-total-valor">R$ 0,00</span>
+                    </div>
+
+                    <p class="form-secao">Pagamento</p>
+                    <div class="form-grid">
+                        <div class="form-group" id="vr-formapgto-wrap">
+                            <label>Forma de Pagamento <span class="obrigatorio">*</span></label>
+                            <select id="vr-formapgto"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Total (R$) <span class="obrigatorio">*</span></label>
+                            <input type="number" id="vr-valor" min="0.01" step="0.01" placeholder="0,00" required>
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Descrição</label>
+                            <input type="text" id="vr-descricao" placeholder="Opcional...">
+                        </div>
+                    </div>
+
+                    <div class="vr-cpf-toggle">
+                        <button type="button" class="btn-cpf-toggle" onclick="toggleCpfVenda()">
+                            <i class="bi bi-person-plus"></i> Informar CPF / Associar cliente
+                        </button>
+                    </div>
+
+                    <div id="vr-cpf-wrap" style="display:none">
+                        <div class="vr-cliente-bloco">
+                            <div class="vr-cliente-linha">
+                                <div class="form-group" style="flex:1">
+                                    <label>CPF do cliente</label>
+                                    <input type="text" id="vr-cpf" placeholder="000.000.000-00" maxlength="14">
+                                </div>
+                                <button type="button" class="btn-buscar-cliente" onclick="buscarClienteCpf()" style="margin-top:2.2rem">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                                <div id="vr-cliente-info" class="vr-cliente-info" style="display:none;flex:1;margin-top:2.2rem"></div>
+                            </div>
+                            <div id="vr-fiado-wrap" style="display:none;margin-top:1rem">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="vr-fiado" onchange="toggleFiado()">
+                                    Venda no fiado (gerar conta a receber)
+                                </label>
+                            </div>
+                            <div id="vr-vencimento-wrap" class="form-group" style="display:none;margin-top:1rem">
+                                <label>Data de Vencimento <span class="obrigatorio">*</span></label>
+                                <input type="date" id="vr-vencimento" style="max-width:20rem">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalVendaRapida()">Cancelar</button>
+                        <button type="submit" class="btn-primario verde">
+                            <i class="bi bi-check-lg"></i> Confirmar Venda
+                        </button>
+                    </div>
+                </form>
             </div>
-
-        </section>
-    </main>
-</div>
-
-<!-- ════════════════════════════════════════
-     MODAL: ABRIR CAIXA
-════════════════════════════════════════ -->
-<div class="modal" id="modal-abrir-caixa">
-    <div class="modal-content" style="width:42rem">
-        <div class="modal-header">
-            <h3><i class="bi bi-unlock-fill" style="color:#15803d"></i> Abrir Caixa</h3>
-            <button class="btn-fechar-modal" onclick="fecharModalAbrirCaixa()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="form-abrir-caixa">
-                <div class="form-grid">
-                    <div class="form-group form-col-2">
-                        <label>Saldo Inicial (R$) <span class="obrigatorio">*</span></label>
-                        <input type="number" id="abrir-saldo-inicial" min="0" step="0.01"
-                               placeholder="0,00" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secundario" onclick="fecharModalAbrirCaixa()">Cancelar</button>
-                    <button type="submit" class="btn-primario verde">
-                        <i class="bi bi-unlock-fill"></i> Abrir Caixa
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<!-- ════════════════════════════════════════
-     MODAL: FECHAR CAIXA
-════════════════════════════════════════ -->
-<div class="modal" id="modal-fechar-caixa">
-    <div class="modal-content" style="width:44rem">
-        <div class="modal-header">
-            <h3><i class="bi bi-lock-fill" style="color:#dc2626"></i> Fechar Caixa</h3>
-            <button class="btn-fechar-modal" onclick="fecharModalFecharCaixa()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="confirm-body" style="padding:1.5rem 0 0.5rem">
-                <div class="confirm-icone perigo">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-                <p>Deseja <strong>fechar o caixa</strong> agora?<br>O saldo final será registrado automaticamente.</p>
+    <!-- MODAL: BUSCA DE PRODUTO -->
+    <div class="modal modal-busca" id="modal-busca-produto-vr">
+        <div class="busca-modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-box-seam"></i> Buscar Produto</h3>
+                <button class="btn-fechar-modal" onclick="fecharBuscaProdutoVR()">&times;</button>
             </div>
-            <div class="form-grid" style="margin-top:1.5rem">
-                <div class="form-group form-col-2">
-                    <label>Saldo Final Calculado (R$)</label>
-                    <input type="number" id="fechar-saldo-final" readonly>
-                </div>
+            <div class="busca-input-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="input-busca-produto-vr"
+                       placeholder="Buscar por nome ou SKU..."
+                       oninput="filtrarListaProdutosVR(this.value)">
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secundario" onclick="fecharModalFecharCaixa()">Cancelar</button>
-            <button type="button" class="btn-perigo" id="confirm-fechar-sim">
-                <i class="bi bi-lock-fill"></i> Sim, fechar caixa
-            </button>
+            <div class="busca-lista" id="lista-busca-produtos-vr"></div>
         </div>
     </div>
-</div>
 
-<!-- ════════════════════════════════════════
-     MODAL: LANÇAMENTO ENTRADA / SAÍDA
-════════════════════════════════════════ -->
-<div class="modal" id="modal-lancamento">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="bi bi-arrow-down-circle-fill" style="color:#15803d"></i> Lançar Entrada</h3>
-            <button class="btn-fechar-modal" onclick="fecharModalLancamento()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="form-lancamento">
-                <p class="form-secao">Classificação</p>
-                <div class="form-grid">
-                    <div class="form-group form-col-2">
-                        <label>Categoria Financeira <span class="obrigatorio">*</span></label>
-                        <select id="lanc-categoria" required></select>
+    <!-- MODAL: CADASTRO RÁPIDO DE PRODUTO -->
+    <div class="modal" id="modal-novo-produto-rapido" style="z-index:4000">
+        <div class="modal-content" style="width:52rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-plus-circle-fill" style="color:#15803d"></i> Novo Produto</h3>
+                <button class="btn-fechar-modal" onclick="fecharCadastroProdutoRapido()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-novo-produto-rapido">
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Nome <span class="obrigatorio">*</span></label>
+                            <input type="text" id="novo-produto-nome" placeholder="Nome do produto" required>
+                        </div>
+                        <div class="form-group">
+                            <label>SKU / Código Interno</label>
+                            <input type="text" id="novo-produto-sku" placeholder="ex: SKU-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Código de Barras <span style="color:#9ca3af;font-weight:400">(opcional)</span></label>
+                            <input type="text" id="novo-produto-codbarras" placeholder="Opcional">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço de Venda (R$)</label>
+                            <input type="number" id="novo-produto-preco" min="0" step="0.01" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="novo-produto-categoria"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade Inicial</label>
+                            <input type="number" id="novo-produto-qtd" min="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Estoque Mínimo</label>
+                            <input type="number" id="novo-produto-min" min="0" placeholder="0">
+                        </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharCadastroProdutoRapido()">Cancelar</button>
+                        <button type="submit" class="btn-primario verde">
+                            <i class="bi bi-check-lg"></i> Cadastrar e Selecionar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RECEBER CONTA -->
+    <div class="modal" id="modal-receber-conta">
+        <div class="modal-content" style="width:46rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-currency-dollar" style="color:#15803d"></i> Receber Pagamento</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalReceberConta()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-receber-conta">
+                    <input type="hidden" id="receber-categoria-id">
+                    <div class="receber-info">
+                        <span class="receber-label">Cliente</span>
+                        <span id="receber-cliente" class="receber-valor-nome">—</span>
+                    </div>
+                    <div class="receber-info">
+                        <span class="receber-label">Valor Restante</span>
+                        <span id="receber-valor-restante" class="receber-valor-destaque">—</span>
+                    </div>
+                    <div class="form-grid" style="margin-top:1.6rem">
+                        <div class="form-group">
+                            <label>Forma de Pagamento <span class="obrigatorio">*</span></label>
+                            <select id="receber-formapgto" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Recebido (R$) <span class="obrigatorio">*</span></label>
+                            <input type="number" id="receber-valor" min="0.01" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalReceberConta()">Cancelar</button>
+                        <button type="submit" class="btn-primario verde">
+                            <i class="bi bi-check-lg"></i> Confirmar Recebimento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ALTERAR VENCIMENTO -->
+    <div class="modal" id="modal-alterar-vencimento">
+        <div class="modal-content" style="width:38rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-calendar-event" style="color:#2563eb"></i> Alterar Vencimento</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalAlterarVencimento()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-alterar-vencimento">
                     <div class="form-group">
-                        <label>Forma de Pagamento <span class="obrigatorio">*</span></label>
-                        <select id="lanc-formapgto" required></select>
+                        <label>Nova Data de Vencimento <span class="obrigatorio">*</span></label>
+                        <input type="date" id="venc-data" required>
                     </div>
-                    <div class="form-group">
-                        <label>Valor (R$) <span class="obrigatorio">*</span></label>
-                        <input type="number" id="lanc-valor" min="0.01" step="0.01"
-                               placeholder="0,00" required>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secundario" onclick="fecharModalAlterarVencimento()">Cancelar</button>
+                        <button type="submit" class="btn-primario" style="background:#2563eb">
+                            <i class="bi bi-check-lg"></i> Confirmar
+                        </button>
                     </div>
-                </div>
-
-                <p class="form-secao">Detalhes</p>
-                <div class="form-grid">
-                    <div class="form-group form-col-2">
-                        <label>Descrição</label>
-                        <input type="text" id="lanc-descricao" placeholder="Descreva o lançamento...">
-                    </div>
-                    <div class="form-group form-col-2">
-                        <label>Referência</label>
-                        <input type="text" id="lanc-referencia" placeholder="Ex: Pedido #123, Cliente X...">
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn-secundario" onclick="fecharModalLancamento()">Cancelar</button>
-                    <button type="submit" class="btn-primario verde" id="btn-confirm-lancamento">
-                        <i class="bi bi-check-lg"></i> Confirmar Entrada
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="/js/menuJS/menu.js"></script>
-<script src="/js/caixaJS/caixa.js"></script>
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/caixaJS/caixa.js"></script>
 </body>
 </html>

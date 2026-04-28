@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WebApplication5.Models;
 using WebApplication5.Services;
 
 namespace WebApplication5.Controllers
@@ -7,26 +8,36 @@ namespace WebApplication5.Controllers
     {
         private readonly LoginService _service;
         private readonly SenhaResetService _senhaResetService;
+        private readonly AuditoriaService _auditoria;
 
-        public LoginController(LoginService service, SenhaResetService senhaResetService)
+        public LoginController(LoginService service, SenhaResetService senhaResetService, AuditoriaService auditoria)
         {
             _service = service;
             _senhaResetService = senhaResetService;
+            _auditoria = auditoria;
         }
 
-        // GET: /Login
         [HttpGet]
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
         [HttpPost]
         public IActionResult Entrar(string login, string senha, string cnpj)
         {
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             var user = _service.Autenticar(login, senha, cnpj);
+
             if (user == null)
             {
+                // Registra tentativa falha
+                _auditoria.Registrar(new RegistrarAuditoriaDto
+                {
+                    IdEmpresa = 0,
+                    NomeUsuario = login,
+                    Modulo = "AUTH",
+                    Acao = "LOGIN_FALHA",
+                    Descricao = $"Tentativa de login falhou para '{login}'",
+                    IpUsuario = ip
+                });
                 ModelState.AddModelError(string.Empty, "Login ou senha inválidos");
                 return View("Index");
             }
@@ -34,6 +45,17 @@ namespace WebApplication5.Controllers
             HttpContext.Session.SetInt32("idUsuario", user.IdUsuario);
             HttpContext.Session.SetString("nomeUsuario", user.Nome);
             HttpContext.Session.SetInt32("IdEmpresa", user.idEmpresa);
+
+            _auditoria.Registrar(new RegistrarAuditoriaDto
+            {
+                IdEmpresa = user.idEmpresa,
+                IdUsuario = user.IdUsuario,
+                NomeUsuario = user.Nome,
+                Modulo = "AUTH",
+                Acao = "LOGIN",
+                Descricao = $"Usuário '{user.Nome}' realizou login",
+                IpUsuario = ip
+            });
 
             return RedirectToAction("Index", "Home");
         }
@@ -52,8 +74,7 @@ namespace WebApplication5.Controllers
         [HttpGet]
         public IActionResult RedefinirSenha(string token)
         {
-            if (string.IsNullOrEmpty(token))
-                return RedirectToAction("Index", "Login");
+            if (string.IsNullOrEmpty(token)) return RedirectToAction("Index", "Login");
             ViewBag.Token = token;
             return View();
         }
@@ -77,9 +98,24 @@ namespace WebApplication5.Controllers
             return RedirectToAction("Index", "Login");
         }
 
-
         public IActionResult Sair()
         {
+            var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0;
+            var idUsuario = HttpContext.Session.GetInt32("idUsuario");
+            var nomeUsuario = HttpContext.Session.GetString("nomeUsuario");
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            _auditoria.Registrar(new RegistrarAuditoriaDto
+            {
+                IdEmpresa = idEmpresa,
+                IdUsuario = idUsuario,
+                NomeUsuario = nomeUsuario,
+                Modulo = "AUTH",
+                Acao = "LOGOUT",
+                Descricao = $"Usuário '{nomeUsuario}' saiu do sistema",
+                IpUsuario = ip
+            });
+
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Login");
         }

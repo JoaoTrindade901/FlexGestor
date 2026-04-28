@@ -1,0 +1,494 @@
+﻿/* ===== AUDITORIA.CSS ===== */
+
+.secao-auditoria {
+    padding: 2.8rem 2.4rem;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.cabecalho-tela {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.4rem;
+}
+
+    .cabecalho-tela h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+/* FILTROS */
+.auditoria-filtros {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.6rem 2rem;
+    box-shadow: 0 .1rem .4rem rgba(0,0,0,.07);
+    margin-bottom: 2rem;
+    border: 1px solid #f0f2f5;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    min-width: 14rem;
+}
+
+    .filtro-grupo label {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .04rem;
+    }
+
+    .filtro-grupo input,
+    .filtro-grupo select {
+        padding: .8rem 1.2rem;
+        border: 1px solid #dce1e7;
+        border-radius: .6rem;
+        font-size: 1.4rem;
+        font-family: 'Segoe UI', sans-serif;
+        outline: none;
+        background: #fff;
+        color: #374151;
+    }
+
+        .filtro-grupo input:focus,
+        .filtro-grupo select:focus {
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 .3rem rgba(30,60,114,.08);
+        }
+
+.btn-filtrar {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: #1e3c72;
+    color: #fff;
+    border: none;
+    padding: .9rem 1.8rem;
+    border-radius: .6rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: background .2s;
+    height: 4rem;
+}
+
+    .btn-filtrar:hover {
+        background: #254a8f;
+    }
+
+.btn-limpar {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: #fff;
+    color: #6b7280;
+    border: 1px solid #dce1e7;
+    padding: .9rem 1.4rem;
+    border-radius: .6rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: background .2s;
+    height: 4rem;
+}
+
+    .btn-limpar:hover {
+        background: #f9fafb;
+    }
+
+/* CONTAINER */
+.auditoria-container {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 .1rem .4rem rgba(0,0,0,.07), 0 .4rem 1.6rem rgba(0,0,0,.05);
+    overflow: hidden;
+    border: 1px solid #f0f2f5;
+}
+
+.auditoria-header {
+    padding: 1.4rem 2rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fafbfc;
+}
+
+.auditoria-total {
+    font-size: 1.3rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* TABELA */
+.table-auditoria {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .table-auditoria thead {
+        background: #f7f9fc;
+    }
+
+    .table-auditoria th {
+        text-align: left;
+        padding: 1.2rem 1.4rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e3c72;
+        text-transform: uppercase;
+        letter-spacing: .05rem;
+        border-bottom: 2px solid #eaecf0;
+        white-space: nowrap;
+    }
+
+    .table-auditoria td {
+        padding: 1.1rem 1.4rem;
+        font-size: 1.3rem;
+        color: #374151;
+        border-bottom: 1px solid #f0f2f5;
+        vertical-align: middle;
+    }
+
+    .table-auditoria tbody tr:hover td {
+        background: #f8fafc;
+    }
+
+    .table-auditoria tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+.td-data {
+    white-space: nowrap;
+    color: #6b7280;
+    font-size: 1.2rem;
+}
+
+.td-ip {
+    color: #9ca3af;
+    font-size: 1.2rem;
+    font-family: monospace;
+}
+
+.td-descricao {
+    max-width: 28rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* PILLS MÓDULO */
+.modulo-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: .3rem 1rem;
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.mod-auth {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.mod-caixa {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.mod-produto {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.mod-cliente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.mod-pedido {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.mod-estoque {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.mod-usuario {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.mod-default {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* PILLS AÇÃO */
+.acao-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .8rem;
+    border-radius: .4rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.acao-sucesso {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.acao-aviso {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.acao-perigo {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.acao-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* USUÁRIO TAG */
+.usuario-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* BOTÃO DETALHE */
+.btn-detalhe {
+    background: none;
+    border: none;
+    color: #1e3c72;
+    cursor: pointer;
+    font-size: 1.6rem;
+    padding: .3rem .6rem;
+    border-radius: .4rem;
+    transition: background .2s;
+}
+
+    .btn-detalhe:hover {
+        background: #eef2fb;
+    }
+
+/* PAGINAÇÃO */
+.paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 2rem;
+    border-top: 1px solid #f0f2f5;
+    background: #fafbfc;
+}
+
+.paginacao-info {
+    font-size: 1.3rem;
+    color: #6b7280;
+}
+
+.paginacao-controles {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.btn-pagina {
+    min-width: 3.2rem;
+    height: 3.2rem;
+    padding: 0 .8rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: .6rem;
+    font-size: 1.3rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+    .btn-pagina:hover:not(:disabled) {
+        background: #1e3c72;
+        color: #fff;
+        border-color: #1e3c72;
+    }
+
+    .btn-pagina.ativo {
+        background: #1e3c72;
+        color: #fff;
+        border-color: #1e3c72;
+        font-weight: 700;
+    }
+
+    .btn-pagina:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.5);
+    backdrop-filter: blur(3px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+    .modal.open {
+        display: flex;
+    }
+
+.modal-content {
+    background: #fff;
+    max-width: 100%;
+    border-radius: 1.2rem;
+    box-shadow: 0 2rem 6rem rgba(0,0,0,.2);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.8rem 2.4rem;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+    .modal-header h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+.btn-fechar-modal {
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+    .btn-fechar-modal:hover {
+        color: #374151;
+    }
+
+.modal-body {
+    padding: 2rem 2.4rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.6rem 2.4rem;
+    border-top: 1px solid #f0f2f5;
+}
+
+.btn-secundario {
+    background: #fff;
+    color: #374151;
+    border: 1px solid #dce1e7;
+    padding: .9rem 2rem;
+    border-radius: .6rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* DETALHE */
+.detalhe-linha {
+    display: flex;
+    gap: 1rem;
+    padding: .6rem 0;
+    border-bottom: 1px solid #f0f2f5;
+    font-size: 1.3rem;
+}
+
+.detalhe-label {
+    min-width: 10rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+}
+
+.detalhe-secao {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .06rem;
+    margin: 1.4rem 0 .6rem;
+    padding-bottom: .4rem;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.detalhe-json {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: .6rem;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    font-family: monospace;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+    .detalhe-json.antes {
+        border-left: 3px solid #dc2626;
+    }
+
+    .detalhe-json.depois {
+        border-left: 3px solid #15803d;
+    }
+
+.empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: #9ca3af;
+    font-size: 1.4rem;
+    font-family: 'Segoe UI', sans-serif;
+}

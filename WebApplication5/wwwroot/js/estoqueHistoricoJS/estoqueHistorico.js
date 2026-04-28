@@ -2,7 +2,7 @@
 
 let movimentacoes = [];
 let filtrado = [];
-let filtroTipo = "todos";
+let _filtroTipoAtivo = "todos"; // controlado pelos botões da view
 
 async function apiGet(url) {
     const res = await fetch(url);
@@ -38,32 +38,10 @@ function renderizarHistorico() {
         const isEntrada = tipoNorm === "ENTRADA";
         const isAjuste = tipoNorm === "AJUSTE";
 
-        // Classe e label do badge
-        let tipoClasse, tipoLabel;
-        if (isAjuste) {
-            tipoClasse = "mov-ajuste";
-            tipoLabel = "Ajuste";
-        } else if (isEntrada) {
-            tipoClasse = "mov-entrada";
-            tipoLabel = "Entrada";
-        } else {
-            tipoClasse = "mov-saida";
-            tipoLabel = "Saída";
-        }
-
-        // Quantidade: Ajuste sem sinal, Entrada com +, Saída com -
-        let qtdClasse, qtdLabel;
-        const qtd = m.Quantidade ?? m.quantidade;
-        if (isAjuste) {
-            qtdClasse = "qtd-ajuste";
-            qtdLabel = String(qtd);          // sem sinal
-        } else if (isEntrada) {
-            qtdClasse = "qtd-entrada";
-            qtdLabel = `+${qtd}`;
-        } else {
-            qtdClasse = "qtd-saida";
-            qtdLabel = `-${qtd}`;
-        }
+        const tipoClasse = isAjuste ? "mov-ajuste" : (isEntrada ? "mov-entrada" : "mov-saida");
+        const qtdClasse = isAjuste ? "qtd-ajuste" : (isEntrada ? "qtd-entrada" : "qtd-saida");
+        const sinal = isEntrada ? "+" : (isAjuste ? "=" : "-");
+        const tipoLabel = isAjuste ? "Ajuste" : (isEntrada ? "Entrada" : "Saída");
 
         const nomeProd = m.nomeProduto ?? m.NomeProduto ?? "—";
         const motivo = m.Motivo ?? m.motivo ?? "—";
@@ -109,7 +87,7 @@ function setFiltroTipo(valor) {
 
 function filtrarHistorico() {
     const termo = (document.getElementById("input-busca")?.value ?? "").toLowerCase().trim();
-    const tipoSel = document.getElementById("filtro-tipo")?.value || "todos";
+    const tipo = _filtroTipoAtivo ?? "todos";
     const dataInicio = document.getElementById("data-inicio")?.value;
     const dataFim = document.getElementById("data-fim")?.value;
 
@@ -121,17 +99,15 @@ function filtrarHistorico() {
         const nomeProd = (m.nomeProduto ?? m.NomeProduto ?? "").toLowerCase();
 
         if (termo && !nomeProd.includes(termo)) return false;
-
-        if (tipoFinal === "entrada" && tipoNorm !== "ENTRADA") return false;
-        if (tipoFinal === "saida" && tipoNorm !== "SAIDA") return false;
-        if (tipoFinal === "ajuste" && tipoNorm !== "AJUSTE") return false;
+        if (tipo === "entrada" && tipoNorm !== "ENTRADA") return false;
+        if (tipo === "saida" && tipoNorm !== "SAIDA") return false;
+        if (tipo === "ajuste" && tipoNorm !== "AJUSTE") return false;
 
         if (dataInicio) {
             const inicio = new Date(dataInicio + "T00:00:00");
             const dataMov = new Date(m.DthMovimentacao ?? m.dthMovimentacao);
             if (dataMov < inicio) return false;
         }
-
         if (dataFim) {
             const fim = new Date(dataFim + "T23:59:59");
             const dataMov = new Date(m.DthMovimentacao ?? m.dthMovimentacao);
