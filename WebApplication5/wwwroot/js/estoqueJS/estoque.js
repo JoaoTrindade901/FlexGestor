@@ -9,8 +9,11 @@ const TOTAL_ETAPAS = 4;
 let categorias = [];
 let fornecedores = [];
 
+// Modo edição: null = novo produto, objeto = produto sendo editado
+let modoEdicao = null;
+
 // Fornecedor selecionado no passo 3
-let fornecedorSelecionado = null; // { idFornecedor, nomeFantasia, precoCompra }
+let fornecedorSelecionado = null;
 
 // ──────────────────────────────────────────
 // FETCH HELPERS
@@ -83,6 +86,16 @@ async function carregarFornecedores() {
     }
 }
 
+// Busca dados completos do produto para preencher a wizard de edição
+async function buscarProdutoPorId(idProduto) {
+    try {
+        const todos = await apiGet("/Produto/Listar");
+        return todos.find(p => p.idProduto === idProduto) ?? null;
+    } catch {
+        return null;
+    }
+}
+
 // ──────────────────────────────────────────
 // STATUS / FILTROS
 // ──────────────────────────────────────────
@@ -139,13 +152,17 @@ function renderizarTabela() {
         return `
         <tr>
             <td class="area-acoes">
-                <button class="btn-acao btn-editar" title="Movimentar"
+                <button class="btn-acao btn-editar" title="Editar produto"
+                    onclick="abrirModalEdicao(${item.idProduto})">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button class="btn-acao btn-editar" title="Movimentar estoque"
                     onclick="abrirModalMovimentacao(${item.idProduto}, '${item.nomeProduto.replace(/'/g, "&#39;")}')">
                     <i class="bi bi-arrow-left-right"></i>
                 </button>
                 <button class="btn-acao btn-editar" title="Editar estoque mínimo"
                     onclick="abrirModalMinimo(${item.idProduto}, ${item.estoqueMinimo})">
-                    <i class="bi bi-pencil-fill"></i>
+                    <i class="bi bi-bar-chart-fill"></i>
                 </button>
             </td>
             <td><span class="status-pill status-${status}">${labelStatus(status)}</span></td>
@@ -160,11 +177,19 @@ function renderizarTabela() {
 }
 
 // ──────────────────────────────────────────
-// WIZARD — 4 PASSOS
+// WIZARD — MODAL (NOVO OU EDIÇÃO)
 // ──────────────────────────────────────────
 async function abrirModal() {
+    modoEdicao = null;
     etapaProduto = 1;
     fornecedorSelecionado = null;
+
+    // Atualiza título e label do botão salvar
+    const header = document.querySelector("#modalEstoque .modal-header h3");
+    if (header) header.innerHTML = `<i class="bi bi-plus-circle-fill"></i> Novo Produto`;
+    const btnSalvar = document.getElementById("btnSalvar");
+    if (btnSalvar) btnSalvar.innerHTML = `<i class="bi bi-check-lg"></i> Confirmar e Salvar`;
+
     document.getElementById("formEstoque").reset();
     esconderErro();
     limparSelecaoFornecedor();
@@ -174,18 +199,75 @@ async function abrirModal() {
     document.getElementById("modalEstoque").classList.add("open");
 }
 
+async function abrirModalEdicao(idProduto) {
+    // Busca o item do estoque para pegar nome/categoria
+    const itemEstoque = lista.find(i => i.idProduto === idProduto);
+    if (!itemEstoque) return;
+
+    modoEdicao = { idProduto };
+    etapaProduto = 1;
+    fornecedorSelecionado = null;
+
+    document.getElementById("formEstoque").reset();
+    esconderErro();
+    limparSelecaoFornecedor();
+
+    await Promise.all([carregarCategorias(), carregarFornecedores()]);
+
+    // Atualiza título
+    const header = document.querySelector("#modalEstoque .modal-header h3");
+    if (header) header.innerHTML = `<i class="bi bi-pencil-fill"></i> Editar Produto`;
+    const btnSalvar = document.getElementById("btnSalvar");
+    if (btnSalvar) btnSalvar.innerHTML = `<i class="bi bi-check-lg"></i> Salvar Alterações`;
+
+    // Tenta buscar dados completos do produto
+    const produto = await buscarProdutoPorId(idProduto);
+
+    if (produto) {
+        // Preenche etapa 1
+        document.getElementById("nome").value = produto.nome ?? itemEstoque.nomeProduto ?? "";
+        document.getElementById("descricao").value = produto.descricao ?? "";
+        document.getElementById("codBarras").value = produto.codigoBarras ?? "";
+        document.getElementById("codProduto").value = produto.sku ?? itemEstoque.skuProduto ?? "";
+        document.getElementById("precoCusto").value = produto.precoCusto ?? "";
+        document.getElementById("precoVenda").value = produto.precoVenda ?? "";
+        document.getElementById("unidade").value = produto.unidade ?? "";
+
+        // Categoria
+        if (produto.idCategoria) {
+            const sel = document.getElementById("prod-categoria");
+            if (sel) sel.value = produto.idCategoria;
+        }
+
+        // Preenche etapa 2 com dados do estoque
+        document.getElementById("qtd").value = itemEstoque.quantidade ?? 0;
+        document.getElementById("min").value = itemEstoque.estoqueMinimo ?? 0;
+        document.getElementById("max").value = itemEstoque.estoqueMax ?? "";
+        document.getElementById("local").value = itemEstoque.local ?? "";
+    } else {
+        // Fallback: preenche o que tem no item do estoque
+        document.getElementById("nome").value = itemEstoque.nomeProduto ?? "";
+        document.getElementById("codProduto").value = itemEstoque.skuProduto ?? "";
+        document.getElementById("qtd").value = itemEstoque.quantidade ?? 0;
+        document.getElementById("min").value = itemEstoque.estoqueMinimo ?? 0;
+    }
+
+    renderizarListaFornecedores("");
+    atualizarEtapas();
+    document.getElementById("modalEstoque").classList.add("open");
+}
+
 function fecharModal(id = "modalEstoque") {
     document.getElementById(id)?.classList.remove("open");
+    modoEdicao = null;
 }
 
 function atualizarEtapas() {
-    // Mostra só a etapa ativa
     for (let i = 1; i <= TOTAL_ETAPAS; i++) {
         const el = document.getElementById(`etapa-${i}`);
         if (el) el.classList.toggle("ativa", i === etapaProduto);
     }
 
-    // Atualiza stepper visual
     document.querySelectorAll(".step").forEach((step, i) => {
         step.classList.toggle("active", i < etapaProduto);
     });
@@ -198,7 +280,6 @@ function atualizarEtapas() {
     if (btnSalvar) btnSalvar.style.display = etapaProduto === TOTAL_ETAPAS ? "inline-flex" : "none";
     if (btnVoltar) btnVoltar.style.display = etapaProduto === 1 ? "none" : "inline-flex";
 
-    // Ao entrar no passo 4 (resumo), atualiza os dados exibidos
     if (etapaProduto === TOTAL_ETAPAS) atualizarResumo();
 }
 
@@ -230,7 +311,8 @@ function validarEtapaAtual() {
         let ok = true;
 
         if (!nome?.value?.trim()) { marcarErroSimples(nome, "Nome é obrigatório."); ok = false; }
-        if (!cod?.value?.trim()) { marcarErroSimples(cod, "Código de Barras é obrigatório."); ok = false; }
+        // Na edição, código de barras pode não ser obrigatório se já existe
+        if (!modoEdicao && !cod?.value?.trim()) { marcarErroSimples(cod, "Código de Barras é obrigatório."); ok = false; }
         if (!cat?.value) { marcarErroSimples(cat, "Selecione uma categoria."); ok = false; }
 
         if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
@@ -238,16 +320,10 @@ function validarEtapaAtual() {
     }
 
     if (etapaProduto === 2) {
-        const qtd = document.getElementById("qtd");
-        const min = document.getElementById("min");
-        let ok = true;
-        if (!qtd?.value && qtd?.value !== "0") { marcarErroSimples(qtd, "Quantidade inicial é obrigatória."); ok = false; }
-        if (!min?.value && min?.value !== "0") { marcarErroSimples(min, "Estoque mínimo é obrigatório."); ok = false; }
-        if (!ok) flexToast("Preencha os campos obrigatórios antes de continuar.", "aviso");
-        return ok;
+        // Na edição, campos de estoque não são obrigatórios (vai só atualizar se alterar)
+        return true;
     }
 
-    // Passo 3 (fornecedor) é opcional — pode avançar sem selecionar
     return true;
 }
 
@@ -316,7 +392,6 @@ function selecionarFornecedor(id) {
     if (!f) return;
 
     if (fornecedorSelecionado?.idFornecedor === id) {
-        // Deseleciona se clicar no mesmo
         limparSelecaoFornecedor();
     } else {
         fornecedorSelecionado = {
@@ -348,19 +423,16 @@ function atualizarResumo() {
     };
 
     set("resumo-nome", document.getElementById("nome")?.value || "—");
-    set("resumo-cod", document.getElementById("codBarras")?.value || "—");
+    set("resumo-cod", document.getElementById("codBarras")?.value || (modoEdicao ? "(sem alteração)" : "—"));
     set("resumo-qtd", document.getElementById("qtd")?.value || "0");
     set("resumo-min", document.getElementById("min")?.value || "0");
 
-    // Categoria
     const catSel = document.getElementById("prod-categoria");
     set("resumo-categoria", catSel?.options[catSel.selectedIndex]?.text || "—");
 
-    // Preço de venda
     const pv = document.getElementById("precoVenda")?.value;
     set("resumo-preco-venda", pv ? `R$ ${Number(pv).toFixed(2).replace(".", ",")}` : "—");
 
-    // Fornecedor
     const blocoForn = document.getElementById("resumo-bloco-fornecedor");
     if (fornecedorSelecionado) {
         const pc = document.getElementById("preco-compra")?.value;
@@ -373,9 +445,17 @@ function atualizarResumo() {
 }
 
 // ──────────────────────────────────────────
-// SALVAR (passo 4 → botão Salvar)
+// SALVAR — NOVO OU EDIÇÃO
 // ──────────────────────────────────────────
 async function salvarNovoProduto() {
+    if (modoEdicao) {
+        await salvarEdicaoProduto();
+    } else {
+        await salvarCriacaoProduto();
+    }
+}
+
+async function salvarCriacaoProduto() {
     const btnSalvar = document.getElementById("btnSalvar");
     const textoOriginal = btnSalvar.innerHTML;
 
@@ -393,7 +473,6 @@ async function salvarNovoProduto() {
     btnSalvar.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
 
     try {
-        // 1. Cria produto
         const resProduto = await apiPost("/Produto/Criar", {
             Nome: nome,
             Descricao: document.getElementById("descricao")?.value || null,
@@ -405,7 +484,6 @@ async function salvarNovoProduto() {
         });
         const { idProduto } = await resProduto.json();
 
-        // 2. Entrada inicial de estoque
         if (qtdInicial > 0) {
             await apiPost("/Estoque/Movimentar", {
                 IdProduto: idProduto,
@@ -415,7 +493,6 @@ async function salvarNovoProduto() {
             });
         }
 
-        // 3. Atualiza estoque mínimo
         if (estoqueMin > 0) {
             await apiPost("/Estoque/AtualizarMinimo", {
                 IdProduto: idProduto,
@@ -423,7 +500,6 @@ async function salvarNovoProduto() {
             });
         }
 
-        // 4. Associa fornecedor (se selecionado)
         if (fornecedorSelecionado) {
             const precoCompra = Number(document.getElementById("preco-compra")?.value || 0);
             await apiPost("/Estoque/AssociarFornecedor", {
@@ -439,6 +515,66 @@ async function salvarNovoProduto() {
 
     } catch (err) {
         mostrarErro("Erro ao cadastrar produto: " + err.message);
+    } finally {
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+    }
+}
+
+async function salvarEdicaoProduto() {
+    const btnSalvar = document.getElementById("btnSalvar");
+    const textoOriginal = btnSalvar.innerHTML;
+
+    const idProduto = modoEdicao.idProduto;
+    const nome = document.getElementById("nome")?.value?.trim();
+
+    if (!nome) {
+        mostrarErro("Nome do produto é obrigatório.");
+        return;
+    }
+
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
+
+    try {
+        // Editar dados do produto
+        await apiPost("/Produto/Editar", {
+            IdProduto: idProduto,
+            Nome: nome,
+            Descricao: document.getElementById("descricao")?.value || null,
+            CodigoBarras: document.getElementById("codBarras")?.value?.trim() || null,
+            SKU: document.getElementById("codProduto")?.value?.trim() || null,
+            IdCategoria: Number(document.getElementById("prod-categoria")?.value) || null,
+            PrecoCusto: Number(document.getElementById("precoCusto")?.value || 0),
+            PrecoVenda: Number(document.getElementById("precoVenda")?.value || 0),
+            Unidade: document.getElementById("unidade")?.value || null
+        });
+
+        // Atualiza estoque mínimo se informado
+        const estoqueMin = Number(document.getElementById("min")?.value);
+        if (!isNaN(estoqueMin) && estoqueMin >= 0) {
+            await apiPost("/Estoque/AtualizarMinimo", {
+                IdProduto: idProduto,
+                EstoqueMinimo: estoqueMin
+            });
+        }
+
+        // Associa fornecedor se selecionado
+        if (fornecedorSelecionado) {
+            const precoCompra = Number(document.getElementById("preco-compra")?.value || 0);
+            await apiPost("/Estoque/AssociarFornecedor", {
+                IdFornecedor: fornecedorSelecionado.idFornecedor,
+                IdProduto: idProduto,
+                PrecoCompra: precoCompra
+            });
+        }
+
+        fecharModal();
+        await carregarEstoque();
+        flexToast("Produto atualizado com sucesso!", "sucesso");
+
+    } catch (err) {
+        mostrarErro("Erro ao atualizar produto: " + err.message);
     } finally {
         btnSalvar.disabled = false;
         btnSalvar.innerHTML = textoOriginal;
@@ -525,7 +661,7 @@ async function salvarMinimo() {
 }
 
 // ──────────────────────────────────────────
-// EVENTOS DO WIZARD (botões do footer)
+// EVENTOS DO WIZARD
 // ──────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-proximo")?.addEventListener("click", proximaEtapa);
@@ -535,7 +671,6 @@ document.addEventListener("DOMContentLoaded", () => {
         salvarNovoProduto();
     });
 
-    // Busca de fornecedor no passo 3
     document.getElementById("busca-fornecedor")?.addEventListener("input", function () {
         renderizarListaFornecedores(this.value);
     });

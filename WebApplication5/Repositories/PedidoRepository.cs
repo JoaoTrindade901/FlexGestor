@@ -104,12 +104,12 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void Cancelar(int idPedido)
+        public void Cancelar(int idPedido, int idUsuario)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_CancelarPedido",
-                new { p_idPedido = idPedido },
+                new { p_idPedido = idPedido, p_idUsuario = idUsuario },
                 commandType: CommandType.StoredProcedure);
         }
 

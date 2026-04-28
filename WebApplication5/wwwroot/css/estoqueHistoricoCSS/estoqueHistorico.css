@@ -16,12 +16,12 @@
     margin-bottom: 2rem;
 }
 
-.cabecalho-tela h2 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #1e3c72;
-    margin: 0;
-}
+    .cabecalho-tela h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin: 0;
+    }
 
 /* =========================
    BOTÃO VOLTAR
@@ -30,26 +30,21 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-
     background: #fff;
     color: #374151;
-
     padding: 0.8rem 1.4rem;
     border-radius: 0.6rem;
-
     font-size: 1.3rem;
     font-weight: 600;
-
     text-decoration: none;
     border: 1px solid #dce1e7;
-
     transition: all 0.2s ease;
 }
 
-.btn-voltar-estoque:hover {
-    background: #1e3c72;
-    color: #fff;
-}
+    .btn-voltar-estoque:hover {
+        background: #1e3c72;
+        color: #fff;
+    }
 
 /* =========================
    FILTROS
@@ -61,7 +56,7 @@
     padding: 1.6rem 2rem;
     border-bottom: 1px solid #f0f2f5;
     background: #fafbfc;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .input-filtro,
@@ -70,6 +65,55 @@
     height: 3.4rem;
 }
 
+/* FILTROS DE STATUS — botões tipo/status no topo */
+.filtro-status {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.btn-status-filtro {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #dce1e7;
+    border-radius: 0.6rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    background: #fff;
+    color: #6b7280;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.2s;
+}
+
+    .btn-status-filtro:hover {
+        border-color: #1e3c72;
+        color: #1e3c72;
+    }
+
+    /* Estado ativo por tipo */
+    .btn-status-filtro.sel-todos {
+        background: #1e3c72;
+        border-color: #1e3c72;
+        color: #fff;
+    }
+
+    .btn-status-filtro.sel-entrada {
+        background: #dcfce7;
+        border-color: #16a34a;
+        color: #15803d;
+    }
+
+    .btn-status-filtro.sel-saida {
+        background: #fef3c7;
+        border-color: #d97706;
+        color: #92400e;
+    }
+
+    .btn-status-filtro.sel-ajuste {
+        background: #dbeafe;
+        border-color: #2563eb;
+        color: #1e40af;
+    }
+
 /* PERÍODO INLINE */
 .filtro-periodo-inline {
     display: flex;
@@ -77,11 +121,11 @@
     gap: 0.5rem;
 }
 
-.filtro-periodo-inline span {
-    font-size: 1.2rem;
-    color: #6b7280;
-    font-weight: 600;
-}
+    .filtro-periodo-inline span {
+        font-size: 1.2rem;
+        color: #6b7280;
+        font-weight: 600;
+    }
 
 /* =========================
    LEGENDA
@@ -115,6 +159,10 @@
     background: #d97706;
 }
 
+.cor-ajuste {
+    background: #2563eb;
+}
+
 /* =========================
    TABELA - ALINHAMENTO GLOBAL
 ========================= */
@@ -124,56 +172,48 @@
     vertical-align: middle;
 }
 
-/* =========================
+    /* =========================
    COLUNAS
 ========================= */
+    .table-estoque th:nth-child(1),
+    .table-estoque td:nth-child(1) {
+        width: 12%;
+    }
 
-/* Data */
-.table-estoque th:nth-child(1),
-.table-estoque td:nth-child(1) {
-    width: 12%;
-}
+    .table-estoque th:nth-child(2),
+    .table-estoque td:nth-child(2) {
+        width: 22%;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        word-break: break-word;
+    }
 
-/* Produto */
-.table-estoque th:nth-child(2),
-.table-estoque td:nth-child(2) {
-    width: 22%;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    word-break: break-word;
-}
+    .table-estoque th:nth-child(3),
+    .table-estoque td:nth-child(3) {
+        width: 12%;
+    }
 
-/* Tipo */
-.table-estoque th:nth-child(3),
-.table-estoque td:nth-child(3) {
-    width: 12%;
-}
+    .table-estoque th:nth-child(4),
+    .table-estoque td:nth-child(4) {
+        width: 10%;
+        text-align: right;
+    }
 
-/* Quantidade (💰 PADRÃO PROFISSIONAL) */
-.table-estoque th:nth-child(4),
-.table-estoque td:nth-child(4) {
-    width: 10%;
-    text-align: right; /* 🔥 alinhamento financeiro */
-}
+    .table-estoque th:nth-child(5),
+    .table-estoque td:nth-child(5) {
+        width: 10%;
+    }
 
-/* Lote */
-.table-estoque th:nth-child(5),
-.table-estoque td:nth-child(5) {
-    width: 10%;
-}
+    .table-estoque th:nth-child(6),
+    .table-estoque td:nth-child(6) {
+        width: 12%;
+    }
 
-/* Usuário */
-.table-estoque th:nth-child(6),
-.table-estoque td:nth-child(6) {
-    width: 12%;
-}
-
-/* Observação */
-.table-estoque th:nth-child(7),
-.table-estoque td:nth-child(7) {
-    width: auto;
-}
+    .table-estoque th:nth-child(7),
+    .table-estoque td:nth-child(7) {
+        width: auto;
+    }
 
 /* =========================
    LINHAS
@@ -182,12 +222,12 @@
     background: #fff;
 }
 
-.table-estoque tbody tr:hover {
-    background: #eef2fb;
-}
+    .table-estoque tbody tr:hover {
+        background: #eef2fb;
+    }
 
 /* =========================
-   BADGES
+   BADGES DE TIPO
 ========================= */
 .badge-mov {
     padding: 0.3rem 0.9rem;
@@ -206,6 +246,11 @@
     color: #92400e;
 }
 
+.mov-ajuste {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
 /* =========================
    QUANTIDADE
 ========================= */
@@ -216,6 +261,11 @@
 
 .qtd-saida {
     color: #92400e;
+    font-weight: 600;
+}
+
+.qtd-ajuste {
+    color: #1e40af;
     font-weight: 600;
 }
 

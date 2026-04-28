@@ -73,5 +73,14 @@ namespace WebApplication5.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
+
+        public Dictionary<int, int> BuscarQuantidadesDisponiveis(IEnumerable<int> idsProduto, int idEmpresa)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.Query(
+                "SELECT produto_id, QtdeAtual FROM Estoque WHERE produto_id IN @ids AND idEmpresa = @idEmpresa",
+                new { ids = idsProduto, idEmpresa })
+                .ToDictionary(r => (int)r.produto_id, r => (int)r.QtdeAtual);
+        }
     }
 }

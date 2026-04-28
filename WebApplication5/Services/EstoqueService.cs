@@ -44,5 +44,23 @@ namespace WebApplication5.Services
                 DthMovimentacao = DateTime.Now
             });
         }
+
+        public void ValidarEstoque(IEnumerable<PedidoItemModel> itens, int idEmpresa)
+        {
+            var ids = itens.Select(i => i.IdProduto).Distinct();
+            var disponiveis = _repo.BuscarQuantidadesDisponiveis(ids, idEmpresa);
+
+            var erros = itens
+                .GroupBy(i => i.IdProduto)
+                .Where(g => !disponiveis.ContainsKey(g.Key) || disponiveis[g.Key] < g.Sum(i => i.Quantidade))
+                .Select(g => {
+                    var nome = g.First().IdProduto.ToString();
+                    var saldo = disponiveis.ContainsKey(g.Key) ? disponiveis[g.Key] : 0;
+                    return $"Produto #{g.Key}: solicitado {g.Sum(i => i.Quantidade)}, disponível {saldo}";
+                });
+
+            if (erros.Any())
+                throw new InvalidOperationException("Estoque insuficiente:\n" + string.Join("\n", erros));
+        }
     }
 }

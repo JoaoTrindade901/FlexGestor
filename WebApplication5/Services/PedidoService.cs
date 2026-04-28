@@ -27,6 +27,7 @@ namespace WebApplication5.Services
             pedido.IdUsuario = idUsuario;
             pedido.StatusPedidoId = 1; // PENDENTE
             pedido.DthCriacao = DateTime.Now;
+            _estoqueService.ValidarEstoque(dto.Itens, idEmpresa);
 
             // Recalcula totais no servidor
             pedido.ValorTotal =
@@ -51,16 +52,26 @@ namespace WebApplication5.Services
             return idPedido;
         }
 
-        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario)
-            => _repo.AtualizarStatus(idPedido, statusPedidoId, idUsuario);
+        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario) => _repo.AtualizarStatus(idPedido, statusPedidoId, idUsuario);
 
-        public void Cancelar(int idPedido)
-            => _repo.Cancelar(idPedido);
+        public void Cancelar(int idPedido, int idUsuario) => _repo.Cancelar(idPedido, idUsuario);
 
         public void Editar(PedidoEditarDto dto, int idEmpresa, int idUsuario)
         {
-            _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario, dto.Observacao);
+            var itensAntigos = _repo.ListarItens(dto.IdPedido);
+            foreach (var item in itensAntigos)
+                _estoqueService.Movimentar(new MovimentacaoEstoqueModel
+                {
+                    IdProduto = item.idProduto,
+                    TipoMovimentacao = "ENTRADA",
+                    Quantidade = item.quantidade,
+                    Motivo = "Devolução — edição de pedido",
+                    DthMovimentacao = DateTime.Now
+                }, idEmpresa, idUsuario);
 
+            _estoqueService.ValidarEstoque(dto.Itens, idEmpresa);
+
+            _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario, dto.Observacao);
             _repo.DeletarItens(dto.IdPedido);
 
             decimal valorTotal = 0;
@@ -70,6 +81,7 @@ namespace WebApplication5.Services
                 item.ValorTotal = (item.ValorUnitario * item.Quantidade) - item.Desconto;
                 valorTotal += item.ValorTotal;
                 _repo.InserirItem(item);
+                _estoqueService.DescontarEstoque(item.IdProduto, item.Quantidade, idEmpresa, idUsuario);
             }
 
             valorTotal = valorTotal + dto.ValorFrete - dto.Desconto;

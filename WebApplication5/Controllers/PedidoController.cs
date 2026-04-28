@@ -33,8 +33,15 @@ public class PedidoController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
-        return Ok(new { idPedido = idGerado });
+        try
+        {
+            var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
+            return Ok(new { idPedido = idGerado });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -50,7 +57,8 @@ public class PedidoController : BaseController
     public IActionResult Cancelar([FromBody] int idPedido)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.Cancelar(idPedido);
+        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
+        _service.Cancelar(idPedido, idUsuario);
         return Ok();
     }
 
@@ -60,8 +68,15 @@ public class PedidoController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        _service.Editar(dto, idEmpresa, idUsuario);
-        return Ok();
+        try
+        {
+            _service.Editar(dto, idEmpresa, idUsuario);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
     public IActionResult ListarPagamentos(int idPedido)

@@ -434,7 +434,7 @@ function confirmarDeletar(id) {
     clienteParaDeletar = todosClientes.find(c => c.idCliente === id);
     if (!clienteParaDeletar) return;
 
-    const acao = clienteParaDeletar.fAtivo ? "inativar" : "reativar";
+    const acao = clienteParaDeletar.fAtivo ? "inativado" : "reativado";
     const btnTexto = clienteParaDeletar.fAtivo ? "Sim, inativar" : "Sim, reativar";
 
     flexConfirmar(
@@ -443,7 +443,7 @@ function confirmarDeletar(id) {
             try {
                 await apiPost("/Cliente/Deletar", clienteParaDeletar.idCliente);
                 await carregarClientes();
-                flexToast(`Cliente ${acao}do com sucesso!`, "sucesso");
+                flexToast(`Cliente ${acao} do com sucesso!`, "sucesso");
             } catch (err) {
                 flexToast("Erro ao alterar status: " + err.message, "erro");
             }

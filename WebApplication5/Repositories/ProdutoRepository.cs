@@ -72,15 +72,15 @@ namespace WebApplication5.Repositories
                 "sp_EditarProduto",
                 new
                 {
-                    p.IdProduto,
-                    p.Nome,
-                    p.Descricao,
-                    p.SKU,
-                    p.CodigoBarras,
-                    p.PrecoCusto,
-                    p.PrecoVenda,
-                    p.IdCategoria,
-                    p.Unidade
+                    p_idProduto = p.IdProduto,
+                    p_Nome = p.Nome,
+                    p_Descricao = p.Descricao,
+                    p_codProduto = p.SKU,
+                    p_codBarras = p.CodigoBarras,
+                    p_precoCusto = p.PrecoCusto,
+                    p_precoVenda = p.PrecoVenda,
+                    p_categoriaProduto_id = p.IdCategoria,
+                    p_uniMedida_id = (int?)null
                 },
                 commandType: CommandType.StoredProcedure);
         }

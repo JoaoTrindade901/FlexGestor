@@ -2,114 +2,113 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico de Estoque - FlexGestor</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Histórico de Estoque - FlexGestor</title>
 
-    <!-- CSS PADRÃO -->
-    <link rel="stylesheet" href="/css/homeCSS/home.css">
-    <link rel="stylesheet" href="/css/menuCSS/menu.css">
-    <link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
+	<!-- CSS PADRÃO -->
+	<link rel="stylesheet" href="/css/homeCSS/home.css">
+	<link rel="stylesheet" href="/css/menuCSS/menu.css">
+	<link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
 
-    <!-- CSS DA TELA -->
-    <link rel="stylesheet" href="/css/estoqueHistoricoCSS/estoqueHistorico.css">
+	<!-- CSS DA TELA -->
+	<link rel="stylesheet" href="/css/estoqueHistoricoCSS/estoqueHistorico.css">
 
-    <!-- ICONES -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	<!-- ICONES -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
 
-<div class="container">
-    <div id="menu"></div>
+	<div class="container">
+		<div id="menu"></div>
 
-    <main>
-        <section class="secao-estoque">
+		<main>
+			<section class="secao-estoque">
 
-            <!-- CABEÇALHO -->
-            <div class="cabecalho-tela">
-                <h2>Histórico de Movimentação de Estoque</h2>
+				<!-- CABEÇALHO -->
+				<div class="cabecalho-tela">
+					<h2>Histórico de Movimentação de Estoque</h2>
 
-                <a href="/Estoque" class="btn-voltar-estoque">
-                    <i class="bi bi-arrow-left"></i>
-                    <span>Voltar ao Estoque</span>
-                </a>
-            </div>
+					<a href="/Estoque" class="btn-voltar-estoque">
+						<i class="bi bi-arrow-left"></i>
+						<span>Voltar ao Estoque</span>
+					</a>
+				</div>
 
-            <div class="table-container">
+				<div class="table-container">
 
-                <!-- FILTROS -->
-                <div class="area-filtro">
+					<!-- FILTROS -->
+					<div class="area-filtro">
 
-                    <input type="text"
-                           id="input-busca"
-                           class="input-filtro"
-                           placeholder="Buscar por produto..."
-                           oninput="filtrarHistorico()">
+						<!-- Botões de tipo / status (novos) -->
+						<div class="filtro-status">
+							<button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroTipo('todos')">Todos</button>
+							<button id="btn-filtro-entrada" class="btn-status-filtro" onclick="setFiltroTipo('entrada')">Entrada</button>
+							<button id="btn-filtro-saida" class="btn-status-filtro" onclick="setFiltroTipo('saida')">Saída</button>
+							<button id="btn-filtro-ajuste" class="btn-status-filtro" onclick="setFiltroTipo('ajuste')">Ajuste</button>
+						</div>
 
-                    <select id="filtro-tipo"
-                            class="select-filtro"
-                            onchange="filtrarHistorico()">
-                        <option value="todos">Todos</option>
-                        <option value="entrada">Entrada</option>
-                        <option value="saida">Saída</option>
-                    </select>
+						<input type="text"
+							   id="input-busca"
+							   class="input-filtro"
+							   placeholder="Buscar por produto..."
+							   oninput="filtrarHistorico()">
 
-                    <!-- PERÍODO -->
-                    <div class="filtro-periodo-inline">
-                        <span>De</span>
-                        <input type="date" id="data-inicio" class="input-filtro" onchange="filtrarHistorico()">
+						<!-- PERÍODO -->
+						<div class="filtro-periodo-inline">
+							<span>De</span>
+							<input type="date" id="data-inicio" class="input-filtro" onchange="filtrarHistorico()">
+							<span>Até</span>
+							<input type="date" id="data-fim" class="input-filtro" onchange="filtrarHistorico()">
+						</div>
 
-                        <span>Até</span>
-                        <input type="date" id="data-fim" class="input-filtro" onchange="filtrarHistorico()">
-                    </div>
+						<!-- LEGENDA -->
+						<div class="legenda">
+							<div class="legenda-item">
+								<span class="legenda-cor cor-entrada"></span> Entrada
+							</div>
+							<div class="legenda-item">
+								<span class="legenda-cor cor-saida"></span> Saída
+							</div>
+							<div class="legenda-item">
+								<span class="legenda-cor cor-ajuste"></span> Ajuste
+							</div>
+						</div>
 
-                    <!-- LEGENDA -->
-                    <div class="legenda">
-                        <div class="legenda-item">
-                            <span class="legenda-cor cor-entrada"></span>
-                            Entrada
-                        </div>
+					</div>
 
-                        <div class="legenda-item">
-                            <span class="legenda-cor cor-saida"></span>
-                            Saída
-                        </div>
-                    </div>
+					<!-- TABELA -->
+					<table class="table-estoque">
+						<thead>
+							<tr>
+								<th>Data</th>
+								<th>Produto</th>
+								<th>Tipo</th>
+								<th>Quantidade</th>
+								<th>Lote</th>
+								<th>Usuário</th>
+								<th>Observação</th>
+							</tr>
+						</thead>
 
-                </div>
+						<tbody id="tbody-historico"></tbody>
+					</table>
 
-                <!-- TABELA -->
-                <table class="table-estoque">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Produto</th>
-                            <th>Tipo</th>
-                            <th>Quantidade</th>
-                            <th>Lote</th>
-                            <th>Usuário</th>
-                            <th>Observação</th>
-                        </tr>
-                    </thead>
+					<!-- PAGINAÇÃO -->
+					<div class="paginacao">
+						<span class="paginacao-info"></span>
+						<div class="paginacao-controles"></div>
+					</div>
 
-                    <tbody id="tbody-historico"></tbody>
-                </table>
+				</div>
 
-                <!-- PAGINAÇÃO -->
-                <div class="paginacao">
-                    <span class="paginacao-info"></span>
-                    <div class="paginacao-controles"></div>
-                </div>
+			</section>
+		</main>
+	</div>
 
-            </div>
-
-        </section>
-    </main>
-</div>
-
-<!-- JS -->
-<script src="/js/menuJS/menu.js"></script>
-    <script src="/js/estoqueHistoricoJS/estoqueHistorico.js"></script>
+	<!-- JS -->
+	<script src="/js/menuJS/menu.js"></script>
+	<script src="/js/estoqueHistoricoJS/estoqueHistorico.js"></script>
 </body>
 </html>

@@ -25,8 +25,6 @@
 
         public int idCategoriaFinanceira { get; set; }
         public string? nomeCategoria { get; set; }
-
-        // 🔥 CORRIGIDO (era string)
         public int tipoCategoria { get; set; } // 1 = entrada, 2 = saída
 
         public decimal valor { get; set; }
