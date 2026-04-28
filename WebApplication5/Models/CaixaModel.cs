@@ -29,8 +29,6 @@
         public int idCategoriaFinanceira { get; set; }
         public string? nomeCategoria { get; set; }
         public int tipoCategoria { get; set; } // 1 = entrada, 2 = saída
-
-        public int tipoCategoria { get; set; }
         public decimal valor { get; set; }
         public DateTime dthLancamento { get; set; }
         public string? descricao { get; set; }
@@ -78,6 +76,8 @@
 
     public class FecharCaixaDto
     {
+        public int IdCaixa { get; set; }
+        public decimal SaldoFinal { get; set; }
         public decimal SaldoFinalContado { get; set; }
         public string? Obs { get; set; }
     }
@@ -89,6 +89,8 @@
         public decimal Valor { get; set; }
         public string? Descricao { get; set; }
         public string? Referencia { get; set; }
+        public int? ReferenciaId { get; set; }
+        public string? ReferenciaTipo { get; set; }
         public string TipoLancamento { get; set; } = "MANUAL";
         public int? PedidoId { get; set; }
         public int? ClienteId { get; set; }

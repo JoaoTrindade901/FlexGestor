@@ -358,3 +358,85 @@ main { overflow-x: hidden; min-width: 0; }
 .fechamento-linha:last-child { border-bottom: none; }
 .fechamento-linha-total { padding-top: 1rem; margin-top: .4rem; }
 .fechamento-linha-total .fechamento-valor { font-size: 2rem; }
+
+/* ── BUSCA NOVA OPÇÃO ── */
+.busca-nova-opcao {
+    padding: 1rem 2.4rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fafbfc;
+}
+
+/* ── CADASTRO RÁPIDO ── */
+.btn-novo-produto-rapido {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px dashed #16a34a;
+    padding: .7rem 1.4rem;
+    border-radius: .6rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all .2s;
+}
+
+    .btn-novo-produto-rapido:hover {
+        background: #dcfce7;
+    }
+
+/* ── BLOCO CLIENTE VENDA RÁPIDA ── */
+.vr-cliente-bloco {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: .8rem;
+    padding: 1.4rem;
+    margin-top: .8rem;
+}
+
+.vr-cliente-linha {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+#vr-cliente-info {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: .6rem;
+    padding: .8rem 1.2rem;
+    font-size: 1.3rem;
+    color: #15803d;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#vr-fiado-wrap {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: .6rem;
+    padding: 1rem 1.4rem;
+    margin-top: 1rem;
+}
+
+#vr-vencimento-wrap {
+    margin-top: 1rem;
+}
+
+    #vr-vencimento-wrap label {
+        color: #92400e;
+    }
+
+/* ── BOTÃO EDITAR VENCIMENTO ── */
+.btn-editar-venc {
+    color: #2563eb;
+}
+
+    .btn-editar-venc:hover {
+        background: #dbeafe;
+    }

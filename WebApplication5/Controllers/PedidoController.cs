@@ -38,13 +38,10 @@ public class PedidoController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
-        Auditar("PEDIDO", "CRIAR", $"Pedido #{idGerado} criado");
-        return Ok(new { idPedido = idGerado });
-    }
         try
         {
             var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
+            Auditar("PEDIDO", "CRIAR", $"Pedido #{idGerado} criado");
             return Ok(new { idPedido = idGerado });
         }
         catch (InvalidOperationException ex)
@@ -67,10 +64,9 @@ public class PedidoController : BaseController
     public IActionResult Cancelar([FromBody] int idPedido)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.Cancelar(idPedido);
-        Auditar("PEDIDO", "CANCELAR", $"Pedido #{idPedido} cancelado");
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.Cancelar(idPedido, idUsuario);
+        Auditar("PEDIDO", "CANCELAR", $"Pedido #{idPedido} cancelado");
         return Ok();
     }
 
@@ -80,13 +76,10 @@ public class PedidoController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        _service.Editar(dto, idEmpresa, idUsuario);
-        Auditar("PEDIDO", "EDITAR", $"Pedido #{dto.IdPedido} editado");
-        return Ok();
-    }
         try
         {
             _service.Editar(dto, idEmpresa, idUsuario);
+            Auditar("PEDIDO", "EDITAR", $"Pedido #{dto.IdPedido} editado");
             return Ok();
         }
         catch (InvalidOperationException ex)
