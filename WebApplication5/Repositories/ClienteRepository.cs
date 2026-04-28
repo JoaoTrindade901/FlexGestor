@@ -22,7 +22,7 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
 
             foreach (var c in clientes)
-                c.fAtivo = c.fAtivo; 
+                c.fAtivo = c.fAtivo;
 
             return clientes;
         }
@@ -34,20 +34,45 @@ namespace WebApplication5.Repositories
                 "sp_FiltrarCliente",
                 new
                 {
-                    Nome                 = filtro.Nome,
-                    CpfCnpj              = filtro.CpfCnpj,
-                    Email                = filtro.Email,
-                    TipoCliente          = filtro.TipoCliente,
-                    Genero               = filtro.Genero,
-                    Estado               = filtro.Estado,
-                    Cidade               = filtro.Cidade,
-                    fAtivo               = filtro.fAtivo,
-                    DthCadastroInicio    = filtro.DthCadastroInicio,
-                    DthCadastroFim       = filtro.DthCadastroFim,
-                    DthNascimentoInicio  = filtro.DthNascimentoInicio,
-                    DthNascimentoFim     = filtro.DthNascimentoFim,
-                    SemEmail             = filtro.SemEmail,
+                    Nome = filtro.Nome,
+                    CpfCnpj = filtro.CpfCnpj,
+                    Email = filtro.Email,
+                    TipoCliente = filtro.TipoCliente,
+                    Genero = filtro.Genero,
+                    Estado = filtro.Estado,
+                    Cidade = filtro.Cidade,
+                    fAtivo = filtro.fAtivo,
+                    DthCadastroInicio = filtro.DthCadastroInicio,
+                    DthCadastroFim = filtro.DthCadastroFim,
+                    DthNascimentoInicio = filtro.DthNascimentoInicio,
+                    DthNascimentoFim = filtro.DthNascimentoFim,
+                    SemEmail = filtro.SemEmail,
                     AniversariantesDoMes = filtro.AniversariantesDoMes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public ClienteListaGridDto? BuscarPorCpf(string cpf)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.QueryFirstOrDefault<ClienteListaGridDto>(
+                "sp_FiltrarCliente",
+                new
+                {
+                    Nome = (string?)null,
+                    CpfCnpj = cpf,
+                    Email = (string?)null,
+                    TipoCliente = (string?)null,
+                    Genero = (string?)null,
+                    Estado = (string?)null,
+                    Cidade = (string?)null,
+                    fAtivo = (bool?)true,
+                    DthCadastroInicio = (DateTime?)null,
+                    DthCadastroFim = (DateTime?)null,
+                    DthNascimentoInicio = (DateTime?)null,
+                    DthNascimentoFim = (DateTime?)null,
+                    SemEmail = (bool?)null,
+                    AniversariantesDoMes = (bool?)null
                 },
                 commandType: CommandType.StoredProcedure);
         }

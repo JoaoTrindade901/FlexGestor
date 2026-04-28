@@ -93,20 +93,67 @@ function calcularSaldo() { if (!caixaAtual) return 0; return Number(caixaAtual.s
 // ──────────────────────────────────────────
 async function inicializar() {
     try {
-        const [statusData, histData, fpData, catData] = await Promise.all([
-            apiGet("/Caixa/Status"),
+        // Carrega status primeiro para saber se caixa está aberto
+        const statusData = await apiGet("/Caixa/Status");
+        caixaAtual = statusData.caixa;
+
+        // Carrega tudo em paralelo
+        const promises = [
             apiGet("/Caixa/Historico"),
             apiGet("/Caixa/FormasPagamento"),
-            apiGet("/Caixa/Categorias")
-        ]);
-        caixaAtual = statusData.caixa;
-        historicoList = histData;
-        formasPagamento = fpData;
-        categorias = catData;
-        lancamentos = caixaAtual ? await apiGet("/Caixa/Lancamentos") : [];
-        contasReceber = await apiGet("/Caixa/ContasReceber").catch(() => []);
+            apiGet("/Caixa/Categorias"),
+            apiGet("/Caixa/ContasReceber").catch(() => []),
+        ];
+        if (caixaAtual) {
+            promises.push(apiGet("/Caixa/Lancamentos").catch(() => []));
+            promises.push(apiGet("/Caixa/Breakdown").catch(() => []));
+        }
+
+        const results = await Promise.all(promises);
+        historicoList = results[0];
+        formasPagamento = results[1];
+        categorias = results[2];
+        contasReceber = results[3];
+        lancamentos = caixaAtual ? (results[4] || []) : [];
+
         atualizarPainel();
-        atualizarBreakdown();
+
+        // Breakdown já foi carregado junto
+        if (caixaAtual && results[5]?.length) {
+            const icones = {
+                "Dinheiro": "bi-cash-stack", "PIX": "bi-qr-code-scan",
+                "Cartão de Crédito": "bi-credit-card-fill", "Cartão de Débito": "bi-credit-card",
+                "Boleto": "bi-upc-scan", "Cheque": "bi-journal-text"
+            };
+            const lista = document.getElementById("breakdown-lista");
+            lista.innerHTML = `
+                <div class="breakdown-wrapper">
+                    <div class="breakdown-cards">
+                        ${results[5].map(b => {
+                const icone = icones[b.nomeFormaPagamento] || "bi-wallet2";
+                const positivo = b.saldoLiquido >= 0;
+                return `
+                            <div class="breakdown-card">
+                                <div class="breakdown-card-header">
+                                    <span class="breakdown-card-icone"><i class="bi ${icone}"></i></span>
+                                    <span class="breakdown-card-nome">${b.nomeFormaPagamento}</span>
+                                </div>
+                                <div class="breakdown-card-saldo ${positivo ? "verde" : "vermelho"}">${fmtMoeda(b.saldoLiquido)}</div>
+                                <div class="breakdown-card-detalhe">
+                                    <span class="bd-entrada"><i class="bi bi-arrow-down-circle-fill"></i> ${fmtMoeda(b.totalEntradas)}</span>
+                                    <span class="bd-saida"><i class="bi bi-arrow-up-circle-fill"></i> ${fmtMoeda(b.totalSaidas)}</span>
+                                </div>
+                            </div>`;
+            }).join("")}
+                    </div>
+                    <div class="breakdown-legenda">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Entradas · Saídas · valor em destaque = saldo líquido</span>
+                    </div>
+                </div>`;
+        } else {
+            atualizarBreakdown();
+        }
     } catch (err) {
         console.error("Erro ao inicializar:", err);
         flexToast("Erro ao carregar dados do caixa.", "erro");
@@ -300,12 +347,21 @@ function renderizarPaginacao(total) {
 // ──────────────────────────────────────────
 // HISTÓRICO
 // ──────────────────────────────────────────
+let paginaHistorico = 1;
+const HISTORICO_POR_PAGINA = 15;
+
 function renderizarHistorico() {
     const tbody = document.querySelector("#tabela-historico tbody");
     if (!tbody) return;
     const fechados = historicoList.filter(c => !c.fAtivo);
-    if (!fechados.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Nenhum caixa anterior.</td></tr>`; return; }
-    tbody.innerHTML = fechados.map(c => {
+    if (!fechados.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum caixa anterior.</td></tr>`; return; }
+
+    const total = fechados.length;
+    const totalPags = Math.ceil(total / HISTORICO_POR_PAGINA);
+    const inicio = (paginaHistorico - 1) * HISTORICO_POR_PAGINA;
+    const pagina = fechados.slice(inicio, inicio + HISTORICO_POR_PAGINA);
+
+    tbody.innerHTML = pagina.map(c => {
         const resultado = (c.saldoFinal || 0) - c.saldoInicial;
         const classeRes = resultado >= 0 ? "valor-entrada" : "valor-saida";
         const dif = c.diferenca;
@@ -317,10 +373,42 @@ function renderizarHistorico() {
             <td>${fmtDataHora(c.dthFechamento)}</td>
             <td>${fmtMoeda(c.saldoInicial)}</td>
             <td><span class="${classeRes}">${fmtMoeda(c.saldoFinal)}</span></td>
-            <td>${c.saldoFinalContado != null ? `<span class="${classeDif}">${fmtMoeda(c.saldoFinalContado)}</span>` : "—"}</td>
             <td>${dif != null ? `<span class="${classeDif}">${dif >= 0 ? "+" : ""}${fmtMoeda(dif)}</span>` : "—"}</td>
         </tr>`;
     }).join("");
+
+    // Paginação do histórico
+    let paginacaoEl = document.getElementById("paginacao-historico");
+    if (!paginacaoEl) {
+        paginacaoEl = document.createElement("div");
+        paginacaoEl.id = "paginacao-historico";
+        paginacaoEl.className = "paginacao";
+        document.getElementById("conteudo-historico").appendChild(paginacaoEl);
+    }
+
+    const ini = total === 0 ? 0 : inicio + 1;
+    const fim = Math.min(paginaHistorico * HISTORICO_POR_PAGINA, total);
+    paginacaoEl.innerHTML = `
+        <span class="paginacao-info">Mostrando ${ini}–${fim} de ${total}</span>
+        <div class="paginacao-controles" id="ctrl-historico"></div>`;
+
+    const ctrl = document.getElementById("ctrl-historico");
+    const prev = document.createElement("button");
+    prev.className = "btn-pagina"; prev.textContent = "‹"; prev.disabled = paginaHistorico === 1;
+    prev.onclick = () => { paginaHistorico--; renderizarHistorico(); };
+    ctrl.appendChild(prev);
+    for (let i = 1; i <= totalPags; i++) {
+        const btn = document.createElement("button");
+        btn.className = `btn-pagina${i === paginaHistorico ? " ativo" : ""}`;
+        btn.textContent = i;
+        btn.onclick = () => { paginaHistorico = i; renderizarHistorico(); };
+        ctrl.appendChild(btn);
+    }
+    const next = document.createElement("button");
+    next.className = "btn-pagina"; next.textContent = "›";
+    next.disabled = paginaHistorico >= totalPags;
+    next.onclick = () => { paginaHistorico++; renderizarHistorico(); };
+    ctrl.appendChild(next);
 }
 
 // ──────────────────────────────────────────
@@ -378,11 +466,13 @@ function fecharModalAbrirCaixa() {
 function abrirModalFecharCaixa() {
     if (!caixaAtual) return;
     const saldo = calcularSaldo();
+    const entradas = calcularEntradas();
+    const saidas = calcularSaidas();
     document.getElementById("fechar-saldo-calculado").value = saldo.toFixed(2);
     document.getElementById("fechar-saldo-calculado-label").textContent = fmtMoeda(saldo);
-    document.getElementById("fechar-saldo-contado").value = "";
-    document.getElementById("fechar-diferenca").textContent = "—";
-    document.getElementById("fechar-diferenca").className = "fechar-diferenca-valor";
+    document.getElementById("fechar-saldo-inicial-label").textContent = fmtMoeda(caixaAtual.saldoInicial);
+    document.getElementById("fechar-entradas-label").textContent = fmtMoeda(entradas);
+    document.getElementById("fechar-saidas-label").textContent = fmtMoeda(saidas);
     document.getElementById("fechar-obs").value = "";
     document.getElementById("modal-fechar-caixa").classList.add("open");
 }
@@ -460,16 +550,14 @@ function toggleCpfVenda() {
 async function buscarClienteCpf() {
     const cpf = document.getElementById("vr-cpf").value.replace(/\D/g, "");
     if (cpf.length < 11) { flexToast("CPF inválido.", "aviso"); return; }
-    if (!clientesCache.length)
-        clientesCache = await apiGet("/Cliente/Listar").catch(() => []);
-    const cliente = clientesCache.find(c => (c.cpfCNPJ || "").replace(/\D/g, "") === cpf);
     const infoEl = document.getElementById("vr-cliente-info");
-    if (cliente) {
+    try {
+        const cliente = await apiGet(`/Caixa/BuscarClientePorCpf?cpf=${cpf}`);
         _clienteSelecionadoVenda = cliente;
         infoEl.innerHTML = `<i class="bi bi-person-check-fill" style="color:#15803d"></i><strong>${cliente.nome}</strong>`;
         infoEl.style.display = "flex";
         document.getElementById("vr-fiado-wrap").style.display = "";
-    } else {
+    } catch {
         _clienteSelecionadoVenda = null;
         infoEl.innerHTML = `<i class="bi bi-person-x-fill" style="color:#dc2626"></i><span style="color:#dc2626">Cliente não encontrado</span>`;
         infoEl.style.display = "flex";
@@ -685,25 +773,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { flexToast("Erro ao abrir caixa: " + err.message, "erro"); }
     });
 
-    document.getElementById("fechar-saldo-contado").addEventListener("input", function () {
-        const calculado = calcularSaldo();
-        const contado = Number(this.value) || 0;
-        const dif = contado - calculado;
-        const el = document.getElementById("fechar-diferenca");
-        el.textContent = `${dif >= 0 ? "+" : ""}${fmtMoeda(dif)}`;
-        el.className = `fechar-diferenca-valor ${dif >= 0 ? "verde" : "vermelho"}`;
-    });
-
     document.getElementById("confirm-fechar-sim").addEventListener("click", async function () {
         if (!caixaAtual) return;
-        if (document.getElementById("fechar-saldo-contado").value === "") {
-            flexToast("Informe o saldo contado.", "aviso"); return;
-        }
-        const contado = Number(document.getElementById("fechar-saldo-contado").value);
+        const saldo = calcularSaldo();
         this.disabled = true;
         try {
             await apiPost("/Caixa/Fechar", {
-                SaldoFinalContado: contado,
+                SaldoFinalContado: saldo,
                 Obs: document.getElementById("fechar-obs").value || null
             });
             fecharModalFecharCaixa();

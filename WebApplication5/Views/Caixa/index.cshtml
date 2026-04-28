@@ -21,8 +21,6 @@
 
                 <!-- PAINEL SUPERIOR -->
                 <div class="caixa-painel">
-
-                    <!-- Card Status -->
                     <div class="caixa-card">
                         <span class="caixa-card-label">Status</span>
                         <span id="caixa-status-badge" class="caixa-status-badge fechado">
@@ -35,7 +33,6 @@
                         <span class="caixa-card-sub" id="caixa-abertura">—</span>
                     </div>
 
-                    <!-- Card Saldo em Caixa -->
                     <div class="caixa-card">
                         <span class="caixa-card-label">Saldo em Caixa</span>
                         <span id="caixa-saldo-atual" class="caixa-card-valor verde">R$ 0,00</span>
@@ -46,7 +43,6 @@
                         </div>
                     </div>
 
-                    <!-- Card Resumo do Dia -->
                     <div class="caixa-card caixa-card-resumo">
                         <span class="caixa-card-label">Resumo do Dia</span>
                         <div class="resumo-linha">
@@ -63,20 +59,17 @@
                         </div>
                     </div>
 
-                    <!-- Card Troco -->
                     <div class="caixa-card">
                         <span class="caixa-card-label">Troco Disponível</span>
                         <span id="caixa-troco" class="caixa-card-valor">R$ 0,00</span>
                         <span class="caixa-card-sub">Saldo em dinheiro físico</span>
                     </div>
 
-                    <!-- Ações -->
                     <div class="caixa-acoes">
                         <button id="btn-abrir" class="btn-abrir-caixa" onclick="abrirModalAbrirCaixa()">
                             <i class="bi bi-unlock-fill"></i> Abrir Caixa
                         </button>
-                        <button id="btn-fechar" class="btn-fechar-caixa" style="display:none"
-                                onclick="abrirModalFecharCaixa()">
+                        <button id="btn-fechar" class="btn-fechar-caixa" style="display:none" onclick="abrirModalFecharCaixa()">
                             <i class="bi bi-lock-fill"></i> Fechar Caixa
                         </button>
                     </div>
@@ -172,7 +165,6 @@
                                     <th>Fechamento</th>
                                     <th>Saldo Inicial</th>
                                     <th>Saldo Final</th>
-                                    <th>Contado</th>
                                     <th>Diferença</th>
                                 </tr>
                             </thead>
@@ -220,27 +212,27 @@
                 <button class="btn-fechar-modal" onclick="fecharModalFecharCaixa()">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="form-secao">Conferência de Valores</p>
+                <p class="form-secao">Resumo do Dia</p>
                 <div class="fechamento-resumo">
                     <div class="fechamento-linha">
-                        <span>Saldo calculado pelo sistema</span>
+                        <span>Saldo Inicial</span>
+                        <span id="fechar-saldo-inicial-label" class="fechamento-valor-sub">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha">
+                        <span><i class="bi bi-arrow-down-circle-fill" style="color:#15803d"></i> Ganhos do dia</span>
+                        <span id="fechar-entradas-label" class="fechamento-valor-sub verde">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha">
+                        <span><i class="bi bi-arrow-up-circle-fill" style="color:#dc2626"></i> Perdas do dia</span>
+                        <span id="fechar-saidas-label" class="fechamento-valor-sub vermelho">R$ 0,00</span>
+                    </div>
+                    <div class="fechamento-linha fechamento-linha-total">
+                        <span><strong>Saldo Final em Caixa</strong></span>
                         <span id="fechar-saldo-calculado-label" class="fechamento-valor">R$ 0,00</span>
                         <input type="hidden" id="fechar-saldo-calculado">
                     </div>
                 </div>
                 <div class="form-grid" style="margin-top:1.6rem">
-                    <div class="form-group form-col-2">
-                        <label>Saldo Contado Fisicamente (R$) <span class="obrigatorio">*</span></label>
-                        <input type="number" id="fechar-saldo-contado" min="0" step="0.01"
-                               placeholder="Informe o valor contado no caixa">
-                    </div>
-                    <div class="form-group form-col-2">
-                        <label>Diferença</label>
-                        <div class="diferenca-display">
-                            <span id="fechar-diferenca" class="fechar-diferenca-valor">—</span>
-                            <span class="diferenca-hint">positivo = sobra · negativo = falta</span>
-                        </div>
-                    </div>
                     <div class="form-group form-col-2">
                         <label>Observação</label>
                         <textarea id="fechar-obs" placeholder="Opcional..." rows="2"></textarea>

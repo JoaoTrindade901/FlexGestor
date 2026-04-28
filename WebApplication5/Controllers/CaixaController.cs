@@ -1,12 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
+using WebApplication5.Repositories;
 using WebApplication5.Services;
 
 public class CaixaController : BaseController
 {
     private readonly CaixaService _service;
+    private readonly ClienteRepository _clienteRepo;
+    private readonly AuditoriaService _auditoria;
 
-    public CaixaController(CaixaService service) => _service = service;
+    public CaixaController(CaixaService service, ClienteRepository clienteRepo, AuditoriaService auditoria)
+    {
+        _service = service;
+        _clienteRepo = clienteRepo;
+        _auditoria = auditoria;
+    }
 
     public IActionResult Index()
     {
@@ -65,6 +73,22 @@ public class CaixaController : BaseController
         return Json(new { saldo });
     }
 
+    public IActionResult BuscarClientePorCpf(string cpf)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var cpfLimpo = new string(cpf.Where(char.IsDigit).ToArray());
+        if (cpfLimpo.Length < 11) return BadRequest("CPF inválido.");
+        var cliente = _clienteRepo.BuscarPorCpf(cpfLimpo);
+        if (cliente == null) return NotFound();
+        return Json(new
+        {
+            idCliente = cliente.idCliente,
+            nome = cliente.nome,
+            cpfCNPJ = cliente.cpfCNPJ,
+            saldoDevedor = cliente.saldoDevedor
+        });
+    }
+
     [HttpPost]
     public IActionResult Abrir([FromBody] AbrirCaixaDto dto)
     {
@@ -74,12 +98,13 @@ public class CaixaController : BaseController
         var nomeUsuario = HttpContext.Session.GetString("nomeUsuario");
 
         if (idEmpresa == null || idUsuario == null)
-            return BadRequest($"Sessão inválida. idEmpresa={idEmpresa} idUsuario={idUsuario}");
+            return BadRequest($"Sessão inválida.");
 
         if (_service.BuscarAberto(idEmpresa.Value) != null)
             return BadRequest("Já existe um caixa aberto.");
 
         var idCaixa = _service.Abrir(idEmpresa.Value, idUsuario.Value, dto.SaldoInicial, nomeUsuario);
+        Auditar("CAIXA", "ABRIR_CAIXA", $"Caixa #{idCaixa} aberto com saldo inicial R$ {dto.SaldoInicial:F2}");
         return Ok(new { idCaixa });
     }
 
@@ -89,7 +114,12 @@ public class CaixaController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        try { _service.Fechar(idEmpresa, idUsuario, dto.SaldoFinalContado, dto.Obs); return Ok(); }
+        try
+        {
+            _service.Fechar(idEmpresa, idUsuario, dto.SaldoFinalContado, dto.Obs);
+            Auditar("CAIXA", "FECHAR_CAIXA", $"Caixa fechado. Saldo final: R$ {dto.SaldoFinalContado:F2}");
+            return Ok();
+        }
         catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
     }
 
@@ -99,7 +129,12 @@ public class CaixaController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        try { var id = _service.Lancar(idEmpresa, idUsuario, dto); return Ok(new { idLancamento = id }); }
+        try
+        {
+            var id = _service.Lancar(idEmpresa, idUsuario, dto);
+            Auditar("CAIXA", dto.TipoLancamento, $"Lançamento R$ {dto.Valor:F2} — {dto.Descricao}");
+            return Ok(new { idLancamento = id });
+        }
         catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
     }
 
@@ -113,7 +148,13 @@ public class CaixaController : BaseController
         var catVenda = _service.ListarCategorias(idEmpresa).FirstOrDefault(c => c.Tipo == 1);
         if (catVenda == null) return BadRequest("Nenhuma categoria de entrada cadastrada.");
 
-        try { var id = _service.VendaRapida(idEmpresa, idUsuario, dto, catVenda.idCategoriaFinanceira); return Ok(new { id }); }
+        try
+        {
+            var id = _service.VendaRapida(idEmpresa, idUsuario, dto, catVenda.idCategoriaFinanceira);
+            var tipo = dto.Fiado ? "VENDA (Fiado)" : "VENDA";
+            Auditar("CAIXA", "VENDA", $"{tipo} R$ {dto.Valor:F2} — {dto.Itens.Count} item(s)");
+            return Ok(new { id });
+        }
         catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
     }
 
@@ -140,6 +181,7 @@ public class CaixaController : BaseController
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.ReceberConta(idEmpresa, idUsuario, dto);
+        Auditar("CAIXA", "RECEBIMENTO", $"Recebimento de R$ {dto.ValorPago:F2} — Conta #{dto.IdContaReceber}");
         return Ok();
     }
 
@@ -148,6 +190,21 @@ public class CaixaController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.AlterarVencimentoConta(dto.IdContaReceber, dto.NovaData);
+        Auditar("CAIXA", "EDITAR", $"Vencimento da conta #{dto.IdContaReceber} alterado para {dto.NovaData:dd/MM/yyyy}");
         return Ok();
+    }
+
+    private void Auditar(string modulo, string acao, string descricao)
+    {
+        _auditoria.Registrar(new RegistrarAuditoriaDto
+        {
+            IdEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0,
+            IdUsuario = HttpContext.Session.GetInt32("idUsuario"),
+            NomeUsuario = HttpContext.Session.GetString("nomeUsuario"),
+            Modulo = modulo,
+            Acao = acao,
+            Descricao = descricao,
+            IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
     }
 }

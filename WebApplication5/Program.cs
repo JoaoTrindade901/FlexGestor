@@ -41,6 +41,9 @@ builder.Services.AddScoped<CategoriaProdutoService>();
 builder.Services.AddScoped<CaixaRepository>();
 builder.Services.AddScoped<CaixaService>();
 
+builder.Services.AddScoped<AuditoriaRepository>();
+builder.Services.AddScoped<AuditoriaService>();
+
 builder.Services.AddScoped<FornecedorRepository>();
 builder.Services.AddScoped<FornecedorService>();
 

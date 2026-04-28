@@ -1,4 +1,3 @@
-// Controllers/EstoqueController.cs
 using Microsoft.AspNetCore.Mvc;
 using WebApplication5.Models;
 using WebApplication5.Services;
@@ -6,8 +5,13 @@ using WebApplication5.Services;
 public class EstoqueController : BaseController
 {
     private readonly EstoqueService _service;
+    private readonly AuditoriaService _auditoria;
 
-    public EstoqueController(EstoqueService service) => _service = service;
+    public EstoqueController(EstoqueService service, AuditoriaService auditoria)
+    {
+        _service = service;
+        _auditoria = auditoria;
+    }
 
     public IActionResult Index()
     {
@@ -36,6 +40,8 @@ public class EstoqueController : BaseController
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.Movimentar(m, idEmpresa, idUsuario);
+        Auditar("ESTOQUE", m.TipoMovimentacao ?? "MOVIMENTACAO",
+            $"Produto #{m.IdProduto} — {m.TipoMovimentacao} de {m.Quantidade} unidades");
         return Ok();
     }
 
@@ -44,6 +50,8 @@ public class EstoqueController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.AtualizarMinimo(dto.IdProduto, dto.EstoqueMinimo);
+        Auditar("ESTOQUE", "AJUSTE",
+            $"Estoque mínimo do produto #{dto.IdProduto} atualizado para {dto.EstoqueMinimo}");
         return Ok();
     }
 
@@ -53,7 +61,23 @@ public class EstoqueController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         _service.AssociarFornecedor(dto.IdFornecedor, dto.IdProduto, idEmpresa, dto.PrecoCompra);
+        Auditar("ESTOQUE", "ASSOCIAR_FORNECEDOR",
+            $"Fornecedor #{dto.IdFornecedor} associado ao produto #{dto.IdProduto}");
         return Ok();
+    }
+
+    private void Auditar(string modulo, string acao, string descricao)
+    {
+        _auditoria.Registrar(new RegistrarAuditoriaDto
+        {
+            IdEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0,
+            IdUsuario = HttpContext.Session.GetInt32("idUsuario"),
+            NomeUsuario = HttpContext.Session.GetString("nomeUsuario"),
+            Modulo = modulo,
+            Acao = acao,
+            Descricao = descricao,
+            IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
     }
 }
 

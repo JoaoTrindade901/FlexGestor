@@ -5,8 +5,13 @@ using WebApplication5.Services;
 public class PedidoController : BaseController
 {
     private readonly PedidoService _service;
+    private readonly AuditoriaService _auditoria;
 
-    public PedidoController(PedidoService service) => _service = service;
+    public PedidoController(PedidoService service, AuditoriaService auditoria)
+    {
+        _service = service;
+        _auditoria = auditoria;
+    }
 
     public IActionResult Index()
     {
@@ -34,6 +39,7 @@ public class PedidoController : BaseController
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         var idGerado = _service.Criar(dto, idEmpresa, idUsuario);
+        Auditar("PEDIDO", "CRIAR", $"Pedido #{idGerado} criado");
         return Ok(new { idPedido = idGerado });
     }
 
@@ -43,6 +49,7 @@ public class PedidoController : BaseController
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario);
+        Auditar("PEDIDO", "ALTERAR_STATUS", $"Pedido #{dto.IdPedido} status alterado para {dto.StatusPedidoId}");
         return Ok();
     }
 
@@ -51,6 +58,7 @@ public class PedidoController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.Cancelar(idPedido);
+        Auditar("PEDIDO", "CANCELAR", $"Pedido #{idPedido} cancelado");
         return Ok();
     }
 
@@ -61,6 +69,7 @@ public class PedidoController : BaseController
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
         var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
         _service.Editar(dto, idEmpresa, idUsuario);
+        Auditar("PEDIDO", "EDITAR", $"Pedido #{dto.IdPedido} editado");
         return Ok();
     }
 
@@ -74,5 +83,19 @@ public class PedidoController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         return Json(_service.ListarHistoricoStatus(idPedido));
+    }
+
+    private void Auditar(string modulo, string acao, string descricao)
+    {
+        _auditoria.Registrar(new RegistrarAuditoriaDto
+        {
+            IdEmpresa = HttpContext.Session.GetInt32("IdEmpresa") ?? 0,
+            IdUsuario = HttpContext.Session.GetInt32("idUsuario"),
+            NomeUsuario = HttpContext.Session.GetString("nomeUsuario"),
+            Modulo = modulo,
+            Acao = acao,
+            Descricao = descricao,
+            IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
     }
 }

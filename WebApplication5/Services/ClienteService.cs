@@ -26,14 +26,21 @@ namespace WebApplication5.Services
 
         public int CriarCliente(ClienteCriarDto dto)
         {
+            // Valida CPF duplicado
+            if (!string.IsNullOrWhiteSpace(dto.Cliente.cpfCNPJ))
+            {
+                var cpfLimpo = new string(dto.Cliente.cpfCNPJ.Where(char.IsDigit).ToArray());
+                var existente = _clienteRepo.BuscarPorCpf(cpfLimpo);
+                if (existente != null)
+                    throw new InvalidOperationException("CPF/CNPJ já cadastrado para esta empresa.");
+            }
+
             // 1. insere o endereço e pega o id gerado
             var idEndereco = _enderecoRepo.InserirEndereco(dto.Endereco);
-
             // 2. insere o cliente com o enderecoId
             dto.Cliente.enderecoId = idEndereco;
             dto.Cliente.dthCadastro = DateTime.Now;
             dto.Cliente.fAtivo = true;
-
             return _clienteRepo.InserirCliente(dto.Cliente);
         }
 
