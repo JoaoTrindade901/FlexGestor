@@ -2,6 +2,7 @@
 
 let movimentacoes = [];
 let filtrado = [];
+let _filtroTipoAtivo = "todos"; // controlado pelos botões da view
 
 async function apiGet(url) {
     const res = await fetch(url);
@@ -33,10 +34,13 @@ function renderizarHistorico() {
     tbody.innerHTML = filtrado.map(m => {
         const tipoNorm = (m.TipoMovimentacao ?? m.tipoMovimentacao ?? "").toUpperCase();
         const isEntrada = tipoNorm === "ENTRADA";
-        const tipoClasse = isEntrada ? "mov-entrada" : "mov-saida";
-        const qtdClasse = isEntrada ? "qtd-entrada" : "qtd-saida";
-        const sinal = isEntrada ? "+" : "-";
-        const tipoLabel = tipoNorm === "AJUSTE" ? "Ajuste" : (isEntrada ? "Entrada" : "Saída");
+        const isAjuste = tipoNorm === "AJUSTE";
+
+        const tipoClasse = isAjuste ? "mov-ajuste" : (isEntrada ? "mov-entrada" : "mov-saida");
+        const qtdClasse = isAjuste ? "qtd-ajuste" : (isEntrada ? "qtd-entrada" : "qtd-saida");
+        const sinal = isEntrada ? "+" : (isAjuste ? "=" : "-");
+        const tipoLabel = isAjuste ? "Ajuste" : (isEntrada ? "Entrada" : "Saída");
+
         const nomeProd = m.nomeProduto ?? m.NomeProduto ?? "—";
         const motivo = m.Motivo ?? m.motivo ?? "—";
 
@@ -60,7 +64,7 @@ function formatarData(data) {
 
 function filtrarHistorico() {
     const termo = (document.getElementById("input-busca")?.value ?? "").toLowerCase().trim();
-    const tipo = document.getElementById("filtro-tipo")?.value || "todos";
+    const tipo = _filtroTipoAtivo ?? "todos";
     const dataInicio = document.getElementById("data-inicio")?.value;
     const dataFim = document.getElementById("data-fim")?.value;
 
@@ -68,21 +72,16 @@ function filtrarHistorico() {
         const tipoNorm = (m.TipoMovimentacao ?? m.tipoMovimentacao ?? "").toUpperCase();
         const nomeProd = (m.nomeProduto ?? m.NomeProduto ?? "").toLowerCase();
 
-        // filtro por nome do produto
         if (termo && !nomeProd.includes(termo)) return false;
-
-        // filtro por tipo
         if (tipo === "entrada" && tipoNorm !== "ENTRADA") return false;
         if (tipo === "saida" && tipoNorm !== "SAIDA") return false;
+        if (tipo === "ajuste" && tipoNorm !== "AJUSTE") return false;
 
-        // filtro por data início
         if (dataInicio) {
             const inicio = new Date(dataInicio + "T00:00:00");
             const dataMov = new Date(m.DthMovimentacao ?? m.dthMovimentacao);
             if (dataMov < inicio) return false;
         }
-
-        // filtro por data fim
         if (dataFim) {
             const fim = new Date(dataFim + "T23:59:59");
             const dataMov = new Date(m.DthMovimentacao ?? m.dthMovimentacao);
@@ -93,8 +92,8 @@ function filtrarHistorico() {
     });
 
     renderizarHistorico();
-} 
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     carregarHistorico();
-}); 
+});
