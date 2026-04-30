@@ -1,4 +1,3 @@
-// Repositories/EstoqueRepository.cs
 using Dapper;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -56,6 +55,21 @@ namespace WebApplication5.Repositories
             conn.Execute(
                 "sp_AtualizarEstoqueMinimo",
                 new { p_produto_id = idProduto, p_estoqueMin = estoqueMinimo },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void AtualizarConfiguracao(int idProduto, int estoqueMinimo, int estoqueMaximo, string? local)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_AtualizarConfiguracaoEstoque",
+                new
+                {
+                    p_produto_id = idProduto,
+                    p_estoqueMin = estoqueMinimo,
+                    p_estoqueMax = estoqueMaximo,
+                    p_local = local
+                },
                 commandType: CommandType.StoredProcedure);
         }
 

@@ -1,5 +1,4 @@
-﻿// Services/EstoqueService.cs
-using WebApplication5.Models;
+﻿using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -27,10 +26,12 @@ namespace WebApplication5.Services
         public void AtualizarMinimo(int idProduto, int estoqueMinimo)
             => _repo.AtualizarMinimo(idProduto, estoqueMinimo);
 
+        public void AtualizarConfiguracao(int idProduto, int estoqueMinimo, int estoqueMaximo, string? local)
+            => _repo.AtualizarConfiguracao(idProduto, estoqueMinimo, estoqueMaximo, local);
+
         public void AssociarFornecedor(int idFornecedor, int idProduto, int idEmpresa, decimal precoCompra)
             => _repo.AssociarFornecedor(idFornecedor, idProduto, idEmpresa, precoCompra);
 
-        // Chamado pelo PedidoService ao criar pedido
         public void DescontarEstoque(int idProduto, int quantidade, int idEmpresa, int idUsuario)
         {
             _repo.Movimentar(new MovimentacaoEstoqueModel
@@ -49,12 +50,11 @@ namespace WebApplication5.Services
         {
             var ids = itens.Select(i => i.IdProduto).Distinct();
             var disponiveis = _repo.BuscarQuantidadesDisponiveis(ids, idEmpresa);
-
             var erros = itens
                 .GroupBy(i => i.IdProduto)
                 .Where(g => !disponiveis.ContainsKey(g.Key) || disponiveis[g.Key] < g.Sum(i => i.Quantidade))
-                .Select(g => {
-                    var nome = g.First().IdProduto.ToString();
+                .Select(g =>
+                {
                     var saldo = disponiveis.ContainsKey(g.Key) ? disponiveis[g.Key] : 0;
                     return $"Produto #{g.Key}: solicitado {g.Sum(i => i.Quantidade)}, disponível {saldo}";
                 });

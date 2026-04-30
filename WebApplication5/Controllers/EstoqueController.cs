@@ -50,8 +50,17 @@ public class EstoqueController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         _service.AtualizarMinimo(dto.IdProduto, dto.EstoqueMinimo);
+        Auditar("ESTOQUE", "AJUSTE", $"Estoque mínimo do produto #{dto.IdProduto} atualizado para {dto.EstoqueMinimo}");
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult AtualizarConfiguracao([FromBody] AtualizarConfiguracaoDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.AtualizarConfiguracao(dto.IdProduto, dto.EstoqueMinimo, dto.EstoqueMaximo, dto.Local);
         Auditar("ESTOQUE", "AJUSTE",
-            $"Estoque mínimo do produto #{dto.IdProduto} atualizado para {dto.EstoqueMinimo}");
+            $"Configuração do produto #{dto.IdProduto} atualizada — Mín:{dto.EstoqueMinimo} Máx:{dto.EstoqueMaximo} Local:{dto.Local}");
         return Ok();
     }
 
@@ -85,6 +94,14 @@ public class AtualizarMinimoDto
 {
     public int IdProduto { get; set; }
     public int EstoqueMinimo { get; set; }
+}
+
+public class AtualizarConfiguracaoDto
+{
+    public int IdProduto { get; set; }
+    public int EstoqueMinimo { get; set; }
+    public int EstoqueMaximo { get; set; }
+    public string? Local { get; set; }
 }
 
 public class AssociarFornecedorDto

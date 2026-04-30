@@ -41,14 +41,25 @@ builder.Services.AddScoped<CategoriaProdutoService>();
 builder.Services.AddScoped<CaixaRepository>();
 builder.Services.AddScoped<CaixaService>();
 
+// Auditoria
 builder.Services.AddScoped<AuditoriaRepository>();
 builder.Services.AddScoped<AuditoriaService>();
 
+// Fornecedor
 builder.Services.AddScoped<FornecedorRepository>();
 builder.Services.AddScoped<FornecedorService>();
 
+// Home
 builder.Services.AddScoped<HomeRepository>();
 builder.Services.AddScoped<HomeService>();
+
+// Financeiro
+builder.Services.AddScoped<FinanceiroRepository>();
+builder.Services.AddScoped<FinanceiroService>();
+
+// Permissão
+//builder.Services.AddScoped<PermissaoRepository>();
+//builder.Services.AddScoped<PermissaoService>();
 
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();

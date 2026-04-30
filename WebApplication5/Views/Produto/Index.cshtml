@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body data-rota="Produto">
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-estoque">
+                <div class="cabecalho-tela">
+                    <h2>Produtos</h2>
+                    <button class="btn-novo-estoque" onclick="abrirModal()">
+                        <i class="bi bi-plus-circle-fill"></i> Novo Produto
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <div class="area-filtro">
+                        <input type="text" id="input-termo-busca" class="input-filtro"
+                               placeholder="Buscar por nome..." oninput="filtrarTabela()">
+                        <div class="filtro-status">
+                            <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                            <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
+                            <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                        </div>
+                    </div>
+
+                    <table class="table-estoque" id="tabela-estoque">
+                        <thead>
+                            <tr>
+                                <th>Ações</th>
+                                <th>Status</th>
+                                <th>Nome</th>
+                                <th>SKU</th>
+                                <th>Categoria</th>
+                                <th>Preço Custo</th>
+                                <th>Preço Venda</th>
+                                <th>Unidade</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="paginacao">
+                        <span class="paginacao-info"></span>
+                        <div class="paginacao-controles"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: NOVO / EDITAR PRODUTO -->
+    <div id="modalEstoque" class="modal">
+        <div class="modal-content" style="width:58rem">
+            <div class="modal-header">
+                <h3><i class="bi bi-plus-circle-fill"></i> Novo Produto</h3>
+                <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="mensagemErro" class="alerta-erro" style="display:none;"></div>
+                <form id="formEstoque">
+                    <div class="form-grid">
+                        <div class="form-group form-col-2">
+                            <label>Nome <span class="obrigatorio">*</span></label>
+                            <input type="text" id="nome" placeholder="Nome do produto" required>
+                        </div>
+                        <div class="form-group">
+                            <label>SKU / Código Interno</label>
+                            <input type="text" id="codProduto" placeholder="ex: SKU-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Código de Barras</label>
+                            <input type="text" id="codBarras" placeholder="EAN / GTIN">
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Descrição</label>
+                            <input type="text" id="descricao" placeholder="Descrição breve">
+                        </div>
+                        <div class="form-group form-col-2">
+                            <label>Categoria <span class="obrigatorio">*</span></label>
+                            <select id="prod-categoria">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preço de Custo (R$)</label>
+                            <input type="number" id="precoCusto" step="0.01" min="0" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço de Venda (R$)</label>
+                            <input type="number" id="precoVenda" step="0.01" min="0" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Unidade</label>
+                            <input type="text" id="unidade" placeholder="ex: UN, KG, CX">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+                <button type="button" class="btn-primario" id="btnSalvar">
+                    <i class="bi bi-check-lg"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/produtoJS/produto.js"></script>
+</body>
+</html>
