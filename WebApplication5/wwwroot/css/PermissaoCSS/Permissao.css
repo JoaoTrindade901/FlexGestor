@@ -1,0 +1,498 @@
+﻿/* wwwroot/css/permissaoCSS/permissao.css */
+
+main {
+    overflow-x: hidden;
+    min-width: 0;
+}
+
+.secao-permissao {
+    padding: 2.8rem 2.4rem;
+    font-family: 'Segoe UI', sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cabecalho-tela {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.4rem;
+}
+
+    .cabecalho-tela h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+/* TOPO — SELETOR DE CARGO */
+.permissao-topo {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem 2.4rem;
+    box-shadow: 0 .1rem .4rem rgba(0,0,0,.07), 0 .4rem 1.6rem rgba(0,0,0,.05);
+    margin-bottom: 2.4rem;
+    border: 1px solid #f0f2f5;
+}
+
+.cargo-selector {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    min-width: 28rem;
+}
+
+    .cargo-selector label {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: .06rem;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .cargo-selector select {
+        padding: 1rem 1.4rem;
+        border: 1px solid #dce1e7;
+        border-radius: .6rem;
+        font-size: 1.4rem;
+        font-family: 'Segoe UI', sans-serif;
+        outline: none;
+        background: #fff;
+        color: #374151;
+        cursor: pointer;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+        .cargo-selector select:focus {
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 .3rem rgba(30,60,114,.08);
+        }
+
+.cargo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem 1.6rem;
+    border-radius: 2rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: #eff6ff;
+    color: #1e3c72;
+    border: 1px solid #bfdbfe;
+}
+
+/* ABAS */
+.permissao-abas {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #eaecf0;
+    margin-bottom: 2rem;
+}
+
+.permissao-aba {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: 1.2rem 2rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #9ca3af;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: color .2s, border-color .2s;
+}
+
+    .permissao-aba:hover {
+        color: #1e3c72;
+    }
+
+    .permissao-aba.ativa {
+        color: #1e3c72;
+        border-bottom-color: #1e3c72;
+    }
+
+/* CARD */
+.permissao-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 .1rem .4rem rgba(0,0,0,.07), 0 .4rem 1.6rem rgba(0,0,0,.05);
+    border: 1px solid #f0f2f5;
+    overflow: hidden;
+}
+
+.permissao-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2.4rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fafbfc;
+}
+
+    .permissao-card-header h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e3c72;
+        margin: 0 0 .3rem;
+    }
+
+    .permissao-card-header p {
+        font-size: 1.2rem;
+        color: #9ca3af;
+        margin: 0;
+    }
+
+/* AÇÕES RÁPIDAS */
+.acoes-rapidas {
+    display: flex;
+    gap: .8rem;
+    flex-wrap: wrap;
+}
+
+.btn-acao-rapida {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .7rem 1.4rem;
+    border: 1px solid #dce1e7;
+    border-radius: .6rem;
+    background: #fff;
+    color: #374151;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all .2s;
+}
+
+    .btn-acao-rapida:hover {
+        background: #1e3c72;
+        color: #fff;
+        border-color: #1e3c72;
+    }
+
+    .btn-acao-rapida.vermelho:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+    }
+
+/* LISTA DE MENUS */
+.lista-permissoes {
+    padding: 1.6rem 2.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+}
+
+.permissao-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid #eaecf0;
+    border-radius: .8rem;
+    background: #fafbfc;
+    transition: border-color .2s, background .2s;
+}
+
+    .permissao-item:hover {
+        border-color: #bfdbfe;
+        background: #f0f9ff;
+    }
+
+    .permissao-item.ativo {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+    }
+
+    .permissao-item.inativo {
+        background: #fafbfc;
+        opacity: .7;
+    }
+
+.permissao-item-info {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.permissao-item-icone {
+    width: 3.6rem;
+    height: 3.6rem;
+    background: #eff6ff;
+    border-radius: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #1e3c72;
+    flex-shrink: 0;
+}
+
+.permissao-item-nome {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.permissao-item-rota {
+    font-size: 1.1rem;
+    color: #9ca3af;
+    margin-top: .2rem;
+}
+
+/* TOGGLE SWITCH */
+.toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.toggle-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #9ca3af;
+    min-width: 5rem;
+    text-align: right;
+}
+
+    .toggle-label.ativo {
+        color: #15803d;
+    }
+
+.toggle {
+    position: relative;
+    width: 4.8rem;
+    height: 2.6rem;
+    flex-shrink: 0;
+}
+
+    .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #d1d5db;
+    border-radius: 2.6rem;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        height: 2rem;
+        width: 2rem;
+        left: .3rem;
+        bottom: .3rem;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform .2s;
+        box-shadow: 0 .1rem .4rem rgba(0,0,0,.2);
+    }
+
+.toggle input:checked + .toggle-slider {
+    background: #1e3c72;
+}
+
+    .toggle input:checked + .toggle-slider::before {
+        transform: translateX(2.2rem);
+    }
+
+/* LISTA DE CAMPOS */
+.campos-legenda {
+    display: flex;
+    gap: 2rem;
+    padding: 1.2rem 2.4rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #f8fafc;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.2rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.lista-campos {
+    padding: 1.6rem 2.4rem;
+}
+
+.campos-secao {
+    margin-bottom: 2rem;
+}
+
+.campos-secao-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .08rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid #f0f2f5;
+    margin-bottom: 1rem;
+}
+
+.campo-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid #eaecf0;
+    border-radius: .8rem;
+    margin-bottom: .6rem;
+    background: #fafbfc;
+    transition: all .2s;
+}
+
+    .campo-item:hover {
+        border-color: #bfdbfe;
+        background: #f0f9ff;
+    }
+
+    .campo-item.oculto {
+        opacity: .5;
+        background: #f9fafb;
+    }
+
+.campo-item-nome {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.campo-item-chave {
+    font-size: 1.1rem;
+    color: #9ca3af;
+    font-family: monospace;
+    margin-top: .2rem;
+}
+
+.campo-controles {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+}
+
+.campo-controle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .4rem;
+}
+
+.campo-controle-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .04rem;
+}
+
+/* FOOTER */
+.permissao-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1.6rem;
+    margin-top: 2rem;
+    padding: 1.6rem 0;
+}
+
+.status-salvamento {
+    font-size: 1.3rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+    .status-salvamento.sucesso {
+        color: #15803d;
+        font-style: normal;
+        font-weight: 600;
+    }
+
+    .status-salvamento.erro {
+        color: #dc2626;
+        font-style: normal;
+        font-weight: 600;
+    }
+
+.btn-salvar {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    background: #1e3c72;
+    color: #fff;
+    border: none;
+    padding: 1.1rem 2.8rem;
+    border-radius: .6rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 .2rem .8rem rgba(30,60,114,.25);
+}
+
+    .btn-salvar:hover {
+        background: #254a8f;
+        transform: translateY(-.1rem);
+    }
+
+    .btn-salvar:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+/* VAZIO */
+.permissao-vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.6rem;
+    padding: 8rem 2rem;
+    color: #d1d5db;
+    text-align: center;
+}
+
+    .permissao-vazio i {
+        font-size: 6rem;
+    }
+
+    .permissao-vazio p {
+        font-size: 1.6rem;
+        color: #9ca3af;
+    }
+
+/* ABA CONTEÚDO */
+.aba-conteudo {
+    display: none;
+}
+
+    .aba-conteudo.ativa {
+        display: block;
+    }

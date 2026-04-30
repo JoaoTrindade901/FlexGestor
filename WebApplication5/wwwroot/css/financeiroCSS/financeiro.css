@@ -266,6 +266,10 @@ main {
         white-space: nowrap;
     }
 
+        .table-fin td:first-child .area-acoes {
+            flex-wrap: nowrap;
+        }
+
     .table-fin tbody tr:hover td {
         background: #f8faff;
     }

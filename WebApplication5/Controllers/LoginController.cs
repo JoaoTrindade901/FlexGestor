@@ -45,6 +45,7 @@ namespace WebApplication5.Controllers
             HttpContext.Session.SetInt32("idUsuario", user.IdUsuario);
             HttpContext.Session.SetString("nomeUsuario", user.Nome);
             HttpContext.Session.SetInt32("IdEmpresa", user.idEmpresa);
+            HttpContext.Session.SetInt32("cargo_id", user.cargo_id);
 
             _auditoria.Registrar(new RegistrarAuditoriaDto
             {

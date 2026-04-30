@@ -1,0 +1,137 @@
+﻿<!-- Views/Permissao/Index.cshtml -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permissões - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/permissaoCSS/permissao.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body data-rota="Permissao">
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-permissao">
+
+                <div class="cabecalho-tela">
+                    <h2><i class="bi bi-shield-lock-fill"></i> Controle de Permissões</h2>
+                </div>
+
+                <!-- SELETOR DE CARGO -->
+                <div class="permissao-topo">
+                    <div class="cargo-selector">
+                        <label><i class="bi bi-people-fill"></i> Cargo</label>
+                        <select id="select-cargo" onchange="carregarPermissoes()">
+                            <option value="">Selecione um cargo...</option>
+                        </select>
+                    </div>
+                    <div id="cargo-badge" class="cargo-badge" style="display:none"></div>
+                </div>
+
+                <!-- CONTEÚDO -->
+                <div id="permissao-conteudo" style="display:none">
+
+                    <!-- ABAS -->
+                    <div class="permissao-abas">
+                        <button id="aba-btn-menus" class="permissao-aba ativa" onclick="mudarAba('menus')">
+                            <i class="bi bi-layout-sidebar"></i> Menus e Rotas
+                        </button>
+                        <button id="aba-btn-campos" class="permissao-aba" onclick="mudarAba('campos')">
+                            <i class="bi bi-person-lines-fill"></i> Campos do Cliente
+                        </button>
+                    </div>
+
+                    <!-- ABA MENUS -->
+                    <div id="aba-menus" class="aba-conteudo ativa">
+                        <div class="permissao-card">
+                            <div class="permissao-card-header">
+                                <div>
+                                    <h3>Acesso aos Menus</h3>
+                                    <p>Defina quais menus este cargo pode visualizar e acessar</p>
+                                </div>
+                                <div class="acoes-rapidas">
+                                    <button class="btn-acao-rapida" onclick="marcarTodosMenus(true)">
+                                        <i class="bi bi-check-all"></i> Marcar todos
+                                    </button>
+                                    <button class="btn-acao-rapida vermelho" onclick="marcarTodosMenus(false)">
+                                        <i class="bi bi-x-lg"></i> Desmarcar todos
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="lista-menus" class="lista-permissoes">
+                                <!-- preenchido por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ABA CAMPOS -->
+                    <div id="aba-campos" class="aba-conteudo">
+                        <div class="permissao-card">
+                            <div class="permissao-card-header">
+                                <div>
+                                    <h3>Campos do Cadastro de Cliente</h3>
+                                    <p>Controle a visibilidade e edição de cada campo por cargo</p>
+                                </div>
+                                <div class="acoes-rapidas">
+                                    <button class="btn-acao-rapida" onclick="marcarTodosCampos('visivel', true)">
+                                        <i class="bi bi-eye-fill"></i> Todos visíveis
+                                    </button>
+                                    <button class="btn-acao-rapida" onclick="marcarTodosCampos('editavel', true)">
+                                        <i class="bi bi-pencil-fill"></i> Todos editáveis
+                                    </button>
+                                    <button class="btn-acao-rapida vermelho" onclick="marcarTodosCampos('visivel', false)">
+                                        <i class="bi bi-eye-slash-fill"></i> Ocultar todos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- LEGENDA -->
+                            <div class="campos-legenda">
+                                <span class="legenda-item">
+                                    <i class="bi bi-eye-fill" style="color:#15803d"></i> Visível
+                                </span>
+                                <span class="legenda-item">
+                                    <i class="bi bi-eye-slash-fill" style="color:#dc2626"></i> Oculto
+                                </span>
+                                <span class="legenda-item">
+                                    <i class="bi bi-pencil-fill" style="color:#2563eb"></i> Editável
+                                </span>
+                                <span class="legenda-item">
+                                    <i class="bi bi-lock-fill" style="color:#d97706"></i> Somente leitura
+                                </span>
+                            </div>
+
+                            <div id="lista-campos" class="lista-campos">
+                                <!-- preenchido por JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RODAPÉ -->
+                    <div class="permissao-footer">
+                        <span id="status-salvamento" class="status-salvamento"></span>
+                        <button class="btn-salvar" onclick="salvarPermissoes()">
+                            <i class="bi bi-check-lg"></i> Salvar Permissões
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- ESTADO VAZIO -->
+                <div id="permissao-vazio" class="permissao-vazio">
+                    <i class="bi bi-shield-lock"></i>
+                    <p>Selecione um cargo para gerenciar as permissões</p>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/permissaoJS/permissao.js"></script>
+</body>
+</html>

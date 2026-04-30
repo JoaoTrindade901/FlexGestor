@@ -55,6 +55,9 @@ const menuItens = [
     },
     {
         label: "Usuários", icone: "bi-person-gear", rota: "Usuario"
+    },
+    {
+        label: "Permissões", icone: "bi-shield-lock-fill", rota: "Permissao"
     }
 ];
 
@@ -65,13 +68,18 @@ async function inicializarMenu() {
     try {
         const res = await fetch("/Permissao/MinhasPermissoes");
         if (res.ok) permissoes = await res.json();
-    } catch { /* falha silenciosa */ }
+    } catch { /* falha silenciosa — tabelas ainda não existem */ }
 
     const temAcesso = (rota) => {
         if (!rota) return false;
-        if (!permissoes || permissoes.admin) return true;
+        // Se permissoes é null (endpoint falhou / tabelas não existem), libera tudo
+        if (!permissoes) return true;
+        if (permissoes.admin) return true;
         return permissoes.rotas?.some(r => r.toLowerCase() === rota.toLowerCase()) ?? false;
     };
+
+    // "Permissões" só aparece para admin (idCargo == 1)
+    const isAdmin = !permissoes || permissoes.admin === true;
 
     const container = document.getElementById("menu");
     if (!container) return;
@@ -91,6 +99,9 @@ async function inicializarMenu() {
     const ul = document.createElement("ul");
 
     menuItens.forEach(item => {
+        // Item de Permissões só aparece para admin
+        if (item.rota === "Permissao" && !isAdmin) return;
+
         // Verificar acesso ao pai
         const paiAcessivel = item.futuro ? false
             : item.filhos

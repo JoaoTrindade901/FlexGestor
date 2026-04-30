@@ -52,4 +52,30 @@
         public int IdFormaPagamento { get; set; }
         public int IdCategoriaFinanceira { get; set; }
     }
+
+    public class EditarContaReceberDto
+    {
+        public int IdContaReceber { get; set; }
+        public string? Descricao { get; set; }
+        public decimal ValorTotal { get; set; }
+        public DateTime DthVencimento { get; set; }
+        public int ClienteId { get; set; }
+    }
+
+    public class EditarContaPagarDto
+    {
+        public int IdContaPagar { get; set; }
+        public string? Descricao { get; set; }
+        public decimal ValorTotal { get; set; }
+        public DateTime DthVencimento { get; set; }
+        public int? FornecedorId { get; set; }
+    }
+
+    public class PagamentoHistoricoDto
+    {
+        public int idPagamento { get; set; }
+        public decimal valorPago { get; set; }
+        public DateTime dthPagamento { get; set; }
+        public string? observacao { get; set; }
+    }
 }

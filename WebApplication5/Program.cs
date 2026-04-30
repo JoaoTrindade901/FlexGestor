@@ -58,8 +58,8 @@ builder.Services.AddScoped<FinanceiroRepository>();
 builder.Services.AddScoped<FinanceiroService>();
 
 // Permissão
-//builder.Services.AddScoped<PermissaoRepository>();
-//builder.Services.AddScoped<PermissaoService>();
+builder.Services.AddScoped<PermissaoRepository>();
+builder.Services.AddScoped<PermissaoService>();
 
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();

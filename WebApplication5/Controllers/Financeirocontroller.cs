@@ -108,4 +108,67 @@ public class FinanceiroController : BaseController
             IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
         });
     }
+
+    [HttpPost]
+    public IActionResult EditarContaReceber([FromBody] EditarContaReceberDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.EditarContaReceber(dto);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult ExcluirContaReceber([FromBody] int id)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.ExcluirContaReceber(id);
+        return Ok();
+    }
+
+    public IActionResult ListarPagamentosContaReceber(int id)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarPagamentosContaReceber(id));
+    }
+
+    [HttpPost]
+    public IActionResult EditarContaPagar([FromBody] EditarContaPagarDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.EditarContaPagar(dto);
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult ExcluirContaPagar([FromBody] int id)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.ExcluirContaPagar(id);
+        return Ok();
+    }
+
+    public IActionResult ListarPagamentosContaPagar(int id)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarPagamentosContaPagar(id));
+    }
+
+    // ── EXPORTAR ─────────────────────────────────────────────────
+    public IActionResult ExportarExcel(string tipo)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        var bytes = _service.GerarExcel(idEmpresa, tipo);
+        var nome = $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.xlsx";
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nome);
+    }
+
+    public IActionResult ExportarPdf(string tipo)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        var bytes = _service.GerarPdf(idEmpresa, tipo);
+        var nome = $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.pdf";
+        return File(bytes, "application/pdf", nome);
+    }
 }
