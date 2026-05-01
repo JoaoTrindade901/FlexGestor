@@ -87,6 +87,7 @@ function getPillLabel(status) {
 // CARREGAR DADOS
 // ──────────────────────────────────────────
 async function carregarTudo() {
+    console.log("[carregarTudo] iniciando...");
     try {
         [contasReceber, contasPagar, formasPagamento, categorias, clientes, fornecedores] = await Promise.all([
             apiGet("/Financeiro/ListarContasReceber"),
@@ -96,18 +97,20 @@ async function carregarTudo() {
             apiGet("/Cliente/Listar"),
             apiGet("/Fornecedor/Listar")
         ]);
+        console.log("[carregarTudo] contasReceber:", contasReceber.length, "registros");
         atualizarKPIs();
         aplicarFiltroReceber();
         aplicarFiltroPagar();
         popularSelects();
         popularSelectsEdicao();
+        console.log("[carregarTudo] concluído");
     } catch (err) {
+        console.error("[carregarTudo] ERRO:", err.message);
         flexToast("Erro ao carregar dados: " + err.message, "erro");
     }
 }
 
 function popularSelects() {
-    // Clientes
     const selCliente = document.getElementById("nr-cliente");
     if (selCliente) {
         selCliente.innerHTML = '<option value="">Selecione...</option>' +
@@ -115,7 +118,6 @@ function popularSelects() {
                 `<option value="${c.idCliente}">${c.nome}</option>`).join("");
     }
 
-    // Fornecedores
     const selForn = document.getElementById("np-fornecedor");
     if (selForn) {
         selForn.innerHTML = '<option value="">Nenhum</option>' +
@@ -123,14 +125,12 @@ function popularSelects() {
                 `<option value="${f.idFornecedor}">${f.nomeFantasia || f.razaoSocial}</option>`).join("");
     }
 
-    // Formas de pagamento
     ["rp-forma", "pc-forma"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = formasPagamento.map(f =>
             `<option value="${f.idFormaPagamento}">${f.nome}</option>`).join("");
     });
 
-    // Categorias — suporta Tipo ou tipo (maiúsculo ou minúsculo)
     const getTipo = c => c.Tipo ?? c.tipo ?? c.TipoCategoriaFinanceira ?? c.tipoCategoriaFinanceira;
     const catEntrada = categorias.filter(c => getTipo(c) == 1);
     const catSaida = categorias.filter(c => getTipo(c) == 2);
@@ -168,10 +168,10 @@ function atualizarKPIs() {
     const abertoP = contasPagar.filter(c => c.statusAtual !== "PAGO");
     const vencidasP = contasPagar.filter(c => c.statusAtual === "VENCIDO");
 
-    const totalReceber = abertas.reduce((s, c) => s + (c.valorTotal - c.valorPago), 0);
-    const totalVencidoR = vencidasR.reduce((s, c) => s + (c.valorTotal - c.valorPago), 0);
-    const totalPagar = abertoP.reduce((s, c) => s + (c.valorTotal - c.valorPago), 0);
-    const totalVencidoP = vencidasP.reduce((s, c) => s + (c.valorTotal - c.valorPago), 0);
+    const totalReceber = abertas.reduce((s, c) => s + Math.max(0, c.valorTotal - c.valorPago), 0);
+    const totalVencidoR = vencidasR.reduce((s, c) => s + Math.max(0, c.valorTotal - c.valorPago), 0);
+    const totalPagar = abertoP.reduce((s, c) => s + Math.max(0, c.valorTotal - c.valorPago), 0);
+    const totalVencidoP = vencidasP.reduce((s, c) => s + Math.max(0, c.valorTotal - c.valorPago), 0);
 
     document.getElementById("kpi-a-receber").textContent = fmt(totalReceber);
     document.getElementById("kpi-a-receber-sub").textContent = `${abertas.length} conta${abertas.length !== 1 ? "s" : ""} aberta${abertas.length !== 1 ? "s" : ""}`;
@@ -339,7 +339,7 @@ function renderizarReceber() {
 
     tbody.innerHTML = pagina.map(c => {
         const status = c.statusAtual ?? 'ABERTO';
-        const restante = c.valorTotal - c.valorPago;
+        const restante = Math.max(0, c.valorTotal - c.valorPago);
         const isPago = status === 'PAGO';
         const venc = new Date(c.dthVencimento); venc.setHours(0, 0, 0, 0);
         const vencida = !isPago && venc < hoje;
@@ -357,9 +357,9 @@ function renderizarReceber() {
                 <button class="btn-acao" style="color:#9ca3af" title="Histórico" onclick="abrirHistoricoReceber(${c.idContaReceber})">
                     <i class="bi bi-clock-history"></i>
                 </button>
-                <button class="btn-acao" style="color:#ef4444" title="Excluir" onclick="excluirContaReceber(${c.idContaReceber})">
+                ${!isPago ? `<button class="btn-acao" style="color:#ef4444" title="Excluir" onclick="excluirContaReceber(${c.idContaReceber})">
                     <i class="bi bi-trash3-fill"></i>
-                </button>
+                </button>` : ''}
                 ${!isPago ? `<button class="btn-acao btn-calendar-icon" title="Alterar vencimento" onclick="abrirModalVencReceber(${c.idContaReceber}, '${c.dthVencimento?.substring(0, 10)}')">
                     <i class="bi bi-calendar-event"></i>
                 </button>` : ''}
@@ -402,7 +402,7 @@ function renderizarPagar() {
 
     tbody.innerHTML = pagina.map(c => {
         const status = c.statusAtual ?? 'ABERTO';
-        const restante = c.valorTotal - c.valorPago;
+        const restante = Math.max(0, c.valorTotal - c.valorPago);
         const isPago = status === 'PAGO';
         const venc = new Date(c.dthVencimento); venc.setHours(0, 0, 0, 0);
         const vencida = !isPago && venc < hoje;
@@ -420,9 +420,9 @@ function renderizarPagar() {
                 <button class="btn-acao" style="color:#9ca3af" title="Histórico" onclick="abrirHistoricoPagar(${c.idContaPagar})">
                     <i class="bi bi-clock-history"></i>
                 </button>
-                <button class="btn-acao" style="color:#ef4444" title="Excluir" onclick="excluirContaPagar(${c.idContaPagar})">
+                ${!isPago ? `<button class="btn-acao" style="color:#ef4444" title="Excluir" onclick="excluirContaPagar(${c.idContaPagar})">
                     <i class="bi bi-trash3-fill"></i>
-                </button>
+                </button>` : ''}
                 ${!isPago ? `<button class="btn-acao btn-calendar-icon" title="Alterar vencimento" onclick="abrirModalVencPagar(${c.idContaPagar}, '${c.dthVencimento?.substring(0, 10)}')">
                     <i class="bi bi-calendar-event"></i>
                 </button>` : ''}
@@ -478,9 +478,11 @@ async function salvarNovaReceber() {
 // ──────────────────────────────────────────
 function abrirModalReceberPagamento(id, cliente, restante) {
     document.getElementById("rp-id").value = id;
+    document.getElementById("rp-restante-raw").value = restante;
     document.getElementById("rp-cliente").textContent = cliente;
     document.getElementById("rp-restante").textContent = fmt(restante);
     document.getElementById("rp-valor").value = restante.toFixed(2);
+    document.getElementById("rp-valor").max = restante;
     document.getElementById("modal-receber-pagamento").classList.add("open");
 }
 function fecharModalReceberPagamento() { document.getElementById("modal-receber-pagamento").classList.remove("open"); }
@@ -490,7 +492,12 @@ async function confirmarReceber() {
     const valor = Number(document.getElementById("rp-valor").value);
     const forma = Number(document.getElementById("rp-forma").value);
     const cat = Number(document.getElementById("rp-categoria").value);
+    const restante = Number(document.getElementById("rp-restante-raw").value);
     if (!valor || valor <= 0) { flexToast("Informe o valor.", "aviso"); return; }
+    if (valor > restante + 0.01) {
+        flexToast(`Valor não pode exceder o restante (${fmt(restante)}).`, "aviso");
+        return;
+    }
     try {
         await apiPost("/Financeiro/ReceberConta", { IdContaReceber: id, ValorPago: valor, IdFormaPagamento: forma, IdCategoriaFinanceira: cat });
         fecharModalReceberPagamento();
@@ -522,79 +529,71 @@ async function confirmarVencReceber() {
 }
 
 // ──────────────────────────────────────────
-// MODAL: NOVA CONTA A PAGAR
+// EXCLUIR RECEBER
 // ──────────────────────────────────────────
-function abrirModalNovaPagar() {
-    document.getElementById("np-fornecedor").value = "";
-    document.getElementById("np-descricao").value = "";
-    document.getElementById("np-valor").value = "";
-    document.getElementById("np-vencimento").value = "";
-    document.getElementById("modal-nova-pagar").classList.add("open");
+function excluirContaReceber(id) {
+    document.getElementById("excluir-r-id").value = id;
+    document.getElementById("modal-excluir-receber").classList.add("open");
 }
-function fecharModalNovaPagar() { document.getElementById("modal-nova-pagar").classList.remove("open"); }
+function fecharModalExcluirReceber() { document.getElementById("modal-excluir-receber").classList.remove("open"); }
 
-async function salvarNovaPagar() {
-    const fornecedorId = document.getElementById("np-fornecedor").value || null;
-    const descricao = document.getElementById("np-descricao").value.trim() || null;
-    const valor = Number(document.getElementById("np-valor").value);
-    const vencimento = document.getElementById("np-vencimento").value;
-    if (!descricao) { flexToast("Informe a descrição.", "aviso"); return; }
-    if (!valor || valor <= 0) { flexToast("Informe o valor.", "aviso"); return; }
-    if (!vencimento) { flexToast("Informe o vencimento.", "aviso"); return; }
+async function confirmarExcluirReceber() {
+    const id = Number(document.getElementById("excluir-r-id").value);
+    const btn = document.getElementById("btn-confirmar-excluir-r");
+    btn.disabled = true;
+    console.log("[excluir receber] id:", id);
     try {
-        await apiPost("/Financeiro/CriarContaPagar", { FornecedorId: fornecedorId ? Number(fornecedorId) : null, Descricao: descricao, ValorTotal: valor, DthVencimento: vencimento });
-        fecharModalNovaPagar();
+        const res = await apiPost("/Financeiro/ExcluirContaReceber", { Id: id });
+        console.log("[excluir receber] status:", res.status);
+        fecharModalExcluirReceber();
+        console.log("[excluir receber] modal fechado, recarregando...");
         await carregarTudo();
-        flexToast("Conta a pagar criada!", "sucesso");
-    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+        console.log("[excluir receber] recarregado, contasReceber:", contasReceber.length);
+        flexToast("Conta excluída.", "sucesso");
+    } catch (err) {
+        console.error("[excluir receber] erro:", err.message);
+        flexToast("Erro ao excluir: " + err.message, "erro");
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 // ──────────────────────────────────────────
-// MODAL: PAGAR CONTA
+// HISTÓRICO RECEBER
 // ──────────────────────────────────────────
-function abrirModalPagarConta(id, fornecedor, restante) {
-    document.getElementById("pc-id").value = id;
-    document.getElementById("pc-fornecedor").textContent = fornecedor;
-    document.getElementById("pc-restante").textContent = fmt(restante);
-    document.getElementById("pc-valor").value = restante.toFixed(2);
-    document.getElementById("modal-pagar-conta").classList.add("open");
-}
-function fecharModalPagarConta() { document.getElementById("modal-pagar-conta").classList.remove("open"); }
-
-async function confirmarPagar() {
-    const id = Number(document.getElementById("pc-id").value);
-    const valor = Number(document.getElementById("pc-valor").value);
-    const forma = Number(document.getElementById("pc-forma").value);
-    const cat = Number(document.getElementById("pc-categoria").value);
-    if (!valor || valor <= 0) { flexToast("Informe o valor.", "aviso"); return; }
+async function abrirHistoricoReceber(id) {
+    const c = contasReceber.find(x => x.idContaReceber === id);
+    document.getElementById('hist-titulo').textContent = c?.descricao || 'Histórico de Pagamentos';
+    document.getElementById('hist-corpo').innerHTML = '<div style="text-align:center;padding:2rem;color:#9ca3af">Carregando...</div>';
+    document.getElementById('modal-historico').classList.add('open');
     try {
-        await apiPost("/Financeiro/PagarConta", { IdContaPagar: id, ValorPago: valor, IdFormaPagamento: forma, IdCategoriaFinanceira: cat });
-        fecharModalPagarConta();
-        await carregarTudo();
-        flexToast("Pagamento registrado!", "sucesso");
-    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
-}
-
-// ──────────────────────────────────────────
-// MODAL: ALTERAR VENCIMENTO PAGAR
-// ──────────────────────────────────────────
-function abrirModalVencPagar(id, data) {
-    document.getElementById("vp-id").value = id;
-    document.getElementById("vp-data").value = data || "";
-    document.getElementById("modal-venc-pagar").classList.add("open");
-}
-function fecharModalVencPagar() { document.getElementById("modal-venc-pagar").classList.remove("open"); }
-
-async function confirmarVencPagar() {
-    const id = Number(document.getElementById("vp-id").value);
-    const data = document.getElementById("vp-data").value;
-    if (!data) { flexToast("Informe a data.", "aviso"); return; }
-    try {
-        await apiPost("/Financeiro/AlterarVencimentoPagar", { IdContaPagar: id, NovaData: data });
-        fecharModalVencPagar();
-        await carregarTudo();
-        flexToast("Vencimento alterado!", "sucesso");
-    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+        const data = await apiGet(`/Financeiro/HistoricoReceber?idContaReceber=${id}`);
+        if (!data.length) {
+            document.getElementById('hist-corpo').innerHTML =
+                '<div style="text-align:center;padding:2rem;color:#9ca3af">Nenhum pagamento registrado.</div>';
+            return;
+        }
+        document.getElementById('hist-corpo').innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:1.3rem">
+                <thead><tr style="background:#f7f9fc">
+                    <th style="text-align:left;padding:1rem;border-bottom:2px solid #eaecf0">Data</th>
+                    <th style="text-align:right;padding:1rem;border-bottom:2px solid #eaecf0">Valor Pago</th>
+                </tr></thead>
+                <tbody>${data.map(p => `
+                    <tr style="border-bottom:1px solid #f0f2f5">
+                        <td style="padding:1rem">${fmtData(p.dthPagamento)}</td>
+                        <td style="padding:1rem;text-align:right;font-weight:700;color:#15803d">${fmt(p.valorPago)}</td>
+                    </tr>`).join('')}
+                    <tr style="background:#f8fafc;font-weight:700">
+                        <td style="padding:1rem">Total pago</td>
+                        <td style="padding:1rem;text-align:right;color:#15803d">${fmt(data.reduce((a, p) => a + p.valorPago, 0))}</td>
+                    </tr>
+                </tbody>
+            </table>`;
+    } catch (err) {
+        console.error("[historico receber] erro:", err.message);
+        document.getElementById('hist-corpo').innerHTML = '<div style="color:#dc2626;padding:2rem">Erro ao carregar.</div>';
+    }
 }
 
 // ──────────────────────────────────────────
@@ -630,50 +629,116 @@ async function salvarEditarReceber() {
 }
 
 // ──────────────────────────────────────────
-// EXCLUIR RECEBER
+// MODAL: NOVA CONTA A PAGAR
 // ──────────────────────────────────────────
-async function excluirContaReceber(id) {
-    if (!confirm('Deseja excluir esta conta a receber?')) return;
+function abrirModalNovaPagar() {
+    document.getElementById("np-fornecedor").value = "";
+    document.getElementById("np-descricao").value = "";
+    document.getElementById("np-valor").value = "";
+    document.getElementById("np-vencimento").value = "";
+    document.getElementById("modal-nova-pagar").classList.add("open");
+}
+function fecharModalNovaPagar() { document.getElementById("modal-nova-pagar").classList.remove("open"); }
+
+async function salvarNovaPagar() {
+    const fornecedorId = document.getElementById("np-fornecedor").value || null;
+    const descricao = document.getElementById("np-descricao").value.trim() || null;
+    const valor = Number(document.getElementById("np-valor").value);
+    const vencimento = document.getElementById("np-vencimento").value;
+    if (!descricao) { flexToast("Informe a descrição.", "aviso"); return; }
+    if (!valor || valor <= 0) { flexToast("Informe o valor.", "aviso"); return; }
+    if (!vencimento) { flexToast("Informe o vencimento.", "aviso"); return; }
     try {
-        await apiPost('/Financeiro/ExcluirContaReceber', { id });
+        await apiPost("/Financeiro/CriarContaPagar", { FornecedorId: fornecedorId ? Number(fornecedorId) : null, Descricao: descricao, ValorTotal: valor, DthVencimento: vencimento });
+        fecharModalNovaPagar();
         await carregarTudo();
-        flexToast('Conta excluída.', 'sucesso');
-    } catch (err) { flexToast('Erro ao excluir: ' + err.message, 'erro'); }
+        flexToast("Conta a pagar criada!", "sucesso");
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
 }
 
 // ──────────────────────────────────────────
-// HISTÓRICO RECEBER
+// MODAL: PAGAR CONTA
 // ──────────────────────────────────────────
-async function abrirHistoricoReceber(id) {
-    const c = contasReceber.find(x => x.idContaReceber === id);
-    document.getElementById('hist-titulo').textContent = c?.descricao || 'Histórico de Pagamentos';
-    document.getElementById('hist-corpo').innerHTML = '<div style="text-align:center;padding:2rem;color:#9ca3af">Carregando...</div>';
-    document.getElementById('modal-historico').classList.add('open');
+function abrirModalPagarConta(id, fornecedor, restante) {
+    document.getElementById("pc-id").value = id;
+    document.getElementById("pc-restante-raw").value = restante;
+    document.getElementById("pc-fornecedor").textContent = fornecedor;
+    document.getElementById("pc-restante").textContent = fmt(restante);
+    document.getElementById("pc-valor").value = restante.toFixed(2);
+    document.getElementById("pc-valor").max = restante;
+    document.getElementById("modal-pagar-conta").classList.add("open");
+}
+function fecharModalPagarConta() { document.getElementById("modal-pagar-conta").classList.remove("open"); }
+
+async function confirmarPagar() {
+    const id = Number(document.getElementById("pc-id").value);
+    const valor = Number(document.getElementById("pc-valor").value);
+    const forma = Number(document.getElementById("pc-forma").value);
+    const cat = Number(document.getElementById("pc-categoria").value);
+    const restante = Number(document.getElementById("pc-restante-raw").value);
+    if (!valor || valor <= 0) { flexToast("Informe o valor.", "aviso"); return; }
+    if (valor > restante + 0.01) {
+        flexToast(`Valor não pode exceder o restante (${fmt(restante)}).`, "aviso");
+        return;
+    }
     try {
-        const data = await apiGet(`/Financeiro/ListarPagamentosContaReceber?id=${id}`);
-        if (!data.length) {
-            document.getElementById('hist-corpo').innerHTML =
-                '<div style="text-align:center;padding:2rem;color:#9ca3af">Nenhum pagamento registrado.</div>';
-            return;
-        }
-        document.getElementById('hist-corpo').innerHTML = `
-            <table style="width:100%;border-collapse:collapse;font-size:1.3rem">
-                <thead><tr style="background:#f7f9fc">
-                    <th style="text-align:left;padding:1rem;border-bottom:2px solid #eaecf0">Data</th>
-                    <th style="text-align:right;padding:1rem;border-bottom:2px solid #eaecf0">Valor Pago</th>
-                </tr></thead>
-                <tbody>${data.map(p => `
-                    <tr style="border-bottom:1px solid #f0f2f5">
-                        <td style="padding:1rem">${fmtData(p.dthPagamento)}</td>
-                        <td style="padding:1rem;text-align:right;font-weight:700;color:#15803d">${fmt(p.valorPago)}</td>
-                    </tr>`).join('')}
-                    <tr style="background:#f8fafc;font-weight:700">
-                        <td style="padding:1rem">Total pago</td>
-                        <td style="padding:1rem;text-align:right;color:#15803d">${fmt(data.reduce((a, p) => a + p.valorPago, 0))}</td>
-                    </tr>
-                </tbody>
-            </table>`;
-    } catch { document.getElementById('hist-corpo').innerHTML = '<div style="color:#dc2626;padding:2rem">Erro ao carregar.</div>'; }
+        await apiPost("/Financeiro/PagarConta", { IdContaPagar: id, ValorPago: valor, IdFormaPagamento: forma, IdCategoriaFinanceira: cat });
+        fecharModalPagarConta();
+        await carregarTudo();
+        flexToast("Pagamento registrado!", "sucesso");
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+}
+
+// ──────────────────────────────────────────
+// MODAL: ALTERAR VENCIMENTO PAGAR
+// ──────────────────────────────────────────
+function abrirModalVencPagar(id, data) {
+    document.getElementById("vp-id").value = id;
+    document.getElementById("vp-data").value = data || "";
+    document.getElementById("modal-venc-pagar").classList.add("open");
+}
+function fecharModalVencPagar() { document.getElementById("modal-venc-pagar").classList.remove("open"); }
+
+async function confirmarVencPagar() {
+    const id = Number(document.getElementById("vp-id").value);
+    const data = document.getElementById("vp-data").value;
+    if (!data) { flexToast("Informe a data.", "aviso"); return; }
+    try {
+        await apiPost("/Financeiro/AlterarVencimentoPagar", { IdContaPagar: id, NovaData: data });
+        fecharModalVencPagar();
+        await carregarTudo();
+        flexToast("Vencimento alterado!", "sucesso");
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+}
+
+// ──────────────────────────────────────────
+// EXCLUIR PAGAR
+// ──────────────────────────────────────────
+function excluirContaPagar(id) {
+    document.getElementById("excluir-p-id").value = id;
+    document.getElementById("modal-excluir-pagar").classList.add("open");
+}
+function fecharModalExcluirPagar() { document.getElementById("modal-excluir-pagar").classList.remove("open"); }
+
+async function confirmarExcluirPagar() {
+    const id = Number(document.getElementById("excluir-p-id").value);
+    const btn = document.getElementById("btn-confirmar-excluir-p");
+    btn.disabled = true;
+    console.log("[excluir pagar] id:", id);
+    try {
+        const res = await apiPost("/Financeiro/ExcluirContaPagar", { Id: id });
+        console.log("[excluir pagar] status:", res.status);
+        fecharModalExcluirPagar();
+        console.log("[excluir pagar] modal fechado, recarregando...");
+        await carregarTudo();
+        console.log("[excluir pagar] recarregado, contasPagar:", contasPagar.length);
+        flexToast("Conta excluída.", "sucesso");
+    } catch (err) {
+        console.error("[excluir pagar] erro:", err.message);
+        flexToast("Erro ao excluir: " + err.message, "erro");
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 // ──────────────────────────────────────────
@@ -709,18 +774,6 @@ async function salvarEditarPagar() {
 }
 
 // ──────────────────────────────────────────
-// EXCLUIR PAGAR
-// ──────────────────────────────────────────
-async function excluirContaPagar(id) {
-    if (!confirm('Deseja excluir esta conta a pagar?')) return;
-    try {
-        await apiPost('/Financeiro/ExcluirContaPagar', { id });
-        await carregarTudo();
-        flexToast('Conta excluída.', 'sucesso');
-    } catch (err) { flexToast('Erro ao excluir: ' + err.message, 'erro'); }
-}
-
-// ──────────────────────────────────────────
 // HISTÓRICO PAGAR
 // ──────────────────────────────────────────
 async function abrirHistoricoPagar(id) {
@@ -729,7 +782,7 @@ async function abrirHistoricoPagar(id) {
     document.getElementById('hist-corpo').innerHTML = '<div style="text-align:center;padding:2rem;color:#9ca3af">Carregando...</div>';
     document.getElementById('modal-historico').classList.add('open');
     try {
-        const data = await apiGet(`/Financeiro/ListarPagamentosContaPagar?id=${id}`);
+        const data = await apiGet(`/Financeiro/HistoricoPagar?idContaPagar=${id}`);
         if (!data.length) {
             document.getElementById('hist-corpo').innerHTML =
                 '<div style="text-align:center;padding:2rem;color:#9ca3af">Nenhum pagamento registrado.</div>';
@@ -752,14 +805,14 @@ async function abrirHistoricoPagar(id) {
                     </tr>
                 </tbody>
             </table>`;
-    } catch { document.getElementById('hist-corpo').innerHTML = '<div style="color:#dc2626;padding:2rem">Erro ao carregar.</div>'; }
+    } catch (err) {
+        console.error("[historico pagar] erro:", err.message);
+        document.getElementById('hist-corpo').innerHTML = '<div style="color:#dc2626;padding:2rem">Erro ao carregar.</div>';
+    }
 }
 
 function fecharHistorico() { document.getElementById('modal-historico').classList.remove('open'); }
 
-// ──────────────────────────────────────────
-// EXPORTAR
-// ──────────────────────────────────────────
 function exportar(tipo, formato) {
     const aba = document.getElementById('painel-receber').style.display !== 'none' ? 'receber' : 'pagar';
     window.open(`/Financeiro/Exportar${formato === 'excel' ? 'Excel' : 'Pdf'}?tipo=${aba}`, '_blank');
@@ -773,11 +826,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ["modal-nova-receber", fecharModalNovaReceber],
         ["modal-receber-pagamento", fecharModalReceberPagamento],
         ["modal-venc-receber", fecharModalVencReceber],
+        ["modal-editar-receber", fecharModalEditarReceber],
+        ["modal-excluir-receber", fecharModalExcluirReceber],
         ["modal-nova-pagar", fecharModalNovaPagar],
         ["modal-pagar-conta", fecharModalPagarConta],
         ["modal-venc-pagar", fecharModalVencPagar],
-        ["modal-editar-receber", fecharModalEditarReceber],
         ["modal-editar-pagar", fecharModalEditarPagar],
+        ["modal-excluir-pagar", fecharModalExcluirPagar],
         ["modal-historico", fecharHistorico],
     ].forEach(([id, fn]) => {
         document.getElementById(id)?.addEventListener("click", function (e) {

@@ -178,7 +178,9 @@
         </main>
     </div>
 
-    <!-- MODAL: ABRIR CAIXA -->
+    <!-- ════════════════════════════════════════
+         MODAL: ABRIR CAIXA
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-abrir-caixa">
         <div class="modal-content" style="width:42rem">
             <div class="modal-header">
@@ -205,7 +207,9 @@
         </div>
     </div>
 
-    <!-- MODAL: FECHAR CAIXA -->
+    <!-- ════════════════════════════════════════
+         MODAL: FECHAR CAIXA
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-fechar-caixa">
         <div class="modal-content" style="width:50rem">
             <div class="modal-header">
@@ -249,7 +253,16 @@
         </div>
     </div>
 
-    <!-- MODAL: LANÇAMENTO -->
+    <!-- ════════════════════════════════════════
+         MODAL: LANÇAMENTO (Despesa / Sangria / Suprimento)
+
+         Despesa  → tem Categoria (apenas ativas) + Forma de Pagamento
+         Sangria  → apenas Valor + Descrição  (movimento interno de caixa)
+         Suprimento → apenas Valor + Descrição (movimento interno de caixa)
+
+         Os grupos de Categoria e Forma de Pagamento são mostrados/ocultados
+         dinamicamente pelo JS em abrirModalLancamento().
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-lancamento">
         <div class="modal-content" style="width:48rem">
             <div class="modal-header">
@@ -259,22 +272,31 @@
             <div class="modal-body">
                 <form id="form-lancamento">
                     <div class="form-grid">
+
+                        <!-- Categoria — visível só para Despesa -->
                         <div class="form-group form-col-2">
                             <label>Categoria <span class="obrigatorio">*</span></label>
-                            <select id="lanc-categoria" required></select>
+                            <select id="lanc-categoria"></select>
                         </div>
+
+                        <!-- Forma de Pagamento — visível só para Despesa -->
                         <div class="form-group" id="grupo-formapgto">
                             <label>Forma de Pagamento</label>
                             <select id="lanc-formapgto"></select>
                         </div>
+
+                        <!-- Valor — sempre visível -->
                         <div class="form-group">
                             <label>Valor (R$) <span class="obrigatorio">*</span></label>
                             <input type="number" id="lanc-valor" min="0.01" step="0.01" placeholder="0,00" required>
                         </div>
+
+                        <!-- Descrição — sempre visível -->
                         <div class="form-group form-col-2">
                             <label>Descrição</label>
                             <input type="text" id="lanc-descricao" placeholder="Descreva o lançamento...">
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secundario" onclick="fecharModalLancamento()">Cancelar</button>
@@ -287,7 +309,9 @@
         </div>
     </div>
 
-    <!-- MODAL: VENDA RÁPIDA -->
+    <!-- ════════════════════════════════════════
+         MODAL: VENDA RÁPIDA
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-venda-rapida">
         <div class="modal-content" style="width:72rem">
             <div class="modal-header">
@@ -378,7 +402,9 @@
         </div>
     </div>
 
-    <!-- MODAL: BUSCA DE PRODUTO -->
+    <!-- ════════════════════════════════════════
+         MODAL: BUSCA DE PRODUTO
+    ════════════════════════════════════════ -->
     <div class="modal modal-busca" id="modal-busca-produto-vr">
         <div class="busca-modal-content">
             <div class="modal-header">
@@ -395,7 +421,9 @@
         </div>
     </div>
 
-    <!-- MODAL: CADASTRO RÁPIDO DE PRODUTO -->
+    <!-- ════════════════════════════════════════
+         MODAL: CADASTRO RÁPIDO DE PRODUTO
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-novo-produto-rapido" style="z-index:4000">
         <div class="modal-content" style="width:52rem">
             <div class="modal-header">
@@ -445,7 +473,9 @@
         </div>
     </div>
 
-    <!-- MODAL: RECEBER CONTA -->
+    <!-- ════════════════════════════════════════
+         MODAL: RECEBER CONTA
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-receber-conta">
         <div class="modal-content" style="width:46rem">
             <div class="modal-header">
@@ -484,7 +514,9 @@
         </div>
     </div>
 
-    <!-- MODAL: ALTERAR VENCIMENTO -->
+    <!-- ════════════════════════════════════════
+         MODAL: ALTERAR VENCIMENTO
+    ════════════════════════════════════════ -->
     <div class="modal" id="modal-alterar-vencimento">
         <div class="modal-content" style="width:38rem">
             <div class="modal-header">

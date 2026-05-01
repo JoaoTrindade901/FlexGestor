@@ -57,10 +57,6 @@ function fmtDataHora(s) {
         hour: "2-digit", minute: "2-digit"
     });
 }
-function fmtData(s) {
-    if (!s) return "—";
-    return new Date(s).toLocaleDateString("pt-BR");
-}
 
 function fmtData(s) {
     if (!s) return "—";
@@ -88,9 +84,6 @@ function flexToast(msg, tipo = "sucesso") {
 // HELPERS
 // ──────────────────────────────────────────
 function isEntrada(l) { return Number(l.tipoCategoria) === 1; }
-function calcularEntradas() { return lancamentos.filter(l => isEntrada(l)).reduce((a, l) => a + Number(l.valor), 0); }
-function calcularSaidas() { return lancamentos.filter(l => !isEntrada(l)).reduce((a, l) => a + Number(l.valor), 0); }
-function calcularSaldo() { if (!caixaAtual) return 0; return Number(caixaAtual.saldoInicial) + calcularEntradas() - calcularSaidas(); }
 
 function calcularEntradas() {
     return lancamentos.filter(l => isEntrada(l)).reduce((a, l) => a + Number(l.valor), 0);
@@ -105,33 +98,14 @@ function calcularSaldo() {
     return Number(caixaAtual.saldoInicial) + calcularEntradas() - calcularSaidas();
 }
 
-function flexToast(msg, tipo = "sucesso") {
-    const cores = { sucesso: "#15803d", erro: "#dc2626", aviso: "#d97706" };
-    const icones = { sucesso: "bi-check-circle-fill", erro: "bi-x-circle-fill", aviso: "bi-exclamation-triangle-fill" };
-    const t = document.createElement("div");
-    t.style.cssText = `position:fixed;top:2rem;right:2rem;background:${cores[tipo]};color:#fff;
-        padding:1.2rem 1.8rem;border-radius:.8rem;font-size:1.4rem;font-family:'Segoe UI',sans-serif;
-        display:flex;align-items:center;gap:.8rem;box-shadow:0 .6rem 2rem rgba(0,0,0,.2);
-        z-index:9999;opacity:0;transform:translateY(-1rem);transition:all .3s ease;max-width:36rem;`;
-    t.innerHTML = `<i class="bi ${icones[tipo]}"></i><span>${msg}</span>`;
-    document.body.appendChild(t);
-    requestAnimationFrame(() => { t.style.opacity = "1"; t.style.transform = "translateY(0)"; });
-    setTimeout(() => {
-        t.style.opacity = "0"; t.style.transform = "translateY(-1rem)";
-        setTimeout(() => t.remove(), 350);
-    }, 3200);
-}
-
 // ──────────────────────────────────────────
 // INICIALIZAR
 // ──────────────────────────────────────────
 async function inicializar() {
     try {
-        // Carrega status primeiro para saber se caixa está aberto
         const statusData = await apiGet("/Caixa/Status");
         caixaAtual = statusData.caixa;
 
-        // Carrega tudo em paralelo
         const promises = [
             apiGet("/Caixa/Historico"),
             apiGet("/Caixa/FormasPagamento"),
@@ -152,39 +126,8 @@ async function inicializar() {
 
         atualizarPainel();
 
-        // Breakdown já foi carregado junto
         if (caixaAtual && results[5]?.length) {
-            const icones = {
-                "Dinheiro": "bi-cash-stack", "PIX": "bi-qr-code-scan",
-                "Cartão de Crédito": "bi-credit-card-fill", "Cartão de Débito": "bi-credit-card",
-                "Boleto": "bi-upc-scan", "Cheque": "bi-journal-text"
-            };
-            const lista = document.getElementById("breakdown-lista");
-            lista.innerHTML = `
-                <div class="breakdown-wrapper">
-                    <div class="breakdown-cards">
-                        ${results[5].map(b => {
-                const icone = icones[b.nomeFormaPagamento] || "bi-wallet2";
-                const positivo = b.saldoLiquido >= 0;
-                return `
-                            <div class="breakdown-card">
-                                <div class="breakdown-card-header">
-                                    <span class="breakdown-card-icone"><i class="bi ${icone}"></i></span>
-                                    <span class="breakdown-card-nome">${b.nomeFormaPagamento}</span>
-                                </div>
-                                <div class="breakdown-card-saldo ${positivo ? "verde" : "vermelho"}">${fmtMoeda(b.saldoLiquido)}</div>
-                                <div class="breakdown-card-detalhe">
-                                    <span class="bd-entrada"><i class="bi bi-arrow-down-circle-fill"></i> ${fmtMoeda(b.totalEntradas)}</span>
-                                    <span class="bd-saida"><i class="bi bi-arrow-up-circle-fill"></i> ${fmtMoeda(b.totalSaidas)}</span>
-                                </div>
-                            </div>`;
-            }).join("")}
-                    </div>
-                    <div class="breakdown-legenda">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Entradas · Saídas · valor em destaque = saldo líquido</span>
-                    </div>
-                </div>`;
+            renderizarBreakdownData(results[5]);
         } else {
             atualizarBreakdown();
         }
@@ -204,7 +147,6 @@ function atualizarPainel() {
     const saidas = aberto ? calcularSaidas() : 0;
     const troco = aberto ? Number(caixaAtual.saldoDinheiro || 0) : 0;
 
-    // Badge status
     const badge = document.getElementById("caixa-status-badge");
     badge.className = `caixa-status-badge ${aberto ? "aberto" : "fechado"}`;
     badge.innerHTML = `<i class="bi bi-${aberto ? "unlock-fill" : "lock-fill"}"></i> ${aberto ? "Aberto" : "Fechado"}`;
@@ -226,6 +168,7 @@ function atualizarPainel() {
         elLiquido.textContent = fmtMoeda(liquido);
         elLiquido.className = "resumo-valor " + (liquido >= 0 ? "verde" : "vermelho");
     }
+
     const elInicial = document.getElementById("caixa-saldo-inicial");
     if (elInicial) elInicial.textContent = aberto ? fmtMoeda(caixaAtual.saldoInicial) : "R$ 0,00";
 
@@ -244,47 +187,60 @@ function atualizarPainel() {
     renderizarAba();
 }
 
+// ──────────────────────────────────────────
+// BREAKDOWN
+// ──────────────────────────────────────────
+const ICONES_FP = {
+    "Dinheiro": "bi-cash-stack",
+    "PIX": "bi-qr-code-scan",
+    "Cartão de Crédito": "bi-credit-card-fill",
+    "Cartão de Débito": "bi-credit-card",
+    "Boleto": "bi-upc-scan",
+    "Cheque": "bi-journal-text"
+};
+
+function renderizarBreakdownData(data) {
+    const lista = document.getElementById("breakdown-lista");
+    if (!data.length) {
+        lista.innerHTML = `<div class="breakdown-empty">Nenhum lançamento ainda.</div>`;
+        return;
+    }
+    lista.innerHTML = `
+        <div class="breakdown-wrapper">
+            <div class="breakdown-cards">
+                ${data.map(b => {
+        const icone = ICONES_FP[b.nomeFormaPagamento] || "bi-wallet2";
+        const positivo = b.saldoLiquido >= 0;
+        return `
+                    <div class="breakdown-card">
+                        <div class="breakdown-card-header">
+                            <span class="breakdown-card-icone"><i class="bi ${icone}"></i></span>
+                            <span class="breakdown-card-nome">${b.nomeFormaPagamento}</span>
+                        </div>
+                        <div class="breakdown-card-saldo ${positivo ? "verde" : "vermelho"}">${fmtMoeda(b.saldoLiquido)}</div>
+                        <div class="breakdown-card-detalhe">
+                            <span class="bd-entrada"><i class="bi bi-arrow-down-circle-fill"></i> ${fmtMoeda(b.totalEntradas)}</span>
+                            <span class="bd-saida"><i class="bi bi-arrow-up-circle-fill"></i> ${fmtMoeda(b.totalSaidas)}</span>
+                        </div>
+                    </div>`;
+    }).join("")}
+            </div>
+            <div class="breakdown-legenda">
+                <i class="bi bi-info-circle"></i>
+                <span>Entradas · Saídas · valor em destaque = saldo líquido</span>
+            </div>
+        </div>`;
+}
+
 async function atualizarBreakdown() {
     if (!caixaAtual) {
-        document.getElementById("breakdown-lista").innerHTML = `<div class="breakdown-empty">Abra o caixa para ver o detalhamento.</div>`;
+        document.getElementById("breakdown-lista").innerHTML =
+            `<div class="breakdown-empty">Abra o caixa para ver o detalhamento.</div>`;
         return;
     }
     try {
         const data = await apiGet("/Caixa/Breakdown");
-        const lista = document.getElementById("breakdown-lista");
-        if (!data.length) { lista.innerHTML = `<div class="breakdown-empty">Nenhum lançamento ainda.</div>`; return; }
-
-        const icones = {
-            "Dinheiro": "bi-cash-stack", "PIX": "bi-qr-code-scan",
-            "Cartão de Crédito": "bi-credit-card-fill", "Cartão de Débito": "bi-credit-card",
-            "Boleto": "bi-upc-scan", "Cheque": "bi-journal-text"
-        };
-
-        lista.innerHTML = `
-            <div class="breakdown-wrapper">
-                <div class="breakdown-cards">
-                    ${data.map(b => {
-            const icone = icones[b.nomeFormaPagamento] || "bi-wallet2";
-            const positivo = b.saldoLiquido >= 0;
-            return `
-                        <div class="breakdown-card">
-                            <div class="breakdown-card-header">
-                                <span class="breakdown-card-icone"><i class="bi ${icone}"></i></span>
-                                <span class="breakdown-card-nome">${b.nomeFormaPagamento}</span>
-                            </div>
-                            <div class="breakdown-card-saldo ${positivo ? "verde" : "vermelho"}">${fmtMoeda(b.saldoLiquido)}</div>
-                            <div class="breakdown-card-detalhe">
-                                <span class="bd-entrada"><i class="bi bi-arrow-down-circle-fill"></i> ${fmtMoeda(b.totalEntradas)}</span>
-                                <span class="bd-saida"><i class="bi bi-arrow-up-circle-fill"></i> ${fmtMoeda(b.totalSaidas)}</span>
-                            </div>
-                        </div>`;
-        }).join("")}
-                </div>
-                <div class="breakdown-legenda">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Entradas · Saídas · valor em destaque = saldo líquido</span>
-                </div>
-            </div>`;
+        renderizarBreakdownData(data);
     } catch (e) { console.warn("Breakdown:", e); }
 }
 
@@ -342,7 +298,9 @@ function renderizarLancamentos() {
                 <td>${fmtDataHora(l.dthLancamento)}</td>
                 <td><span class="tipo-pill ${cfg.classe}"><i class="bi ${cfg.icone}"></i> ${cfg.label}</span></td>
                 <td>${l.nomeCategoria || "—"}</td>
-                <td>${["SANGRIA", "SUPRIMENTO"].includes(l.tipoLancamento) ? `<span class="tipo-pill tipo-interno">Mov. Interno</span>` : (l.nomeFormaPagamento || "—")}</td>
+                <td>${["SANGRIA", "SUPRIMENTO"].includes(l.tipoLancamento)
+                    ? `<span class="tipo-pill tipo-interno">Mov. Interno</span>`
+                    : (l.nomeFormaPagamento || "—")}</td>
                 <td>${l.nomeCliente ? `<span class="cliente-tag">${l.nomeCliente}</span>` : "—"}</td>
                 <td title="${l.descricao || ""}">${l.descricao || "—"}</td>
                 <td><span class="${entrada ? "valor-entrada" : "valor-saida"}">${entrada ? "+" : "-"} ${fmtMoeda(l.valor)}</span></td>
@@ -356,38 +314,12 @@ function renderizarPaginacao(total) {
     const totalPags = Math.ceil(total / ITENS_POR_PAGINA);
     const ini = total === 0 ? 0 : (paginaAtual - 1) * ITENS_POR_PAGINA + 1;
     const fim = Math.min(paginaAtual * ITENS_POR_PAGINA, total);
+
     const infoEl = document.querySelector(".paginacao-info");
     if (infoEl) infoEl.textContent = total === 0 ? "Nenhum registro" : `Mostrando ${ini}–${fim} de ${total}`;
+
     const ctrl = document.querySelector(".paginacao-controles");
     if (!ctrl) return;
-    ctrl.innerHTML = "";
-    const prev = document.createElement("button");
-    prev.className = "btn-pagina"; prev.textContent = "‹"; prev.disabled = paginaAtual === 1;
-    prev.onclick = () => { paginaAtual--; renderizarLancamentos(); };
-    ctrl.appendChild(prev);
-    for (let i = 1; i <= totalPags; i++) {
-        const btn = document.createElement("button");
-        btn.className = `btn-pagina${i === paginaAtual ? " ativo" : ""}`;
-        btn.textContent = i;
-        btn.onclick = () => { paginaAtual = i; renderizarLancamentos(); };
-        ctrl.appendChild(btn);
-    }
-    const next = document.createElement("button");
-    next.className = "btn-pagina"; next.textContent = "›";
-    next.disabled = paginaAtual >= totalPags || totalPags === 0;
-    next.onclick = () => { paginaAtual++; renderizarLancamentos(); };
-    ctrl.appendChild(next);
-}
-
-function renderizarPaginacao(total) {
-    const totalPags = Math.ceil(total / ITENS_POR_PAGINA);
-    const ini = total === 0 ? 0 : (paginaAtual - 1) * ITENS_POR_PAGINA + 1;
-    const fim = Math.min(paginaAtual * ITENS_POR_PAGINA, total);
-
-    document.querySelector(".paginacao-info").textContent =
-        total === 0 ? "Nenhum registro" : `Mostrando ${ini}–${fim} de ${total}`;
-
-    const ctrl = document.querySelector(".paginacao-controles");
     ctrl.innerHTML = "";
 
     const prev = document.createElement("button");
@@ -420,7 +352,10 @@ function renderizarHistorico() {
     const tbody = document.querySelector("#tabela-historico tbody");
     if (!tbody) return;
     const fechados = historicoList.filter(c => !c.fAtivo);
-    if (!fechados.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum caixa anterior.</td></tr>`; return; }
+    if (!fechados.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum caixa anterior.</td></tr>`;
+        return;
+    }
 
     const total = fechados.length;
     const totalPags = Math.ceil(total / HISTORICO_POR_PAGINA);
@@ -443,7 +378,6 @@ function renderizarHistorico() {
         </tr>`;
     }).join("");
 
-    // Paginação do histórico
     let paginacaoEl = document.getElementById("paginacao-historico");
     if (!paginacaoEl) {
         paginacaoEl = document.createElement("div");
@@ -463,6 +397,7 @@ function renderizarHistorico() {
     prev.className = "btn-pagina"; prev.textContent = "‹"; prev.disabled = paginaHistorico === 1;
     prev.onclick = () => { paginaHistorico--; renderizarHistorico(); };
     ctrl.appendChild(prev);
+
     for (let i = 1; i <= totalPags; i++) {
         const btn = document.createElement("button");
         btn.className = `btn-pagina${i === paginaHistorico ? " ativo" : ""}`;
@@ -470,6 +405,7 @@ function renderizarHistorico() {
         btn.onclick = () => { paginaHistorico = i; renderizarHistorico(); };
         ctrl.appendChild(btn);
     }
+
     const next = document.createElement("button");
     next.className = "btn-pagina"; next.textContent = "›";
     next.disabled = paginaHistorico >= totalPags;
@@ -483,7 +419,10 @@ function renderizarHistorico() {
 function renderizarContasReceber() {
     const tbody = document.querySelector("#tabela-contas tbody");
     if (!tbody) return;
-    if (!contasReceber.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhuma conta a receber.</td></tr>`; return; }
+    if (!contasReceber.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Nenhuma conta a receber.</td></tr>`;
+        return;
+    }
     tbody.innerHTML = contasReceber.map(c => {
         const st = c.statusAtual || c.status;
         const classeStatus = { PAGO: "status-concluido", VENCIDO: "status-cancelado", ABERTO: "status-pendente" }[st] || "status-pendente";
@@ -554,24 +493,97 @@ function abrirModalLancamento(tipo) {
     if (!caixaAtual) { flexToast("Abra o caixa primeiro.", "aviso"); return; }
     tipoLancamentoAtual = tipo;
     document.getElementById("form-lancamento").reset();
+
     const configs = {
-        DESPESA: { titulo: "Registrar Despesa", icone: "bi-arrow-up-circle-fill", cor: "#dc2626", btnClasse: "btn-perigo", btnLabel: "Confirmar Despesa", tipoCat: 2 },
-        SANGRIA: { titulo: "Registrar Sangria", icone: "bi-dash-circle-fill", cor: "#d97706", btnClasse: "btn-aviso", btnLabel: "Confirmar Sangria", tipoCat: 2 },
-        SUPRIMENTO: { titulo: "Registrar Suprimento", icone: "bi-plus-circle-fill", cor: "#15803d", btnClasse: "btn-primario verde", btnLabel: "Confirmar Suprimento", tipoCat: 1 },
+        // Despesa: saída financeira com categoria e forma de pagamento
+        DESPESA: {
+            titulo: "Registrar Despesa",
+            icone: "bi-arrow-up-circle-fill",
+            cor: "#dc2626",
+            btnClasse: "btn-perigo",
+            btnLabel: "Confirmar Despesa",
+            tipoCat: 2,     // saída
+            subTipo: 2,     // subcategoria despesa
+            temCategoria: true,
+            temFormaPgto: true,
+        },
+        // Sangria: retirada operacional de dinheiro do caixa (envio para banco, etc.)
+        // Não tem categoria financeira nem forma de pagamento — é movimento interno
+        SANGRIA: {
+            titulo: "Registrar Sangria",
+            icone: "bi-dash-circle-fill",
+            cor: "#d97706",
+            btnClasse: "btn-aviso",
+            btnLabel: "Confirmar Sangria",
+            tipoCat: null,
+            subTipo: null,
+            temCategoria: false,
+            temFormaPgto: false,
+        },
+        // Suprimento: aporte de dinheiro no caixa — também é movimento interno
+        SUPRIMENTO: {
+            titulo: "Registrar Suprimento",
+            icone: "bi-plus-circle-fill",
+            cor: "#15803d",
+            btnClasse: "btn-primario verde",
+            btnLabel: "Confirmar Suprimento",
+            tipoCat: null,
+            subTipo: null,
+            temCategoria: false,
+            temFormaPgto: false,
+        },
     };
+
     const cfg = configs[tipo];
+
+    // Título e botão
     document.querySelector("#modal-lancamento .modal-header h3").innerHTML =
         `<i class="bi ${cfg.icone}" style="color:${cfg.cor}"></i> ${cfg.titulo}`;
+
     const btn = document.getElementById("btn-confirm-lancamento");
     btn.className = cfg.btnClasse;
     btn.innerHTML = `<i class="bi bi-check-lg"></i> ${cfg.btnLabel}`;
-    const cats = categorias.filter(c => Number(c.tipo) === cfg.tipoCat);
-    document.getElementById("lanc-categoria").innerHTML = cats.length
-        ? cats.map(c => `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`).join("")
-        : `<option value="">Nenhuma categoria</option>`;
-    document.getElementById("lanc-formapgto").innerHTML = formasPagamento
-        .map(f => `<option value="${f.idFormaPagamento}">${f.nome}</option>`).join("");
-    document.getElementById("grupo-formapgto").style.display = (tipo !== "SANGRIA" && tipo !== "SUPRIMENTO") ? "" : "none";
+
+    // ── Categoria ──
+    // Só exibida para Despesa; filtrada por fAtivo + tipo + subtipo
+    const selCategoria = document.getElementById("lanc-categoria");
+    const grupoCategoria = selCategoria.closest(".form-group");
+
+    if (cfg.temCategoria) {
+        grupoCategoria.style.display = "";
+        const cats = categorias.filter(c => {
+            // Filtra apenas categorias ativas (suporta tanto fAtivo como FAtivo)
+            const ativo = c.fAtivo ?? c.FAtivo;
+            if (ativo === false) return false;
+
+            // Normaliza casing (API pode retornar camelCase ou PascalCase)
+            const catTipo = Number(c.tipo ?? c.Tipo ?? 0);
+            const catSubTipo = Number(c.subTipo ?? c.SubTipo ?? 0);
+
+            if (catTipo !== cfg.tipoCat) return false;
+            if (cfg.subTipo !== null) return catSubTipo === cfg.subTipo;
+            return true;
+        });
+
+        selCategoria.innerHTML = cats.length
+            ? cats.map(c => `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`).join("")
+            : `<option value="">Nenhuma categoria ativa cadastrada</option>`;
+    } else {
+        grupoCategoria.style.display = "none";
+        selCategoria.innerHTML = `<option value="">—</option>`;
+    }
+
+    // ── Forma de Pagamento ──
+    // Somente para Despesa
+    const grupoFP = document.getElementById("grupo-formapgto");
+    if (cfg.temFormaPgto) {
+        grupoFP.style.display = "";
+        document.getElementById("lanc-formapgto").innerHTML = formasPagamento
+            .map(f => `<option value="${f.idFormaPagamento}">${f.nome}</option>`).join("");
+    } else {
+        grupoFP.style.display = "none";
+    }
+
     document.getElementById("modal-lancamento").classList.add("open");
 }
 
@@ -638,8 +650,7 @@ function toggleFiado() {
 }
 
 function adicionarItemVenda() {
-    // Abre busca sem criar linha — linha só é criada ao selecionar produto
-    _vrProdutoIdx = -1; // -1 = novo item
+    _vrProdutoIdx = -1;
     document.getElementById("input-busca-produto-vr").value = "";
     renderListaProdutosVR(produtosCache, "");
     document.getElementById("modal-busca-produto-vr").classList.add("open");
@@ -651,7 +662,8 @@ function renderizarItensVendaRapida() {
     if (!tbody) return;
     if (!_vendaRapidaItens.length) {
         tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="padding:2rem">Clique em "Adicionar Item" para começar.</td></tr>`;
-        atualizarTotalVenda(); return;
+        atualizarTotalVenda();
+        return;
     }
     tbody.innerHTML = _vendaRapidaItens.map((item, idx) => `
         <tr>
@@ -747,13 +759,11 @@ function selecionarProdutoVR(id) {
     if (!p || _vrProdutoIdx === null) return;
 
     if (_vrProdutoIdx === -1) {
-        // Novo item — adiciona ao array
         _vendaRapidaItens.push({
             idProduto: p.idProduto, nomeProduto: p.nome,
             quantidade: 1, valorUnitario: p.precoVenda
         });
     } else {
-        // Edita item existente
         _vendaRapidaItens[_vrProdutoIdx] = {
             idProduto: p.idProduto, nomeProduto: p.nome,
             quantidade: _vendaRapidaItens[_vrProdutoIdx].quantidade,
@@ -793,7 +803,7 @@ function abrirModalReceberConta(idConta, nomeCliente, valorRestante) {
     document.getElementById("receber-valor").value = valorRestante.toFixed(2);
     document.getElementById("receber-formapgto").innerHTML = formasPagamento
         .map(f => `<option value="${f.idFormaPagamento}">${f.nome}</option>`).join("");
-    const catReceb = categorias.find(c => Number(c.tipo) === 1);
+    const catReceb = categorias.find(c => Number(c.tipo ?? c.Tipo) === 1);
     document.getElementById("receber-categoria-id").value = catReceb?.idCategoriaFinanceira || "";
     document.getElementById("modal-receber-conta").classList.add("open");
 }
@@ -824,6 +834,7 @@ function fecharModalAlterarVencimento() {
 // ──────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
 
+    // ── Abrir Caixa ──
     document.getElementById("form-abrir-caixa").addEventListener("submit", async function (e) {
         e.preventDefault();
         const saldo = Number(document.getElementById("abrir-saldo-inicial").value) || 0;
@@ -839,6 +850,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { flexToast("Erro ao abrir caixa: " + err.message, "erro"); }
     });
 
+    // ── Fechar Caixa ──
     document.getElementById("confirm-fechar-sim").addEventListener("click", async function () {
         if (!caixaAtual) return;
         const saldo = calcularSaldo();
@@ -859,17 +871,27 @@ document.addEventListener("DOMContentLoaded", () => {
         finally { this.disabled = false; }
     });
 
+    // ── Lançamento (Despesa / Sangria / Suprimento) ──
     document.getElementById("form-lancamento").addEventListener("submit", async function (e) {
         e.preventDefault();
         if (!caixaAtual) return;
-        const idFP = Number(document.getElementById("lanc-formapgto").value) || formasPagamento[0]?.idFormaPagamento;
-        const idCat = Number(document.getElementById("lanc-categoria").value);
+
         const valor = Number(document.getElementById("lanc-valor").value);
         if (!valor || valor <= 0) { flexToast("Informe um valor válido.", "aviso"); return; }
+
+        // Para Sangria e Suprimento não há forma de pagamento nem categoria
+        const temFormaPgto = tipoLancamentoAtual === "DESPESA";
+        const temCategoria = tipoLancamentoAtual === "DESPESA";
+
+        const idFP = temFormaPgto ? (Number(document.getElementById("lanc-formapgto").value) || formasPagamento[0]?.idFormaPagamento) : null;
+        const idCat = temCategoria ? Number(document.getElementById("lanc-categoria").value) : null;
+
         try {
             await apiPost("/Caixa/Lancar", {
-                IdFormaPagamento: idFP, IdCategoriaFinanceira: idCat,
-                Valor: valor, Descricao: document.getElementById("lanc-descricao").value || null,
+                IdFormaPagamento: idFP,
+                IdCategoriaFinanceira: idCat,
+                Valor: valor,
+                Descricao: document.getElementById("lanc-descricao").value || null,
                 TipoLancamento: tipoLancamentoAtual
             });
             fecharModalLancamento();
@@ -880,6 +902,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { flexToast("Erro: " + err.message, "erro"); }
     });
 
+    // ── Venda Rápida ──
     document.getElementById("form-venda-rapida").addEventListener("submit", async function (e) {
         e.preventDefault();
         const itensValidos = _vendaRapidaItens.filter(i => i.idProduto !== null);
@@ -910,6 +933,7 @@ document.addEventListener("DOMContentLoaded", () => {
         finally { btn.disabled = false; }
     });
 
+    // ── Novo Produto Rápido ──
     document.getElementById("form-novo-produto-rapido").addEventListener("submit", async function (e) {
         e.preventDefault();
         const nome = document.getElementById("novo-produto-nome").value.trim();
@@ -945,6 +969,7 @@ document.addEventListener("DOMContentLoaded", () => {
         finally { btn.disabled = false; }
     });
 
+    // ── Receber Conta ──
     document.getElementById("form-receber-conta").addEventListener("submit", async function (e) {
         e.preventDefault();
         if (!_contaReceberAtual) return;
@@ -967,6 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
         finally { btn.disabled = false; }
     });
 
+    // ── Alterar Vencimento ──
     document.getElementById("form-alterar-vencimento").addEventListener("submit", async function (e) {
         e.preventDefault();
         if (!_contaVencimentoAtual) return;
@@ -984,6 +1010,7 @@ document.addEventListener("DOMContentLoaded", () => {
         finally { btn.disabled = false; }
     });
 
+    // ── Fechar modais ao clicar no overlay ──
     [
         ["modal-abrir-caixa", fecharModalAbrirCaixa],
         ["modal-fechar-caixa", fecharModalFecharCaixa],

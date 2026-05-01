@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias de Despesa - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/clienteCSS/cliente.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Sobrescreve larguras fixas do cliente.css para tabela de 3 colunas */
+        #tabela-despesa {
+            table-layout: auto;
+        }
+
+            #tabela-despesa th:nth-child(1),
+            #tabela-despesa td:nth-child(1) {
+                width: 8rem;
+            }
+
+            #tabela-despesa th:nth-child(2),
+            #tabela-despesa td:nth-child(2) {
+                width: 8rem;
+            }
+
+            #tabela-despesa th:nth-child(3),
+            #tabela-despesa td:nth-child(3) {
+                width: auto;
+            }
+    </style>
+</head>
+<body data-rota="Despesa">
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-clientes">
+                <div class="cabecalho-tela">
+                    <h2>Categorias de Despesa</h2>
+                    <button class="btn-novo-cliente" onclick="abrirModal()">
+                        <i class="bi bi-plus-circle-fill"></i> Nova Categoria
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <div class="area-filtro">
+                        <input type="text" id="input-busca" class="input-filtro"
+                               placeholder="Buscar categoria..." oninput="filtrar()">
+                        <div class="filtro-status">
+                            <button id="btn-filtro-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
+                            <button id="btn-filtro-ativo" class="btn-status-filtro" onclick="setFiltroStatus('ativo')">Ativos</button>
+                            <button id="btn-filtro-inativo" class="btn-status-filtro" onclick="setFiltroStatus('inativo')">Inativos</button>
+                        </div>
+                    </div>
+
+                    <table class="table-clientes" id="tabela-despesa">
+                        <thead>
+                            <tr>
+                                <th>Ações</th>
+                                <th>Status</th>
+                                <th>Nome</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-despesa"></tbody>
+                    </table>
+
+                    <div class="paginacao">
+                        <span class="paginacao-info" id="pag-info"></span>
+                        <div class="paginacao-controles" id="pag-ctrl"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL SALVAR -->
+    <div id="modal-despesa" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="width:44rem">
+            <div class="modal-header">
+                <h3 id="modal-despesa-titulo"><i class="bi bi-tag-fill"></i> Nova Categoria de Despesa</h3>
+                <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="despesa-id">
+                <div class="form-grid">
+                    <div class="form-group form-col-2">
+                        <label>Nome <span class="obrigatorio">*</span></label>
+                        <input type="text" id="despesa-nome" placeholder="Ex: Aluguel, Energia Elétrica...">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+                <button type="button" class="btn-primario" onclick="salvar()">
+                    <i class="bi bi-check-lg"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div class="modal" id="modal-confirmar" role="dialog" aria-modal="true">
+        <div class="modal-content" style="width:420px">
+            <div class="modal-header">
+                <h3><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i> Confirmação</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalConfirmar()">&times;</button>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-icone"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <p id="confirmar-msg">Deseja inativar esta categoria?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModalConfirmar()">Não, cancelar</button>
+                <button type="button" class="btn-perigo" id="btn-confirmar-ok">Sim, confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/despesaJS/despesa.js"></script>
+</body>
+</html>

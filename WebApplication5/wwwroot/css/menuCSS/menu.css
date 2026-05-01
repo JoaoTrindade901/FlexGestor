@@ -239,3 +239,201 @@ main {
         background: none !important;
         color: rgba(255,255,255,.45) !important;
     }
+
+/* ===== NOTIFICACOES — substitui bloco no final do menu.css ===== */
+
+.cabecalho-direita {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+}
+
+.notif-central {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.notif-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    width: 3.8rem;
+    height: 3.8rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.6rem;
+    position: relative;
+    transition: background 0.2s;
+}
+
+    .notif-btn:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+.notif-count {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+    background: #dc2626;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.3rem;
+    border: 2px solid #1e3c72;
+}
+
+.notif-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 1.4rem);
+    right: 0;
+    width: 34rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 0.8rem 3rem rgba(0,0,0,0.2);
+    z-index: 3000;
+    overflow: hidden;
+}
+
+    .notif-panel.aberto {
+        display: block;
+        animation: notifIn 0.18s ease;
+    }
+
+@keyframes notifIn {
+    from {
+        opacity: 0;
+        transform: translateY(-0.6rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notif-panel-header {
+    padding: 1.4rem 1.8rem;
+    background: #1e3c72;
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.notif-panel-lista {
+    max-height: 44rem;
+    overflow-y: auto;
+}
+
+.notif-carregando {
+    padding: 2rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 1.3rem;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.notif-vazio {
+    padding: 2.4rem 1.8rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.3rem;
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.5;
+}
+
+.notif-item {
+    padding: 1.4rem 1.8rem;
+    border-bottom: 1px solid #f0f2f5;
+    border-left: 4px solid transparent;
+}
+
+    .notif-item:last-child {
+        border-bottom: none;
+    }
+
+.notif-item-alta {
+    border-left-color: #dc2626;
+    background: #fff5f5;
+}
+
+.notif-item-media {
+    border-left-color: #d97706;
+    background: #fffbeb;
+}
+
+.notif-item-baixa {
+    border-left-color: #9ca3af;
+    background: #fafafa;
+}
+
+.notif-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+}
+
+.notif-item-titulo {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.4;
+}
+
+.notif-item-descricao {
+    font-size: 1.2rem;
+    color: #4b5563;
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    margin: 0 0 0.8rem 0;
+    padding-left: 2.6rem;
+}
+
+.notif-item-acao {
+    display: inline-block;
+    margin-left: 2.6rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e3c72;
+    text-decoration: none;
+    padding: 0.4rem 1rem;
+    border: 1px solid #1e3c72;
+    border-radius: 0.4rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+    .notif-item-acao:hover {
+        background: #1e3c72;
+        color: #fff;
+    }
+
+.menu-badge {
+    background: #dc2626;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+    min-width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.4rem;
+    margin-left: 0.6rem;
+    vertical-align: middle;
+}

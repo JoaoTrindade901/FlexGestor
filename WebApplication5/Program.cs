@@ -57,6 +57,9 @@ builder.Services.AddScoped<HomeService>();
 builder.Services.AddScoped<FinanceiroRepository>();
 builder.Services.AddScoped<FinanceiroService>();
 
+builder.Services.AddScoped<DespesaRepository>();
+builder.Services.AddScoped<DespesaService>();
+
 // Permissão
 builder.Services.AddScoped<PermissaoRepository>();
 builder.Services.AddScoped<PermissaoService>();

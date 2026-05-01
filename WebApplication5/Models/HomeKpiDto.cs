@@ -24,6 +24,12 @@
         public decimal TotalEntradas { get; set; }
         public decimal TotalSaidas { get; set; }
 
+        // Financeiro — para notificações do menu
+        public int ContasReceberVencidas { get; set; }
+        public decimal TotalReceberVencido { get; set; }
+        public int ContasPagarVencidas { get; set; }
+        public decimal TotalPagarVencido { get; set; }
+
         // Pedidos por status
         public List<PedidoStatusKpiDto> PedidosPorStatus { get; set; } = new();
 
@@ -35,15 +41,19 @@
 
         // Calculados
         public decimal SaldoCaixaAtual => SaldoInicial + TotalEntradas - TotalSaidas;
+
         public double VariacaoFaturamento =>
             FaturamentoMesAnterior == 0 ? 0
             : (double)((FaturamentoMes - FaturamentoMesAnterior) / FaturamentoMesAnterior * 100);
+
         public double VariacaoPedidos =>
             TotalPedidosMesAnterior == 0 ? 0
             : (double)((TotalPedidosMes - TotalPedidosMesAnterior) / (double)TotalPedidosMesAnterior * 100);
+
         public double PercClientesAtivos =>
             TotalClientes == 0 ? 0
             : Math.Round((double)ClientesAtivos / TotalClientes * 100, 1);
+
         public double PercEstoqueCritico =>
             TotalProdutos == 0 ? 0
             : Math.Round((double)ProdutosEstoqueCritico / TotalProdutos * 100, 1);

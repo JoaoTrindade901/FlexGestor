@@ -38,6 +38,24 @@ public class FinanceiroController : BaseController
     }
 
     [HttpPost]
+    public IActionResult EditarContaReceber([FromBody] EditarContaReceberDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.EditarContaReceber(dto);
+        Auditar("FINANCEIRO", "EDITAR_RECEBER", $"Conta #{dto.IdContaReceber} editada");
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult ExcluirContaReceber([FromBody] ExcluirDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.ExcluirContaReceber(dto.Id);
+        Auditar("FINANCEIRO", "EXCLUIR_RECEBER", $"Conta a receber #{dto.Id} excluída");
+        return Ok();
+    }
+
+    [HttpPost]
     public IActionResult ReceberConta([FromBody] ReceberContaFinanceiroDto dto)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
@@ -57,6 +75,13 @@ public class FinanceiroController : BaseController
         return Ok();
     }
 
+    // Endpoint de histórico — nome alinhado com o JS
+    public IActionResult HistoricoReceber(int idContaReceber)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarHistoricoReceber(idContaReceber));
+    }
+
     // ── CONTAS A PAGAR ────────────────────────────────────
     public IActionResult ListarContasPagar()
     {
@@ -73,6 +98,24 @@ public class FinanceiroController : BaseController
         var id = _service.CriarContaPagar(idEmpresa, dto);
         Auditar("FINANCEIRO", "CRIAR_PAGAR", $"Conta a pagar #{id} criada — R$ {dto.ValorTotal:F2}");
         return Ok(new { idContaPagar = id });
+    }
+
+    [HttpPost]
+    public IActionResult EditarContaPagar([FromBody] EditarContaPagarDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.EditarContaPagar(dto);
+        Auditar("FINANCEIRO", "EDITAR_PAGAR", $"Conta #{dto.IdContaPagar} editada");
+        return Ok();
+    }
+
+    [HttpPost]
+    public IActionResult ExcluirContaPagar([FromBody] ExcluirDto dto)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        _service.ExcluirContaPagar(dto.Id);
+        Auditar("FINANCEIRO", "EXCLUIR_PAGAR", $"Conta a pagar #{dto.Id} excluída");
+        return Ok();
     }
 
     [HttpPost]
@@ -95,6 +138,32 @@ public class FinanceiroController : BaseController
         return Ok();
     }
 
+    // Endpoint de histórico — nome alinhado com o JS
+    public IActionResult HistoricoPagar(int idContaPagar)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        return Json(_service.ListarHistoricoPagar(idContaPagar));
+    }
+
+    // ── EXPORTAR ──────────────────────────────────────────
+    public IActionResult ExportarExcel(string tipo)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        var bytes = _service.GerarExcel(idEmpresa, tipo);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.xlsx");
+    }
+
+    public IActionResult ExportarPdf(string tipo)
+    {
+        var r = VerificarSessaoApi(); if (r != null) return r;
+        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
+        var bytes = _service.GerarPdf(idEmpresa, tipo);
+        return File(bytes, "application/pdf",
+            $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.pdf");
+    }
+
     private void Auditar(string modulo, string acao, string descricao)
     {
         _auditoria.Registrar(new RegistrarAuditoriaDto
@@ -108,67 +177,6 @@ public class FinanceiroController : BaseController
             IpUsuario = HttpContext.Connection.RemoteIpAddress?.ToString()
         });
     }
-
-    [HttpPost]
-    public IActionResult EditarContaReceber([FromBody] EditarContaReceberDto dto)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.EditarContaReceber(dto);
-        return Ok();
-    }
-
-    [HttpPost]
-    public IActionResult ExcluirContaReceber([FromBody] int id)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.ExcluirContaReceber(id);
-        return Ok();
-    }
-
-    public IActionResult ListarPagamentosContaReceber(int id)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        return Json(_service.ListarPagamentosContaReceber(id));
-    }
-
-    [HttpPost]
-    public IActionResult EditarContaPagar([FromBody] EditarContaPagarDto dto)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.EditarContaPagar(dto);
-        return Ok();
-    }
-
-    [HttpPost]
-    public IActionResult ExcluirContaPagar([FromBody] int id)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        _service.ExcluirContaPagar(id);
-        return Ok();
-    }
-
-    public IActionResult ListarPagamentosContaPagar(int id)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        return Json(_service.ListarPagamentosContaPagar(id));
-    }
-
-    // ── EXPORTAR ─────────────────────────────────────────────────
-    public IActionResult ExportarExcel(string tipo)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var bytes = _service.GerarExcel(idEmpresa, tipo);
-        var nome = $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.xlsx";
-        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nome);
-    }
-
-    public IActionResult ExportarPdf(string tipo)
-    {
-        var r = VerificarSessaoApi(); if (r != null) return r;
-        var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var bytes = _service.GerarPdf(idEmpresa, tipo);
-        var nome = $"financeiro_{tipo}_{DateTime.Now:yyyyMMdd}.pdf";
-        return File(bytes, "application/pdf", nome);
-    }
 }
+
+public class ExcluirDto { public int Id { get; set; } }

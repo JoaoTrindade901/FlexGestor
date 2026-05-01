@@ -40,6 +40,29 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        public void EditarContaReceber(EditarContaReceberDto dto)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute("sp_EditarContaReceber",
+                new
+                {
+                    p_idContaReceber = dto.IdContaReceber,
+                    p_descricao = dto.Descricao,
+                    p_valorTotal = dto.ValorTotal,
+                    p_dthVencimento = dto.DthVencimento,
+                    p_cliente_id = dto.ClienteId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void ExcluirContaReceber(int idContaReceber)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute("sp_ExcluirContaReceber",
+                new { p_idContaReceber = idContaReceber },
+                commandType: CommandType.StoredProcedure);
+        }
+
         public void ReceberConta(int idContaReceber, decimal valorPago)
         {
             using var conn = new MySqlConnection(_connectionString);
@@ -55,6 +78,15 @@ namespace WebApplication5.Repositories
             conn.Execute(
                 "UPDATE ContaReceber SET dthVencimento = @data WHERE idContaReceber = @id",
                 new { data = novaData.Date, id = idContaReceber });
+        }
+
+        public IEnumerable<PagamentoHistoricoDto> ListarHistoricoReceber(int idContaReceber)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.Query<PagamentoHistoricoDto>(
+                "sp_ListarHistoricoContaReceber",
+                new { p_idContaReceber = idContaReceber },
+                commandType: CommandType.StoredProcedure);
         }
 
         // ── CONTAS A PAGAR ────────────────────────────────
@@ -83,57 +115,6 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void PagarConta(int idContaPagar, decimal valorPago)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            conn.Execute(
-                "sp_PagarConta",
-                new { p_idContaPagar = idContaPagar, p_valorPago = valorPago, p_dthPagamento = DateTime.Now },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public void AlterarVencimentoContaPagar(int idContaPagar, DateTime novaData)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            conn.Execute(
-                "sp_AlterarVencimentoContaPagar",
-                new { p_idContaPagar = idContaPagar, p_novaData = novaData.Date },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        // ── RECEBER ──────────────────────────────────────────────────
-        public void EditarContaReceber(EditarContaReceberDto dto)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            conn.Execute("sp_EditarContaReceber",
-                new
-                {
-                    p_idContaReceber = dto.IdContaReceber,
-                    p_descricao = dto.Descricao,
-                    p_valorTotal = dto.ValorTotal,
-                    p_dthVencimento = dto.DthVencimento,
-                    p_cliente_id = dto.ClienteId
-                },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public void ExcluirContaReceber(int idContaReceber)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            conn.Execute("sp_ExcluirContaReceber",
-                new { p_idContaReceber = idContaReceber },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        public IEnumerable<PagamentoHistoricoDto> ListarPagamentosContaReceber(int idContaReceber)
-        {
-            using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<PagamentoHistoricoDto>("sp_ListarPagamentosContaReceber",
-                new { p_idContaReceber = idContaReceber },
-                commandType: CommandType.StoredProcedure);
-        }
-
-        // ── PAGAR ─────────────────────────────────────────────────────
         public void EditarContaPagar(EditarContaPagarDto dto)
         {
             using var conn = new MySqlConnection(_connectionString);
@@ -157,10 +138,29 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public IEnumerable<PagamentoHistoricoDto> ListarPagamentosContaPagar(int idContaPagar)
+        public void PagarConta(int idContaPagar, decimal valorPago)
         {
             using var conn = new MySqlConnection(_connectionString);
-            return conn.Query<PagamentoHistoricoDto>("sp_ListarPagamentosContaPagar",
+            conn.Execute(
+                "sp_PagarConta",
+                new { p_idContaPagar = idContaPagar, p_valorPago = valorPago, p_dthPagamento = DateTime.Now },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public void AlterarVencimentoContaPagar(int idContaPagar, DateTime novaData)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            conn.Execute(
+                "sp_AlterarVencimentoContaPagar",
+                new { p_idContaPagar = idContaPagar, p_novaData = novaData.Date },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public IEnumerable<PagamentoHistoricoDto> ListarHistoricoPagar(int idContaPagar)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.Query<PagamentoHistoricoDto>(
+                "sp_ListarHistoricoContaPagar",
                 new { p_idContaPagar = idContaPagar },
                 commandType: CommandType.StoredProcedure);
         }

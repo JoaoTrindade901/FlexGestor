@@ -11,7 +11,6 @@
     <title>Início - FlexGestor</title>
 
     <style>
-        /* ── Skeleton loader ── */
         .skeleton {
             background: linear-gradient(90deg, #e8edf2 25%, #f4f7f9 50%, #e8edf2 75%);
             background-size: 200% 100%;
@@ -19,20 +18,17 @@
             border-radius: 6px;
             display: inline-block;
         }
+
         @@keyframes shimmer {
-            0%
+            0% {
+                background-position: 200% 0;
+            }
 
-        {
-            background-position: 200% 0;
+            100% {
+                background-position: -200% 0;
+            }
         }
 
-        100% {
-            background-position: -200% 0;
-        }
-
-        }
-
-        /* ── Variação ── */
         .var-positiva {
             color: #16a34a;
             font-weight: 600;
@@ -56,7 +52,6 @@
             font-size: 13px;
         }
 
-        /* ── Linha separadora de seção ── */
         .secao-titulo {
             font-size: 15px;
             font-weight: 700;
@@ -69,7 +64,6 @@
             gap: 8px;
         }
 
-        /* ── Cards inferiores ── */
         .cards-bottom {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -91,7 +85,6 @@
             margin-bottom: 16px;
         }
 
-        /* Top produtos */
         .produto-row {
             display: flex;
             align-items: center;
@@ -156,7 +149,6 @@
             white-space: nowrap;
         }
 
-        /* Status badges */
         .status-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -187,7 +179,6 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Pill de alerta estoque */
         .alerta-estoque {
             display: inline-flex;
             align-items: center;
@@ -201,7 +192,6 @@
             margin-top: 6px;
         }
 
-        /* Badge caixa status */
         .caixa-badge {
             display: inline-flex;
             align-items: center;
@@ -222,7 +212,6 @@
                 color: #dc2626;
             }
 
-        /* Loader overlay */
         #home-loader {
             position: fixed;
             inset: 0;
@@ -242,31 +231,25 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+
         @@keyframes spin {
-            to
-
-        {
-            transform: rotate(360deg);
-        }
-
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
-<body>
+<body data-rota="Home">
     <div id="home-loader"><div class="loader-spinner"></div></div>
 
     <div class="container">
         <div id="menu"></div>
-
         <main>
             <h2>Bem-vindo ao FlexGestor!</h2>
 
-            <!-- ══════════════════════════════════════════════════
-                 LINHA 1 — KPIs principais (6 cards)
-            ═══════════════════════════════════════════════════ -->
+            <!-- KPIs -->
             <div class="cards" id="cards-kpi">
-
-                <!-- 1: Faturamento do mês -->
+                <!-- 1: Faturamento -->
                 <div class="card">
                     <div class="card-topo">
                         <span class="kpi-label">Faturamento do Mês</span>
@@ -297,16 +280,14 @@
                         <span>Base: pedidos do mês</span>
                         <span id="kpi-ticket-qtd">—</span>
                     </div>
-                    <div class="kpi-barra">
-                        <div class="kpi-barra-fill fill-verde" id="bar-ticket" style="width:60%"></div>
-                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-verde" id="bar-ticket" style="width:60%"></div></div>
                     <div class="card-rodape">
                         <span class="var-neutra"><i class="bi bi-receipt"></i> Valor médio por venda</span>
                         <span class="kpi-periodo" id="kpi-mes-label2">—</span>
                     </div>
                 </div>
 
-                <!-- 3: Clientes Ativos -->
+                <!-- 3: Clientes -->
                 <div class="card">
                     <div class="card-topo">
                         <span class="kpi-label">Clientes Ativos</span>
@@ -318,9 +299,7 @@
                         <span>Taxa de atividade</span>
                         <span id="kpi-clientes-pct">—%</span>
                     </div>
-                    <div class="kpi-barra">
-                        <div class="kpi-barra-fill fill-azul" id="bar-clientes" style="width:0%"></div>
-                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-azul" id="bar-clientes" style="width:0%"></div></div>
                     <div class="card-rodape">
                         <span class="var-neutra"><i class="bi bi-person-check"></i> Base de clientes</span>
                         <span class="kpi-periodo" id="kpi-mes-label3">—</span>
@@ -339,9 +318,7 @@
                         <span>% do faturamento</span>
                         <span id="kpi-devedor-pct">—%</span>
                     </div>
-                    <div class="kpi-barra">
-                        <div class="kpi-barra-fill fill-vermelho" id="bar-devedor" style="width:0%"></div>
-                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-vermelho" id="bar-devedor" style="width:0%"></div></div>
                     <div class="card-rodape">
                         <span class="var-neutra"><i class="bi bi-exclamation-circle"></i> Saldo em aberto</span>
                         <span class="kpi-periodo" id="kpi-mes-label4">—</span>
@@ -360,14 +337,8 @@
                             <i class="bi bi-lock-fill"></i> Fechado
                         </span>
                     </p>
-                    <div class="kpi-barra-label">
-                        <span>Entradas</span>
-                        <span id="kpi-caixa-entradas">R$ 0,00</span>
-                    </div>
-                    <div class="kpi-barra-label" style="margin-top:4px">
-                        <span>Saídas</span>
-                        <span id="kpi-caixa-saidas">R$ 0,00</span>
-                    </div>
+                    <div class="kpi-barra-label"><span>Entradas</span><span id="kpi-caixa-entradas">R$ 0,00</span></div>
+                    <div class="kpi-barra-label" style="margin-top:4px"><span>Saídas</span><span id="kpi-caixa-saidas">R$ 0,00</span></div>
                     <div class="card-rodape">
                         <a href="/Caixa" class="var-neutra" style="text-decoration:none"><i class="bi bi-arrow-right-circle"></i> Ver caixa</a>
                         <span class="kpi-periodo" id="kpi-mes-label5">—</span>
@@ -387,101 +358,76 @@
                         <span>Total de produtos</span>
                         <span id="kpi-estoque-total">—</span>
                     </div>
-                    <div class="kpi-barra">
-                        <div class="kpi-barra-fill fill-laranja" id="bar-estoque" style="width:0%"></div>
-                    </div>
+                    <div class="kpi-barra"><div class="kpi-barra-fill fill-laranja" id="bar-estoque" style="width:0%"></div></div>
                     <div class="card-rodape">
                         <a href="/Estoque" class="var-neutra" style="text-decoration:none"><i class="bi bi-arrow-right-circle"></i> Ver estoque</a>
                         <span class="kpi-periodo" id="kpi-mes-label6">—</span>
                     </div>
                 </div>
-
             </div>
 
-            <!-- ══════════════════════════════════════════════════
-                 LINHA 2 — Gráfico + Pedidos por Status
-            ═══════════════════════════════════════════════════ -->
+            <!-- Gráfico + Status -->
             <p class="secao-titulo"><i class="bi bi-bar-chart-fill"></i> Desempenho de Vendas</p>
-
             <div class="cards-bottom">
-                <!-- Gráfico faturamento mensal -->
                 <div class="card-grafico">
                     <div class="card-lista-titulo">Faturamento — Últimos 6 Meses</div>
                     <canvas id="chart-faturamento" height="180"></canvas>
                 </div>
-
-                <!-- Pedidos por status + Top produtos -->
-                <div style="display:flex; flex-direction:column; gap:20px">
-
-                    <!-- Status dos pedidos -->
+                <div style="display:flex;flex-direction:column;gap:20px">
                     <div class="card-lista">
                         <div class="card-lista-titulo"><i class="bi bi-clipboard-check"></i> Pedidos do Mês por Status</div>
                         <div class="status-grid" id="status-grid">
                             <div class="status-item"><div class="status-item-nome">Carregando...</div></div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- ══════════════════════════════════════════════════
-                 LINHA 3 — Top produtos
-            ═══════════════════════════════════════════════════ -->
+            <!-- Top Produtos -->
             <p class="secao-titulo"><i class="bi bi-trophy-fill"></i> Top 5 Produtos Mais Vendidos</p>
-
             <div class="card-lista" style="margin-bottom:24px">
                 <div id="top-produtos-lista">
                     <div class="produto-row"><span class="kpi-sub">Carregando...</span></div>
                 </div>
             </div>
-
         </main>
     </div>
 
     <script src="~/js/menuJS/menu.js"></script>
     <script>
-        // ── Helpers ──
-        const fmt = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmt    = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const fmtNum = (v) => Number(v).toLocaleString('pt-BR');
-        const mesAtual = () => {
-            const d = new Date();
-            return d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
-        };
+        const mesAtual = () => new Date().toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
 
-        // ── Carrega dashboard ──
         async function carregarDashboard() {
             try {
-                const res  = await fetch('/Home/Dashboard');
+                const res = await fetch('/Home/Dashboard');
                 if (!res.ok) throw new Error('Sessão expirada');
-                const d    = await res.json();
-                const mes  = mesAtual();
+                const d   = await res.json();
+                const mes = mesAtual();
 
                 // ── Faturamento ──
                 document.getElementById('kpi-faturamento').textContent         = fmt(d.faturamentoMes);
                 document.getElementById('kpi-faturamento-pedidos').textContent = `${fmtNum(d.totalPedidosMes)} pedidos este mês`;
-                document.getElementById('kpi-mes-label').textContent           = mes;
-                document.getElementById('kpi-mes-label2').textContent          = mes;
-                document.getElementById('kpi-mes-label3').textContent          = mes;
-                document.getElementById('kpi-mes-label4').textContent          = mes;
-                document.getElementById('kpi-mes-label5').textContent          = mes;
-                document.getElementById('kpi-mes-label6').textContent          = mes;
+                ['kpi-mes-label','kpi-mes-label2','kpi-mes-label3',
+                 'kpi-mes-label4','kpi-mes-label5','kpi-mes-label6'].forEach(id => {
+                    document.getElementById(id).textContent = mes;
+                });
 
-                const varFat = d.variacaoFaturamento;
+                const varFat   = d.variacaoFaturamento;
+                const varClass = varFat >= 0 ? 'var-positiva' : 'var-negativa';
                 const varLabel = varFat >= 0
                     ? `<i class="bi bi-arrow-up-short"></i> +${varFat.toFixed(1)}% vs mês anterior`
                     : `<i class="bi bi-arrow-down-short"></i> ${varFat.toFixed(1)}% vs mês anterior`;
-                const varClass = varFat >= 0 ? 'var-positiva' : 'var-negativa';
-                document.getElementById('kpi-fat-variacao').className   = varClass;
-                document.getElementById('kpi-fat-variacao').innerHTML   = varLabel;
-                document.getElementById('kpi-fat-var-pct').textContent  = (varFat >= 0 ? '+' : '') + varFat.toFixed(1) + '%';
+                document.getElementById('kpi-fat-variacao').className = varClass;
+                document.getElementById('kpi-fat-variacao').innerHTML = varLabel;
+                document.getElementById('kpi-fat-var-pct').textContent = (varFat >= 0 ? '+' : '') + varFat.toFixed(1) + '%';
 
-                // Barra: relação mês atual vs anterior (cap 100%)
                 const pctFat = d.faturamentoMesAnterior > 0
-                    ? Math.min((d.faturamentoMes / d.faturamentoMesAnterior) * 100, 150)
-                    : (d.faturamentoMes > 0 ? 100 : 0);
+                    ? Math.min((d.faturamentoMes / d.faturamentoMesAnterior) * 100, 150) : (d.faturamentoMes > 0 ? 100 : 0);
                 document.getElementById('bar-faturamento').style.width = Math.min(pctFat, 100) + '%';
 
-                // ── Ticket Médio ──
+                // ── Ticket ──
                 document.getElementById('kpi-ticket').textContent     = fmt(d.ticketMedio);
                 document.getElementById('kpi-ticket-qtd').textContent = fmtNum(d.totalPedidosMes) + ' pedidos';
 
@@ -491,11 +437,10 @@
                 document.getElementById('kpi-clientes-pct').textContent    = d.percClientesAtivos + '%';
                 document.getElementById('bar-clientes').style.width        = d.percClientesAtivos + '%';
 
-                // ── Saldo Devedor ──
+                // ── Devedor ──
                 document.getElementById('kpi-devedor').textContent = fmt(d.saldoDevedorTotal);
                 const pctDev = d.faturamentoMes > 0
-                    ? Math.min((d.saldoDevedorTotal / d.faturamentoMes) * 100, 100)
-                    : 0;
+                    ? Math.min((d.saldoDevedorTotal / d.faturamentoMes) * 100, 100) : 0;
                 document.getElementById('kpi-devedor-pct').textContent = pctDev.toFixed(1) + '%';
                 document.getElementById('bar-devedor').style.width     = pctDev + '%';
 
@@ -503,60 +448,52 @@
                 document.getElementById('kpi-caixa-saldo').textContent   = fmt(d.saldoCaixaAtual);
                 document.getElementById('kpi-caixa-entradas').textContent = fmt(d.totalEntradas);
                 document.getElementById('kpi-caixa-saidas').textContent   = fmt(d.totalSaidas);
-
                 const badge = document.getElementById('kpi-caixa-badge');
-                if (d.caixaAberto) {
-                    badge.className = 'caixa-badge aberto';
-                    badge.innerHTML = '<i class="bi bi-unlock-fill"></i> Aberto';
-                } else {
-                    badge.className = 'caixa-badge fechado';
-                    badge.innerHTML = '<i class="bi bi-lock-fill"></i> Fechado';
-                }
+                badge.className = d.caixaAberto ? 'caixa-badge aberto' : 'caixa-badge fechado';
+                badge.innerHTML = d.caixaAberto
+                    ? '<i class="bi bi-unlock-fill"></i> Aberto'
+                    : '<i class="bi bi-lock-fill"></i> Fechado';
 
-                // ── Estoque Crítico ──
+                // ── Estoque ──
                 document.getElementById('kpi-estoque-critico').textContent = fmtNum(d.produtosEstoqueCritico);
                 document.getElementById('kpi-estoque-total').textContent   = fmtNum(d.totalProdutos);
-                const pctEst = d.percEstoqueCritico;
-                document.getElementById('bar-estoque').style.width = Math.min(pctEst, 100) + '%';
-
+                document.getElementById('bar-estoque').style.width = Math.min(d.percEstoqueCritico, 100) + '%';
                 if (d.produtosEstoqueCritico > 0) {
                     document.getElementById('kpi-estoque-alerta').innerHTML =
                         `<span class="alerta-estoque"><i class="bi bi-exclamation-triangle-fill"></i> Ação necessária</span>`;
                 }
 
-                // ── Pedidos por Status ──
+                // ── Status pedidos ──
                 const statusGrid = document.getElementById('status-grid');
                 if (d.pedidosPorStatus && d.pedidosPorStatus.length > 0) {
                     const cores = { 'Pendente':'#f59e0b','Em Andamento':'#3b82f6','Concluído':'#16a34a','Cancelado':'#dc2626' };
                     statusGrid.innerHTML = d.pedidosPorStatus.map(s => `
                         <div class="status-item">
                             <div class="status-item-nome">${s.statusNome}</div>
-                            <div class="status-item-valor" style="color:${cores[s.statusNome] || '#1e3c72'}">${fmtNum(s.quantidade)}</div>
-                        </div>
-                    `).join('');
+                            <div class="status-item-valor" style="color:${cores[s.statusNome]||'#1e3c72'}">${fmtNum(s.quantidade)}</div>
+                        </div>`).join('');
                 } else {
                     statusGrid.innerHTML = '<div class="kpi-sub" style="grid-column:1/-1">Nenhum pedido no mês.</div>';
                 }
 
-                // ── Top Produtos ──
+                // ── Top produtos ──
                 const lista = document.getElementById('top-produtos-lista');
                 if (d.topProdutos && d.topProdutos.length > 0) {
                     const medalhas = ['ouro','prata','bronze'];
                     lista.innerHTML = d.topProdutos.map((p, i) => `
                         <div class="produto-row">
-                            <div class="produto-rank ${medalhas[i] || ''}">${i + 1}</div>
+                            <div class="produto-rank ${medalhas[i]||''}">${i+1}</div>
                             <div class="produto-info">
                                 <div class="produto-nome">${p.nomeProduto}</div>
                                 <div class="produto-qtd">${fmtNum(p.totalVendido)} unidades vendidas</div>
                             </div>
                             <div class="produto-receita">${fmt(p.receitaTotal)}</div>
-                        </div>
-                    `).join('');
+                        </div>`).join('');
                 } else {
                     lista.innerHTML = '<div class="kpi-sub" style="padding:12px 0">Nenhuma venda registrada no mês.</div>';
                 }
 
-                // ── Gráfico Faturamento Mensal ──
+                // ── Gráfico ──
                 if (d.faturamentoMensal && d.faturamentoMensal.length > 0) {
                     const ctx = document.getElementById('chart-faturamento').getContext('2d');
                     new Chart(ctx, {
@@ -577,24 +514,25 @@
                             responsive: true,
                             plugins: {
                                 legend: { display: false },
-                                tooltip: {
-                                    callbacks: {
-                                        label: ctx => fmt(ctx.parsed.y)
-                                    }
-                                }
+                                tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y) } }
                             },
                             scales: {
-                                x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#6b7280' } },
-                                y: { grid: { color: '#f0f2f5' }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#6b7280', callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' } }
+                                x: { grid: { display: false }, ticks: { font: { family:'Poppins', size:11 }, color:'#6b7280' } },
+                                y: { grid: { color:'#f0f2f5' }, ticks: { font: { family:'Poppins', size:11 }, color:'#6b7280', callback: v => 'R$ '+(v/1000).toFixed(0)+'k' } }
                             }
                         }
                     });
                 }
 
+                // ── Alimenta cache do menu para o sino ──
+                window.__dashboardCache = d;
+                if (typeof processarDashboardCache === "function") {
+                    processarDashboardCache(d);
+                }
+
             } catch (err) {
                 console.error('Erro ao carregar dashboard:', err);
             } finally {
-                // Remove loader
                 const loader = document.getElementById('home-loader');
                 loader.style.opacity = '0';
                 setTimeout(() => loader.remove(), 300);
