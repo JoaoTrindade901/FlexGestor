@@ -12,12 +12,12 @@ namespace WebApplication5.Repositories
         public CaixaRepository(IConfiguration config)
             => _connectionString = config.GetConnectionString("Default")!;
 
-        public CaixaModel? BuscarAberto(int idEmpresa, int idUsuario)
+        public CaixaModel? BuscarAberto(int idEmpresa)
         {
             using var conn = new MySqlConnection(_connectionString);
             return conn.QueryFirstOrDefault<CaixaModel>(
                 "sp_BuscarCaixaAberto",
-                new { p_idEmpresa = idEmpresa, p_idUsuario = idUsuario },
+                new { p_idEmpresa = idEmpresa },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -39,7 +39,7 @@ namespace WebApplication5.Repositories
         public void Fechar(int idEmpresa, int idUsuario, decimal saldoFinal,
                            decimal saldoFinalContado, decimal diferenca, string? obs)
         {
-            var caixa = BuscarAberto(idEmpresa, idUsuario)
+            var caixa = BuscarAberto(idEmpresa)
                 ?? throw new InvalidOperationException("Nenhum caixa aberto.");
 
             using var conn = new MySqlConnection(_connectionString);
@@ -56,12 +56,12 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public IEnumerable<CaixaModel> ListarHistorico(int idEmpresa, int idUsuario)
+        public IEnumerable<CaixaModel> ListarHistorico(int idEmpresa)
         {
             using var conn = new MySqlConnection(_connectionString);
             return conn.Query<CaixaModel>(
                 "sp_ListarCaixas",
-                new { p_idEmpresa = idEmpresa, p_idUsuario = idUsuario },
+                new { p_idEmpresa = idEmpresa },
                 commandType: CommandType.StoredProcedure);
         }
 

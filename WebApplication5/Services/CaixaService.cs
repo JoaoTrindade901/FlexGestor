@@ -14,12 +14,13 @@ namespace WebApplication5.Services
             _estoqueService = estoqueService;
         }
 
-        public CaixaModel? BuscarAberto(int idEmpresa, int idUsuario)
-            => _repo.BuscarAberto(idEmpresa, idUsuario);
+        // Caixa é da empresa — qualquer usuário acessa
+        public CaixaModel? BuscarAberto(int idEmpresa)
+            => _repo.BuscarAberto(idEmpresa);
 
-        public decimal BuscarSaldoUltimoCaixa(int idEmpresa, int idUsuario)
+        public decimal BuscarSaldoUltimoCaixa(int idEmpresa)
         {
-            var ultimo = _repo.ListarHistorico(idEmpresa, idUsuario)
+            var ultimo = _repo.ListarHistorico(idEmpresa)
                 .Where(c => !c.fAtivo && c.saldoFinal.HasValue)
                 .OrderByDescending(c => c.dthFechamento)
                 .FirstOrDefault();
@@ -31,7 +32,7 @@ namespace WebApplication5.Services
 
         public void Fechar(int idEmpresa, int idUsuario, decimal saldoFinalContado, string? obs)
         {
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario)
+            var caixa = _repo.BuscarAberto(idEmpresa)
                 ?? throw new InvalidOperationException("Nenhum caixa aberto.");
 
             var lancamentos = _repo.ListarLancamentos(idEmpresa, caixa.idCaixa).ToList();
@@ -43,13 +44,14 @@ namespace WebApplication5.Services
             _repo.Fechar(idEmpresa, idUsuario, saldoCalc, saldoFinalContado, diferenca, obs);
         }
 
-        public IEnumerable<CaixaModel> ListarHistorico(int idEmpresa, int idUsuario)
-            => _repo.ListarHistorico(idEmpresa, idUsuario);
+        public IEnumerable<CaixaModel> ListarHistorico(int idEmpresa)
+            => _repo.ListarHistorico(idEmpresa);
 
+        // idUsuario sempre presente nos lançamentos — identifica quem operou
         public int Lancar(int idEmpresa, int idUsuario, LancarCaixaDto dto)
         {
             if (dto.Valor <= 0) throw new InvalidOperationException("Valor deve ser maior que zero.");
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario)
+            var caixa = _repo.BuscarAberto(idEmpresa)
                 ?? throw new InvalidOperationException("Nenhum caixa aberto.");
             return _repo.Lancar(caixa.idCaixa, idEmpresa, idUsuario, dto);
         }
@@ -57,7 +59,7 @@ namespace WebApplication5.Services
         public void LancarVendaPedido(int idEmpresa, int idUsuario, int pedidoId,
                                       decimal valor, int idFormaPagamento, int idCategoriaFinanceira)
         {
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario);
+            var caixa = _repo.BuscarAberto(idEmpresa);
             if (caixa == null) return;
             _repo.Lancar(caixa.idCaixa, idEmpresa, idUsuario, new LancarCaixaDto
             {
@@ -70,16 +72,16 @@ namespace WebApplication5.Services
             });
         }
 
-        public IEnumerable<LancamentoCaixaModel> ListarLancamentos(int idEmpresa, int idUsuario)
+        public IEnumerable<LancamentoCaixaModel> ListarLancamentos(int idEmpresa)
         {
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario);
+            var caixa = _repo.BuscarAberto(idEmpresa);
             if (caixa == null) return Enumerable.Empty<LancamentoCaixaModel>();
             return _repo.ListarLancamentos(idEmpresa, caixa.idCaixa);
         }
 
-        public IEnumerable<BreakdownFormaPagamentoDto> Breakdown(int idEmpresa, int idUsuario)
+        public IEnumerable<BreakdownFormaPagamentoDto> Breakdown(int idEmpresa)
         {
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario);
+            var caixa = _repo.BuscarAberto(idEmpresa);
             if (caixa == null) return Enumerable.Empty<BreakdownFormaPagamentoDto>();
             return _repo.Breakdown(idEmpresa, caixa.idCaixa);
         }
@@ -92,7 +94,7 @@ namespace WebApplication5.Services
 
         public int VendaRapida(int idEmpresa, int idUsuario, VendaRapidaDto dto, int idCategoriaVenda)
         {
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario)
+            var caixa = _repo.BuscarAberto(idEmpresa)
                 ?? throw new InvalidOperationException("Nenhum caixa aberto.");
 
             foreach (var item in dto.Itens)
@@ -135,7 +137,7 @@ namespace WebApplication5.Services
         {
             _repo.ReceberConta(dto.IdContaReceber, dto.ValorPago);
 
-            var caixa = _repo.BuscarAberto(idEmpresa, idUsuario);
+            var caixa = _repo.BuscarAberto(idEmpresa);
             if (caixa != null)
             {
                 _repo.Lancar(caixa.idCaixa, idEmpresa, idUsuario, new LancarCaixaDto

@@ -165,14 +165,6 @@ async function inicializarMenu() {
                     : '<a href="/' + filho.rota + '" class="' + (filho.rota === rotaAtual ? "active" : "") + '">' + filho.label + '</a>';
                 submenu.appendChild(liFilho);
             });
-
-            if (!item.futuro) {
-                li.querySelector("span").addEventListener("click", function () {
-                    var aberto = li.classList.contains("active");
-                    li.classList.toggle("active", !aberto);
-                    submenu.style.maxHeight = aberto ? "" : "40rem";
-                });
-            }
         }
 
         ul.appendChild(li);
@@ -186,6 +178,26 @@ async function inicializarMenu() {
         var btn = document.getElementById("notif-btn");
         if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
             panel.style.display = "none";
+        }
+    });
+
+    document.addEventListener("click", function (e) {
+        var spanClicado = e.target.closest(".sidebar .menu-expansivel > span");
+        if (!spanClicado) return;
+
+        var liClicado = spanClicado.parentElement;
+        var estaAberto = liClicado.classList.contains("active");
+
+        document.querySelectorAll(".sidebar .menu-expansivel").forEach(function (li) {
+            li.classList.remove("active");
+            var sub = li.querySelector(".submenu");
+            if (sub) sub.style.maxHeight = "";
+        });
+
+        if (!estaAberto) {
+            liClicado.classList.add("active");
+            var submenuClicado = liClicado.querySelector(".submenu");
+            if (submenuClicado) submenuClicado.style.maxHeight = "40rem";
         }
     });
 
