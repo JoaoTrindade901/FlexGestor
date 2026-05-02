@@ -145,3 +145,7 @@ main h2 {
     color: #9ca3af;
     font-family: 'Poppins', sans-serif;
 }
+
+.kpi-valor, .kpi-label, .kpi-periodo {
+    font-family: 'Poppins', 'Inter', sans-serif;
+}

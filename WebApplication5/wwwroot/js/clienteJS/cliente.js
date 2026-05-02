@@ -30,9 +30,6 @@ async function apiPost(url, body) {
     return res;
 }
 
-// ──────────────────────────────────────────
-// CARREGAR E FILTRAR
-// ──────────────────────────────────────────
 async function carregarClientes() {
     try {
         const data = await apiGet("/Cliente/Listar");
@@ -78,9 +75,6 @@ function setFiltroStatus(valor) {
     aplicarFiltros();
 }
 
-// ──────────────────────────────────────────
-// TABELA
-// ──────────────────────────────────────────
 function renderizarTabela() {
     const tbody = document.querySelector("#tabela-clientes tbody");
     const inicio = (paginaAtual - 1) * CLIENTES_POR_PAGINA;
@@ -147,9 +141,6 @@ function criarBtnPagina(label, disabled, onClick) {
     return btn;
 }
 
-// ──────────────────────────────────────────
-// TIPO PF / PJ
-// ──────────────────────────────────────────
 function configurarTipoSelector(prefixo) {
     document.querySelectorAll(`.tipo-btn[data-prefixo="${prefixo}"]`).forEach(btn => {
         btn.addEventListener("click", () => {
@@ -195,9 +186,6 @@ function getTipoAtivo(prefixo) {
     return btn?.dataset.tipo ?? "PF";
 }
 
-// ──────────────────────────────────────────
-// VALIDAÇÃO DO FORMULÁRIO
-// ──────────────────────────────────────────
 function validarFormCliente(prefixo) {
     const tipo = getTipoAtivo(prefixo);
     let ok = true;
@@ -235,10 +223,6 @@ function validarFormCliente(prefixo) {
     if (!ok) flexToast("Corrija os campos destacados antes de salvar.", "aviso");
     return ok;
 }
-
-// ──────────────────────────────────────────
-// MONTAR PAYLOAD
-// ──────────────────────────────────────────
 function lerCampo(id) {
     const el = document.getElementById(id);
     return el ? (el.value.trim() || null) : null;
@@ -283,42 +267,57 @@ function montarPayloadNovo() {
     };
 }
 
-function montarPayloadEdicao() {
-    const tipo = getTipoAtivo("edit");
+function lerCampoSeguro(id) {
+    const el = document.getElementById(id);
+    // Campo oculto por permissão → não envia (undefined = COALESCE mantém valor no banco)
+    if (!el || el.dataset.permOculto === 'true') return undefined;
+    return el.value.trim() || null;
+}
+
+function montarEnderecoEdicao() {
     return {
-        Cliente: {
-            idCliente: clienteEmEdicao.idCliente,
-            nome: lerCampo("edit-nome"),
-            nomeFantasia: tipo === "PJ" ? lerCampo("edit-nome") : null,
-            razaoSocial: tipo === "PJ" ? lerCampo("edit-razaosocial") : null,
-            cpfCNPJ: (lerCampo("edit-doc") ?? "").replace(/\D/g, ""),
-            email: lerCampo("edit-email"),
-            telefone: lerCampo("edit-telefone"),
-            tipoCliente_id: lerCampoNum("edit-tipocliente") ?? 1,
-            observacao: lerCampo("edit-observacao"),
-            genero: tipo === "PF" ? lerCampo("edit-genero") : null,
-            dthNascimento: tipo === "PF" ? lerCampo("edit-nascimento") : null,
-            enderecoId: clienteEmEdicao.enderecoId,
-            saldoDevedor: lerCampo("edit-saldo")
-        },
-        Endereco: {
-            idEndereco: clienteEmEdicao.enderecoId,
-            tipoEndereco: clienteEmEdicao.tipoEndereco ?? 1,
-            logradouro: lerCampo("edit-logradouro") ?? "",
-            numero: lerCampo("edit-numero") ?? "",
-            complemento: lerCampo("edit-complemento"),
-            bairro: lerCampo("edit-bairro") ?? "",
-            cidade: lerCampo("edit-cidade") ?? "",
-            estado: lerCampo("edit-estado") ?? "",
-            pais: "Brasil",
-            cep: (lerCampo("edit-cep") ?? "").replace(/\D/g, "")
-        }
+        idEndereco: clienteEmEdicao.enderecoId,
+        tipoEndereco: clienteEmEdicao.tipoEndereco ?? 1,
+        logradouro: lerCampo("edit-logradouro") ?? "",
+        numero: lerCampo("edit-numero") ?? "",
+        complemento: lerCampo("edit-complemento"),
+        bairro: lerCampo("edit-bairro") ?? "",
+        cidade: lerCampo("edit-cidade") ?? "",
+        estado: lerCampo("edit-estado") ?? "",
+        pais: "Brasil",
+        cep: (lerCampo("edit-cep") ?? "").replace(/\D/g, "")
     };
 }
 
-// ──────────────────────────────────────────
-// MODAL NOVO CLIENTE
-// ──────────────────────────────────────────
+function montarPayloadEdicao() {
+    const tipo = getTipoAtivo("edit");
+
+    const cliente = { idCliente: clienteEmEdicao.idCliente };
+
+    const campos = {
+        nome: lerCampoSeguro("edit-nome"),
+        cpfCNPJ: lerCampoSeguro("edit-doc"),
+        email: lerCampoSeguro("edit-email"),
+        telefone: lerCampoSeguro("edit-telefone"),
+        observacao: lerCampoSeguro("edit-observacao"),
+        saldoDevedor: lerCampoSeguro("edit-saldo"),
+        genero: tipo === "PF" ? lerCampoSeguro("edit-genero") : undefined,
+        dthNascimento: tipo === "PF" ? lerCampoSeguro("edit-nascimento") : undefined,
+        nomeFantasia: tipo === "PJ" ? lerCampoSeguro("edit-nome") : undefined,
+        razaoSocial: tipo === "PJ" ? lerCampoSeguro("edit-razaosocial") : undefined,
+    };
+
+
+    Object.entries(campos).forEach(([k, v]) => {
+        if (v !== undefined) cliente[k] = v;
+    });
+
+    cliente.tipoCliente_id = Number(document.getElementById("edit-tipocliente")?.value) || 1;
+    cliente.enderecoId = clienteEmEdicao.enderecoId;
+
+    return { Cliente: cliente, Endereco: montarEnderecoEdicao() };
+}
+
 function abrirModal() {
     const form = document.getElementById("form-cliente");
     form.reset();
@@ -358,10 +357,31 @@ document.getElementById("form-cliente").addEventListener("submit", async functio
     }
 });
 
-// ──────────────────────────────────────────
-// MODAL EDIÇÃO
-// ──────────────────────────────────────────
-function abrirModalEdicao(id) {
+
+async function aplicarPermissoesCampos(prefixo) {
+    try {
+        const perm = await apiGet('/Permissao/CamposCliente');
+        if (perm.admin) return; // admin vê tudo
+
+        perm.campos.forEach(c => {
+            const el = document.getElementById(`${prefixo}-${c.chave}`);
+            const grupo = el?.closest('.form-group');
+            if (!grupo) return;
+
+            if (!c.visivel) {
+                grupo.style.display = 'none';
+                el.dataset.permOculto = 'true';
+            } else if (!c.editavel) {
+                el.setAttribute('readonly', true);
+                el.style.background = '#f8fafc';
+                el.style.color = '#9ca3af';
+            }
+        });
+    } catch (e) {
+        console.warn('Permissões de campos indisponíveis', e);
+    }
+}
+async function abrirModalEdicao(id) {
     clienteEmEdicao = todosClientes.find(c => c.idCliente === id);
     if (!clienteEmEdicao) return;
 
@@ -394,6 +414,8 @@ function abrirModalEdicao(id) {
     setCampo("edit-cep", c.cep);
 
     document.getElementById("modal-edicao").classList.add("open");
+
+    await aplicarPermissoesCampos('edit');
 }
 
 function fecharModalEdicao() {
@@ -427,9 +449,6 @@ document.getElementById("form-edicao").addEventListener("submit", async function
     }
 });
 
-// ──────────────────────────────────────────
-// EXCLUSÃO LÓGICA (inativar/reativar)
-// ──────────────────────────────────────────
 function confirmarDeletar(id) {
     clienteParaDeletar = todosClientes.find(c => c.idCliente === id);
     if (!clienteParaDeletar) return;
@@ -452,9 +471,6 @@ function confirmarDeletar(id) {
     );
 }
 
-// ──────────────────────────────────────────
-// FECHAR CLICANDO FORA DO MODAL
-// ──────────────────────────────────────────
 ["modal-novo-cliente", "modal-edicao", "modal-confirmar"].forEach(id => {
     document.getElementById(id)?.addEventListener("click", function (e) {
         if (e.target !== this) return;
@@ -471,9 +487,7 @@ document.getElementById("btn-cancelar-edicao")?.addEventListener("click", fechar
 document.getElementById("select-tipo-filtro")?.addEventListener("change", filtrarTabela);
 document.getElementById("input-termo-busca")?.addEventListener("input", filtrarTabela);
 
-// ──────────────────────────────────────────
-// INIT — aplica máscaras e CEP automático
-// ──────────────────────────────────────────
+
 document.addEventListener("DOMContentLoaded", () => {
     configurarTipoSelector("novo");
     configurarTipoSelector("edit");

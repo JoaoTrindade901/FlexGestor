@@ -4,6 +4,8 @@
    =================================================== */
 
 /* ── VARIÁVEIS ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
     --cor-primaria: #1e3c72;
     --cor-primaria-hover: #254a8f;
@@ -28,7 +30,11 @@
     --radius: .6rem;
     --radius-lg: 1rem;
     --radius-xl: 1.2rem;
-    --fonte: 'Segoe UI', sans-serif;
+    --fonte: 'Inter', 'Segoe UI', sans-serif;
+}
+
+* {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 /* ── LAYOUT PADRÃO DE SEÇÃO ── */
