@@ -31,7 +31,7 @@ namespace WebApplication5.Services
         {
             _repo.ReceberConta(dto.IdContaReceber, dto.ValorPago);
 
-            var caixa = _caixaRepo.BuscarAberto(idEmpresa);
+            var caixa = _caixaRepo.BuscarAberto(idEmpresa, idUsuario);
             if (caixa != null)
             {
                 _caixaRepo.Lancar(caixa.idCaixa, idEmpresa, idUsuario, new LancarCaixaDto
@@ -69,7 +69,7 @@ namespace WebApplication5.Services
         {
             _repo.PagarConta(dto.IdContaPagar, dto.ValorPago);
 
-            var caixa = _caixaRepo.BuscarAberto(idEmpresa);
+            var caixa = _caixaRepo.BuscarAberto(idEmpresa, idUsuario);
             if (caixa != null)
             {
                 _caixaRepo.Lancar(caixa.idCaixa, idEmpresa, idUsuario, new LancarCaixaDto
