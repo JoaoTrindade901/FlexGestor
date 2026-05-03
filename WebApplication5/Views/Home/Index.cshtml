@@ -237,6 +237,94 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Filtro de período */
+        .filtro-periodo {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1.4rem 2rem;
+            box-shadow: 0 .1rem .4rem rgba(0,0,0,.07);
+            flex-wrap: wrap;
+        }
+
+            .filtro-periodo input[type="date"] {
+                padding: .7rem 1.2rem;
+                border: 1px solid #dce1e7;
+                border-radius: .6rem;
+                font-size: 1.4rem;
+                font-family: 'Inter', sans-serif;
+                outline: none;
+                color: #374151;
+                transition: border-color .2s;
+            }
+
+                .filtro-periodo input[type="date"]:focus {
+                    border-color: #1e3c72;
+                }
+
+        .filtro-periodo-sep {
+            color: #9ca3af;
+            font-size: 1.3rem;
+        }
+
+        .filtro-periodo-label {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .btn-filtrar-periodo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            background: #1e3c72;
+            color: #fff;
+            border: none;
+            padding: .8rem 1.8rem;
+            border-radius: .6rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background .2s, transform .15s;
+        }
+
+            .btn-filtrar-periodo:hover {
+                background: #254a8f;
+                transform: translateY(-.1rem);
+            }
+
+        .btn-resetar-periodo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            background: #fff;
+            color: #6b7280;
+            border: 1px solid #dce1e7;
+            padding: .8rem 1.4rem;
+            border-radius: .6rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+        }
+
+            .btn-resetar-periodo:hover {
+                background: #f9fafb;
+                border-color: #9ca3af;
+            }
+
+        .periodo-label-resultado {
+            margin-left: auto;
+            font-size: 1.3rem;
+            color: #9ca3af;
+            font-style: italic;
+        }
     </style>
 </head>
 <body data-rota="Home">
@@ -247,18 +335,34 @@
         <main>
             <h2>Bem-vindo ao FlexGestor!</h2>
 
+            <!-- FILTRO DE PERÍODO -->
+            <div class="filtro-periodo">
+                <i class="bi bi-calendar-range" style="color:#1e3c72;font-size:1.8rem"></i>
+                <span class="filtro-periodo-label">Período:</span>
+                <input type="date" id="filtro-inicio">
+                <span class="filtro-periodo-sep">até</span>
+                <input type="date" id="filtro-fim">
+                <button class="btn-filtrar-periodo" onclick="aplicarFiltro()">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <button class="btn-resetar-periodo" onclick="resetarFiltro()">
+                    <i class="bi bi-x-circle"></i> Mês atual
+                </button>
+                <span class="periodo-label-resultado" id="periodo-label"></span>
+            </div>
+
             <!-- KPIs -->
             <div class="cards" id="cards-kpi">
                 <!-- 1: Faturamento -->
                 <div class="card">
                     <div class="card-topo">
-                        <span class="kpi-label">Faturamento do Mês</span>
+                        <span class="kpi-label">Faturamento do Período</span>
                         <div class="kpi-icon kpi-icon-roxo"><i class="bi bi-currency-dollar"></i></div>
                     </div>
                     <div class="kpi-valor kpi-valor-roxo" id="kpi-faturamento">—</div>
-                    <p class="kpi-sub" id="kpi-faturamento-pedidos">— pedidos este mês</p>
+                    <p class="kpi-sub" id="kpi-faturamento-pedidos">— pedidos no período</p>
                     <div class="kpi-barra-label">
-                        <span id="kpi-fat-var-label">vs. mês anterior</span>
+                        <span id="kpi-fat-var-label">vs. período anterior</span>
                         <span id="kpi-fat-var-pct">—</span>
                     </div>
                     <div class="kpi-barra"><div class="kpi-barra-fill fill-roxo" id="bar-faturamento" style="width:0%"></div></div>
@@ -275,12 +379,14 @@
                         <div class="kpi-icon kpi-icon-verde"><i class="bi bi-graph-up-arrow"></i></div>
                     </div>
                     <div class="kpi-valor kpi-valor-verde" id="kpi-ticket">—</div>
-                    <p class="kpi-sub">Média por pedido (mês)</p>
+                    <p class="kpi-sub">Média por pedido no período</p>
                     <div class="kpi-barra-label">
-                        <span>Base: pedidos do mês</span>
+                        <span>Base: pedidos do período</span>
                         <span id="kpi-ticket-qtd">—</span>
                     </div>
-                    <div class="kpi-barra"><div class="kpi-barra-fill fill-verde" id="bar-ticket" style="width:60%"></div></div>
+                    <div class="kpi-barra">
+                        <div class="kpi-barra-fill fill-verde" id="bar-ticket" style="width:0%"></div>
+                    </div>
                     <div class="card-rodape">
                         <span class="var-neutra"><i class="bi bi-receipt"></i> Valor médio por venda</span>
                         <span class="kpi-periodo" id="kpi-mes-label2">—</span>
@@ -370,12 +476,12 @@
             <p class="secao-titulo"><i class="bi bi-bar-chart-fill"></i> Desempenho de Vendas</p>
             <div class="cards-bottom">
                 <div class="card-grafico">
-                    <div class="card-lista-titulo">Faturamento — Últimos 6 Meses</div>
+                    <div class="card-lista-titulo">Faturamento no Período</div>
                     <canvas id="chart-faturamento" height="180"></canvas>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:20px">
                     <div class="card-lista">
-                        <div class="card-lista-titulo"><i class="bi bi-clipboard-check"></i> Pedidos do Mês por Status</div>
+                        <div class="card-lista-titulo"><i class="bi bi-clipboard-check"></i> Pedidos por Status</div>
                         <div class="status-grid" id="status-grid">
                             <div class="status-item"><div class="status-item-nome">Carregando...</div></div>
                         </div>
@@ -397,39 +503,72 @@
     <script>
         const fmt    = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const fmtNum = (v) => Number(v).toLocaleString('pt-BR');
-        const mesAtual = () => new Date().toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
 
-        async function carregarDashboard() {
+        // ── FILTRO ──────────────────────────────────────────────
+        function inicializarFiltros() {
+            const hoje = new Date();
+            const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            document.getElementById('filtro-inicio').value = inicioMes.toISOString().split('T')[0];
+            document.getElementById('filtro-fim').value    = hoje.toISOString().split('T')[0];
+        }
+
+        function aplicarFiltro() {
+            const inicio = document.getElementById('filtro-inicio').value;
+            const fim    = document.getElementById('filtro-fim').value;
+            if (!inicio || !fim) return;
+            if (inicio > fim) { alert('Data início não pode ser maior que data fim.'); return; }
+
+            const fmtLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+            document.getElementById('periodo-label').textContent = `${fmtLabel(inicio)} — ${fmtLabel(fim)}`;
+
+            carregarDashboard(inicio, fim);
+        }
+
+        function resetarFiltro() {
+            inicializarFiltros();
+            aplicarFiltro();
+        }
+
+        // ── DASHBOARD ───────────────────────────────────────────
+        async function carregarDashboard(dataInicio, dataFim) {
             try {
-                const res = await fetch('/Home/Dashboard');
+                const params = new URLSearchParams({ dataInicio, dataFim });
+                const res = await fetch(`/Home/Dashboard?${params.toString()}`);
                 if (!res.ok) throw new Error('Sessão expirada');
-                const d   = await res.json();
-                const mes = mesAtual();
+                const d = await res.json();
+
+                // Label do período nos cards
+                const fmtLabel = dt => new Date(dt + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+                const periodoLabel = `${fmtLabel(dataInicio)} — ${fmtLabel(dataFim)}`;
+                ['kpi-mes-label','kpi-mes-label2','kpi-mes-label3',
+                 'kpi-mes-label4','kpi-mes-label5','kpi-mes-label6'].forEach(id => {
+                    document.getElementById(id).textContent = periodoLabel;
+                });
 
                 // ── Faturamento ──
                 document.getElementById('kpi-faturamento').textContent         = fmt(d.faturamentoMes);
-                document.getElementById('kpi-faturamento-pedidos').textContent = `${fmtNum(d.totalPedidosMes)} pedidos este mês`;
-                ['kpi-mes-label','kpi-mes-label2','kpi-mes-label3',
-                 'kpi-mes-label4','kpi-mes-label5','kpi-mes-label6'].forEach(id => {
-                    document.getElementById(id).textContent = mes;
-                });
+                document.getElementById('kpi-faturamento-pedidos').textContent = `${fmtNum(d.totalPedidosMes)} pedidos no período`;
 
                 const varFat   = d.variacaoFaturamento;
                 const varClass = varFat >= 0 ? 'var-positiva' : 'var-negativa';
                 const varLabel = varFat >= 0
-                    ? `<i class="bi bi-arrow-up-short"></i> +${varFat.toFixed(1)}% vs mês anterior`
-                    : `<i class="bi bi-arrow-down-short"></i> ${varFat.toFixed(1)}% vs mês anterior`;
+                    ? `<i class="bi bi-arrow-up-short"></i> +${varFat.toFixed(1)}% vs período anterior`
+                    : `<i class="bi bi-arrow-down-short"></i> ${varFat.toFixed(1)}% vs período anterior`;
                 document.getElementById('kpi-fat-variacao').className = varClass;
                 document.getElementById('kpi-fat-variacao').innerHTML = varLabel;
                 document.getElementById('kpi-fat-var-pct').textContent = (varFat >= 0 ? '+' : '') + varFat.toFixed(1) + '%';
 
                 const pctFat = d.faturamentoMesAnterior > 0
-                    ? Math.min((d.faturamentoMes / d.faturamentoMesAnterior) * 100, 150) : (d.faturamentoMes > 0 ? 100 : 0);
+                    ? Math.min((d.faturamentoMes / d.faturamentoMesAnterior) * 100, 150)
+                    : (d.faturamentoMes > 0 ? 100 : 0);
                 document.getElementById('bar-faturamento').style.width = Math.min(pctFat, 100) + '%';
 
                 // ── Ticket ──
                 document.getElementById('kpi-ticket').textContent     = fmt(d.ticketMedio);
                 document.getElementById('kpi-ticket-qtd').textContent = fmtNum(d.totalPedidosMes) + ' pedidos';
+
+                const pctTicket = d.ticketMedio > 0 ? Math.min((d.ticketMedio / 1000) * 100, 100) : 0;
+                document.getElementById('bar-ticket').style.width = pctTicket + '%';
 
                 // ── Clientes ──
                 document.getElementById('kpi-clientes-ativos').textContent = fmtNum(d.clientesAtivos);
@@ -445,7 +584,7 @@
                 document.getElementById('bar-devedor').style.width     = pctDev + '%';
 
                 // ── Caixa ──
-                document.getElementById('kpi-caixa-saldo').textContent   = fmt(d.saldoCaixaAtual);
+                document.getElementById('kpi-caixa-saldo').textContent    = fmt(d.saldoCaixaAtual);
                 document.getElementById('kpi-caixa-entradas').textContent = fmt(d.totalEntradas);
                 document.getElementById('kpi-caixa-saidas').textContent   = fmt(d.totalSaidas);
                 const badge = document.getElementById('kpi-caixa-badge');
@@ -458,10 +597,10 @@
                 document.getElementById('kpi-estoque-critico').textContent = fmtNum(d.produtosEstoqueCritico);
                 document.getElementById('kpi-estoque-total').textContent   = fmtNum(d.totalProdutos);
                 document.getElementById('bar-estoque').style.width = Math.min(d.percEstoqueCritico, 100) + '%';
-                if (d.produtosEstoqueCritico > 0) {
-                    document.getElementById('kpi-estoque-alerta').innerHTML =
-                        `<span class="alerta-estoque"><i class="bi bi-exclamation-triangle-fill"></i> Ação necessária</span>`;
-                }
+                const alertaEl = document.getElementById('kpi-estoque-alerta');
+                alertaEl.innerHTML = d.produtosEstoqueCritico > 0
+                    ? `<span class="alerta-estoque"><i class="bi bi-exclamation-triangle-fill"></i> Ação necessária</span>`
+                    : '';
 
                 // ── Status pedidos ──
                 const statusGrid = document.getElementById('status-grid');
@@ -473,7 +612,7 @@
                             <div class="status-item-valor" style="color:${cores[s.statusNome]||'#1e3c72'}">${fmtNum(s.quantidade)}</div>
                         </div>`).join('');
                 } else {
-                    statusGrid.innerHTML = '<div class="kpi-sub" style="grid-column:1/-1">Nenhum pedido no mês.</div>';
+                    statusGrid.innerHTML = '<div class="kpi-sub" style="grid-column:1/-1">Nenhum pedido no período.</div>';
                 }
 
                 // ── Top produtos ──
@@ -490,13 +629,14 @@
                             <div class="produto-receita">${fmt(p.receitaTotal)}</div>
                         </div>`).join('');
                 } else {
-                    lista.innerHTML = '<div class="kpi-sub" style="padding:12px 0">Nenhuma venda registrada no mês.</div>';
+                    lista.innerHTML = '<div class="kpi-sub" style="padding:12px 0">Nenhuma venda no período.</div>';
                 }
 
                 // ── Gráfico ──
+                const ctxEl = document.getElementById('chart-faturamento');
+                if (ctxEl._chartInstance) ctxEl._chartInstance.destroy();
                 if (d.faturamentoMensal && d.faturamentoMensal.length > 0) {
-                    const ctx = document.getElementById('chart-faturamento').getContext('2d');
-                    new Chart(ctx, {
+                    ctxEl._chartInstance = new Chart(ctxEl.getContext('2d'), {
                         type: 'bar',
                         data: {
                             labels: d.faturamentoMensal.map(m => m.mes),
@@ -517,29 +657,28 @@
                                 tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y) } }
                             },
                             scales: {
-                                x: { grid: { display: false }, ticks: { font: { family:'Poppins', size:11 }, color:'#6b7280' } },
-                                y: { grid: { color:'#f0f2f5' }, ticks: { font: { family:'Poppins', size:11 }, color:'#6b7280', callback: v => 'R$ '+(v/1000).toFixed(0)+'k' } }
+                                x: { grid: { display: false }, ticks: { font: { family:'Inter', size:11 }, color:'#6b7280' } },
+                                y: { grid: { color:'#f0f2f5' }, ticks: { font: { family:'Inter', size:11 }, color:'#6b7280', callback: v => 'R$ '+(v/1000).toFixed(0)+'k' } }
                             }
                         }
                     });
                 }
 
-                // ── Alimenta cache do menu para o sino ──
+                // ── Cache para sino do menu ──
                 window.__dashboardCache = d;
-                if (typeof processarDashboardCache === "function") {
-                    processarDashboardCache(d);
-                }
+                if (typeof processarDashboardCache === "function") processarDashboardCache(d);
 
             } catch (err) {
                 console.error('Erro ao carregar dashboard:', err);
             } finally {
                 const loader = document.getElementById('home-loader');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 300);
+                if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 300); }
             }
         }
 
-        carregarDashboard();
+        // ── INIT ────────────────────────────────────────────────
+        inicializarFiltros();
+        aplicarFiltro();
     </script>
 </body>
 </html>

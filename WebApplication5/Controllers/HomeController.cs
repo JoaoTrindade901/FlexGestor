@@ -15,11 +15,15 @@ public class HomeController : BaseController
     }
 
     // GET /Home/Dashboard — chamado pelo JS da página
-    public IActionResult Dashboard()
+    public IActionResult Dashboard(DateTime? dataInicio, DateTime? dataFim)
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var kpi = _service.BuscarDashboard(idEmpresa);
+
+        var inicio = dataInicio ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var fim = dataFim ?? DateTime.Now;
+
+        var kpi = _service.BuscarDashboard(idEmpresa, inicio, fim);
         return Json(kpi);
     }
 }
