@@ -1,25 +1,40 @@
 ﻿// ===== AUDITORIA.JS — FlexGestor =====
 
+// Define quantos logs serão exibidos por página na tabela
 const LOGS_POR_PAGINA = 20;
+
+// Controla a página atual da paginação
 let paginaAtual = 1;
+
+// Armazena todos os logs retornados da API (sem paginação no backend)
 let todosLogs = [];
 
+// Função utilitária para fazer requisições GET
 async function apiGet(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
-    return res.json();
+    const res = await fetch(url); // Executa chamada HTTP
+    if (!res.ok) throw new Error(`GET ${url} → ${res.status}`); // Lança erro se falhar
+    return res.json(); // Retorna resposta convertida em JSON
 }
 
+// Formata data/hora para padrão brasileiro
 function fmtDataHora(s) {
-    if (!s) return "—";
+    if (!s) return "—"; // Caso não exista valor
+
+    // Remove o "Z" (UTC) se existir, evitando problemas de timezone
     const local = s.endsWith("Z") ? s.slice(0, -1) : s;
+
+    // Converte para formato legível pt-BR
     return new Date(local).toLocaleString("pt-BR", {
-        day: "2-digit", month: "2-digit", year: "numeric",
-        hour: "2-digit", minute: "2-digit", second: "2-digit"
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
     });
 }
 
-// Cores por módulo
+// Configuração visual dos módulos (label + classe CSS)
 const MODULO_CONFIG = {
     AUTH: { classe: "mod-auth", label: "Autenticação" },
     CAIXA: { classe: "mod-caixa", label: "Caixa" },
@@ -30,6 +45,7 @@ const MODULO_CONFIG = {
     USUARIO: { classe: "mod-usuario", label: "Usuário" },
 };
 
+// Configuração visual das ações (ícone + estilo)
 const ACAO_CONFIG = {
     LOGIN: { icone: "bi-box-arrow-in-right", classe: "acao-info" },
     LOGOUT: { icone: "bi-box-arrow-right", classe: "acao-info" },
@@ -52,31 +68,41 @@ const ACAO_CONFIG = {
     AJUSTE: { icone: "bi-sliders", classe: "acao-aviso" },
 };
 
+// Função principal que busca os logs aplicando filtros da tela
 async function carregarLogs() {
-    paginaAtual = 1;
+    paginaAtual = 1; // Sempre reinicia paginação ao filtrar
+
+    // Captura valores dos filtros
     const modulo = document.getElementById("filtro-modulo").value;
     const usuario = document.getElementById("filtro-usuario").value;
     const dataInicio = document.getElementById("filtro-data-inicio").value;
     const dataFim = document.getElementById("filtro-data-fim").value;
 
+    // Monta parâmetros da URL dinamicamente
     const params = new URLSearchParams();
     if (modulo) params.append("Modulo", modulo);
     if (usuario) params.append("NomeUsuario", usuario);
     if (dataInicio) params.append("DataInicio", dataInicio);
     if (dataFim) params.append("DataFim", dataFim);
 
+    // Mostra estado de carregamento na tabela
     document.getElementById("tbody-auditoria").innerHTML =
         `<tr><td colspan="7" class="empty-state">Carregando...</td></tr>`;
 
     try {
+        // Chama API com filtros
         todosLogs = await apiGet(`/Auditoria/Listar?${params.toString()}`);
+
+        // Renderiza os dados na tabela
         renderizarTabela();
     } catch (err) {
+        // Exibe erro caso falhe
         document.getElementById("tbody-auditoria").innerHTML =
             `<tr><td colspan="7" class="empty-state">Erro ao carregar logs.</td></tr>`;
     }
 }
 
+// Limpa filtros da tela e recarrega dados
 function limparFiltros() {
     document.getElementById("filtro-modulo").value = "";
     document.getElementById("filtro-usuario").value = "";
@@ -85,16 +111,24 @@ function limparFiltros() {
     carregarLogs();
 }
 
+// Renderiza tabela e paginação
 function renderizarTabela() {
     const total = todosLogs.length;
+
+    // Calcula quantidade total de páginas
     const totalPags = Math.ceil(total / LOGS_POR_PAGINA);
+
+    // Define intervalo de dados da página atual
     const inicio = (paginaAtual - 1) * LOGS_POR_PAGINA;
     const pagina = todosLogs.slice(inicio, inicio + LOGS_POR_PAGINA);
 
+    // Atualiza contador de registros
     document.getElementById("auditoria-total").textContent =
         `${total} registro${total !== 1 ? "s" : ""} encontrado${total !== 1 ? "s" : ""}`;
 
     const tbody = document.getElementById("tbody-auditoria");
+
+    // Caso não tenha dados
     if (!pagina.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nenhum registro encontrado.</td></tr>`;
         document.getElementById("audit-pag-info").textContent = "";
@@ -102,65 +136,107 @@ function renderizarTabela() {
         return;
     }
 
+    // Monta HTML das linhas da tabela
     tbody.innerHTML = pagina.map((l, i) => {
         const modCfg = MODULO_CONFIG[l.modulo] || { classe: "mod-default", label: l.modulo };
         const acaoCfg = ACAO_CONFIG[l.acao] || { icone: "bi-circle", classe: "acao-info" };
+
+        // Verifica se existe detalhe (antes/depois)
         const temDetalhe = l.valorAnterior || l.valorNovo;
+
+        // Índice real dentro do array completo
         const idx = inicio + i;
+
         return `<tr>
             <td class="td-data">${fmtDataHora(l.dthAcao)}</td>
+
             <td>
                 <span class="usuario-tag">
-                    <i class="bi bi-person-fill"></i> ${l.nomeUsuario || "Sistema"}
+                    <i class="bi bi-person-fill"></i>
+                    ${l.nomeUsuario || "Sistema"}
                 </span>
             </td>
-            <td><span class="modulo-pill ${modCfg.classe}">${modCfg.label}</span></td>
+
+            <td>
+                <span class="modulo-pill ${modCfg.classe}">
+                    ${modCfg.label}
+                </span>
+            </td>
+
             <td>
                 <span class="acao-pill ${acaoCfg.classe}">
-                    <i class="bi ${acaoCfg.icone}"></i> ${l.acao}
+                    <i class="bi ${acaoCfg.icone}"></i>
+                    ${l.acao}
                 </span>
             </td>
-            <td class="td-descricao" title="${l.descricao || ""}">${l.descricao || "—"}</td>
+
+            <td class="td-descricao" title="${l.descricao || ""}">
+                ${l.descricao || "—"}
+            </td>
+
             <td class="td-ip">${l.ipUsuario || "—"}</td>
-            <td>${temDetalhe ? `
-                <button class="btn-detalhe" onclick="abrirDetalhe(${idx})" title="Ver alterações">
+
+            <td>
+                ${temDetalhe ? `
+                <button class="btn-detalhe"
+                        onclick="abrirDetalhe(${idx})"
+                        title="Ver alterações">
                     <i class="bi bi-eye-fill"></i>
-                </button>` : ""}</td>
+                </button>` : ""}
+            </td>
         </tr>`;
     }).join("");
 
-    // Paginação
+    // Atualiza texto de paginação (intervalo exibido)
     const ini = total === 0 ? 0 : inicio + 1;
     const fim = Math.min(paginaAtual * LOGS_POR_PAGINA, total);
-    document.getElementById("audit-pag-info").textContent = `Mostrando ${ini}–${fim} de ${total}`;
+    document.getElementById("audit-pag-info").textContent =
+        `Mostrando ${ini}–${fim} de ${total}`;
 
     const ctrl = document.getElementById("audit-pag-ctrl");
     ctrl.innerHTML = "";
 
+    // Botão anterior
     const prev = document.createElement("button");
-    prev.className = "btn-pagina"; prev.textContent = "‹"; prev.disabled = paginaAtual === 1;
-    prev.onclick = () => { paginaAtual--; renderizarTabela(); };
+    prev.className = "btn-pagina";
+    prev.textContent = "‹";
+    prev.disabled = paginaAtual === 1;
+    prev.onclick = () => {
+        paginaAtual--;
+        renderizarTabela();
+    };
     ctrl.appendChild(prev);
 
+    // Botões numéricos
     for (let i = 1; i <= totalPags; i++) {
         const btn = document.createElement("button");
         btn.className = `btn-pagina${i === paginaAtual ? " ativo" : ""}`;
         btn.textContent = i;
-        btn.onclick = () => { paginaAtual = i; renderizarTabela(); };
+        btn.onclick = () => {
+            paginaAtual = i;
+            renderizarTabela();
+        };
         ctrl.appendChild(btn);
     }
 
+    // Botão próximo
     const next = document.createElement("button");
-    next.className = "btn-pagina"; next.textContent = "›";
+    next.className = "btn-pagina";
+    next.textContent = "›";
     next.disabled = paginaAtual >= totalPags;
-    next.onclick = () => { paginaAtual++; renderizarTabela(); };
+    next.onclick = () => {
+        paginaAtual++;
+        renderizarTabela();
+    };
     ctrl.appendChild(next);
 }
 
+// Abre modal com detalhes completos do log
 function abrirDetalhe(idx) {
     const log = todosLogs[idx];
     if (!log) return;
 
+    // Monta HTML base com informações principais
     let html = `
         <div class="detalhe-linha"><span class="detalhe-label">Data/Hora</span><span>${fmtDataHora(log.dthAcao)}</span></div>
         <div class="detalhe-linha"><span class="detalhe-label">Usuário</span><span>${log.nomeUsuario || "Sistema"}</span></div>
@@ -169,6 +245,7 @@ function abrirDetalhe(idx) {
         <div class="detalhe-linha"><span class="detalhe-label">Descrição</span><span>${log.descricao || "—"}</span></div>
         <div class="detalhe-linha"><span class="detalhe-label">IP</span><span>${log.ipUsuario || "—"}</span></div>`;
 
+    // Mostra valor anterior (tentando interpretar como JSON)
     if (log.valorAnterior) {
         try {
             const obj = JSON.parse(log.valorAnterior);
@@ -180,6 +257,7 @@ function abrirDetalhe(idx) {
         }
     }
 
+    // Mostra valor novo
     if (log.valorNovo) {
         try {
             const obj = JSON.parse(log.valorNovo);
@@ -191,26 +269,35 @@ function abrirDetalhe(idx) {
         }
     }
 
+    // Insere conteúdo no modal e abre
     document.getElementById("detalhe-corpo").innerHTML = html;
     document.getElementById("modal-detalhe-log").classList.add("open");
 }
 
+// Fecha modal de detalhe
 function fecharDetalhe() {
     document.getElementById("modal-detalhe-log").classList.remove("open");
 }
 
+// Inicialização da tela
 document.addEventListener("DOMContentLoaded", () => {
-    // Fechar modal clicando fora
+
+    // Permite fechar modal clicando fora
     document.getElementById("modal-detalhe-log")?.addEventListener("click", function (e) {
         if (e.target === this) fecharDetalhe();
     });
 
-    // Data fim padrão = hoje, data início = 7 dias atrás
+    // Define filtro padrão: últimos 7 dias
     const hoje = new Date();
     const seteDias = new Date();
     seteDias.setDate(hoje.getDate() - 7);
-    document.getElementById("filtro-data-inicio").value = seteDias.toISOString().split("T")[0];
-    document.getElementById("filtro-data-fim").value = hoje.toISOString().split("T")[0];
 
+    document.getElementById("filtro-data-inicio").value =
+        seteDias.toISOString().split("T")[0];
+
+    document.getElementById("filtro-data-fim").value =
+        hoje.toISOString().split("T")[0];
+
+    // Carrega logs ao abrir a tela
     carregarLogs();
 });

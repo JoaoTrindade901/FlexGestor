@@ -1,0 +1,677 @@
+﻿/* ===== empresa.css ===== */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Layout principal ── */
+.secao-empresa {
+    padding: 2.4rem 3.2rem 4rem;
+    font-family: 'DM Sans', sans-serif;
+    color: #1e293b;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Cabeçalho ── */
+.emp-cabecalho {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2.4rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.emp-logo-wrap {
+    width: 6.4rem;
+    height: 6.4rem;
+    border-radius: 1.4rem;
+    background: #eff6ff;
+    border: 2px solid #bfdbfe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.emp-cabecalho-texto h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #1a2e5a;
+    margin: 0 0 .3rem;
+}
+
+.emp-cabecalho-texto p {
+    font-size: 1.4rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* ── Abas ── */
+.emp-tabs {
+    display: flex;
+    gap: .4rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 2.8rem;
+}
+
+.emp-tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: #64748b;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    padding: 1.1rem 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    transition: color .2s, border-color .2s, background .2s;
+    border-radius: .6rem .6rem 0 0;
+}
+
+    .emp-tab-btn:hover {
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .emp-tab-btn.ativo {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .emp-tab-btn i {
+        font-size: 1.6rem;
+    }
+
+/* ── Paineis ── */
+.emp-tab-painel {
+    display: none;
+}
+
+    .emp-tab-painel.ativo {
+        display: block;
+    }
+
+/* ── Layout de duas colunas para os paineis ── */
+.emp-painel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.emp-painel-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* ── Seção / card ── */
+.emp-secao {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.2rem;
+    padding: 2.4rem;
+    box-shadow: 0 .2rem 1.2rem rgba(30,50,90,.06);
+}
+
+.emp-secao-titulo {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a2e5a;
+    margin: 0 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+    .emp-secao-titulo i {
+        color: #2563eb;
+        font-size: 1.6rem;
+    }
+
+/* ── Grids de campos ── */
+.emp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6rem;
+}
+
+.emp-grid-1 {
+    grid-template-columns: 1fr;
+}
+
+.emp-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.emp-grid-4 {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.emp-col-2 {
+    grid-column: span 2;
+}
+
+.emp-col-3 {
+    grid-column: span 3;
+}
+
+/* ── Campo de formulário ── */
+.emp-campo {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+    .emp-campo label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #374151;
+        letter-spacing: .01em;
+    }
+
+        .emp-campo label .obrig {
+            color: #dc2626;
+            margin-left: .2rem;
+        }
+
+    .emp-campo input,
+    .emp-campo select {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.4rem;
+        color: #1e293b;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: .8rem;
+        padding: .9rem 1.2rem;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s, background .2s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        .emp-campo input:focus,
+        .emp-campo select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+            background: #fff;
+        }
+
+.campo-hint {
+    font-size: 1.15rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+/* ── CEP wrap ── */
+.emp-cep-wrap {
+    display: flex;
+    gap: .8rem;
+}
+
+    .emp-cep-wrap input {
+        flex: 1;
+    }
+
+.btn-buscar-cep {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #fff;
+    background: #2563eb;
+    border: none;
+    border-radius: .8rem;
+    padding: 0 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    white-space: nowrap;
+    transition: background .2s;
+    flex-shrink: 0;
+}
+
+    .btn-buscar-cep:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-buscar-cep:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+/* ── Ambiente ── */
+.emp-ambiente-wrap {
+    display: flex;
+    gap: 1rem;
+    margin-top: .4rem;
+}
+
+.emp-amb-btn {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    padding: 1.1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: .8rem;
+    cursor: pointer;
+    background: #f8fafc;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    transition: all .2s;
+}
+
+    .emp-amb-btn.sel-homolog {
+        border-color: #d97706;
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .emp-amb-btn.sel-prod {
+        border-color: #15803d;
+        background: #f0fdf4;
+        color: #15803d;
+    }
+
+/* ── Alíquotas ── */
+.aliq-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.aliq-item {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: .8rem;
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    transition: border-color .2s;
+}
+
+    .aliq-item:focus-within {
+        border-color: #2563eb;
+    }
+
+    .aliq-item label {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+.aliq-input-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: .4rem;
+}
+
+.aliq-item input {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a2e5a;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    width: 100%;
+}
+
+.aliq-sufixo {
+    font-size: 1.4rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+/* ── Certificado ── */
+.emp-cert-status {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.2rem 1.6rem;
+    border-radius: .8rem;
+    font-size: 1.35rem;
+    font-weight: 500;
+    margin-bottom: 1.6rem;
+}
+
+    .emp-cert-status.ok {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #86efac;
+    }
+
+    .emp-cert-status.vencendo {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fcd34d;
+    }
+
+    .emp-cert-status.vencido {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    .emp-cert-status.sem-cert {
+        background: #f8fafc;
+        color: #94a3b8;
+        border: 1px solid #e2e8f0;
+    }
+
+    .emp-cert-status i {
+        font-size: 1.8rem;
+    }
+
+.emp-cert-area {
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    padding: 2.4rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: #f8fafc;
+    position: relative;
+}
+
+    .emp-cert-area:hover,
+    .emp-cert-area.drag-over {
+        border-color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .emp-cert-area input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+.emp-cert-icone {
+    font-size: 3.2rem;
+    color: #2563eb;
+    margin-bottom: .8rem;
+}
+
+.emp-cert-area p {
+    font-size: 1.4rem;
+    color: #64748b;
+    margin: 0 0 .4rem;
+}
+
+.emp-cert-area small {
+    font-size: 1.2rem;
+    color: #94a3b8;
+}
+
+/* ── Senha certificado ── */
+.emp-campo-senha {
+    max-width: 100%;
+    margin-top: 1.6rem;
+}
+
+.emp-senha-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+    .emp-senha-wrap input {
+        padding-right: 4rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+.btn-toggle-senha {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    color: #94a3b8;
+    padding: 0;
+    line-height: 1;
+    transition: color .2s;
+}
+
+    .btn-toggle-senha:hover {
+        color: #2563eb;
+    }
+
+/* ── Ações / rodapé ── */
+.emp-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.2rem;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.emp-cert-acoes {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1.6rem;
+    margin-top: 1.6rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ── Botões ── */
+.btn-emp-primario {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #fff;
+    background: #2563eb;
+    border: none;
+    border-radius: .8rem;
+    padding: 1rem 2.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    transition: background .2s, transform .1s;
+    box-shadow: 0 .2rem .8rem rgba(37,99,235,.3);
+}
+
+    .btn-emp-primario:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-emp-primario:active {
+        transform: scale(.97);
+    }
+
+    .btn-emp-primario:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+.btn-emp-success {
+    background: #15803d;
+    box-shadow: 0 .2rem .8rem rgba(21,128,61,.3);
+}
+
+    .btn-emp-success:hover {
+        background: #166534;
+    }
+
+.btn-emp-secundario {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #374151;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: .8rem;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+    .btn-emp-secundario:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+    }
+
+.btn-emp-perigo {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: .8rem;
+    background: #dc2626;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    transition: background .2s;
+}
+
+    .btn-emp-perigo:hover {
+        background: #b91c1c;
+    }
+
+/* ── Spinner ── */
+.emp-spinner {
+    display: inline-block;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: empSpin .6s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes empSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Modal produção ── */
+.emp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emp-modal-hidden {
+    display: none !important;
+}
+
+.emp-modal-box {
+    background: #fff;
+    border-radius: 1.4rem;
+    padding: 3.2rem;
+    max-width: 48rem;
+    width: 90%;
+    box-shadow: 0 2.4rem 6rem rgba(0,0,0,.2);
+    text-align: center;
+}
+
+.emp-modal-icon-danger {
+    font-size: 4rem;
+    color: #dc2626;
+    margin-bottom: 1.2rem;
+}
+
+.emp-modal-titulo {
+    font-size: 2rem;
+    color: #1a2e5a;
+    margin: 0 0 1rem;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+}
+
+.emp-modal-texto {
+    font-size: 1.4rem;
+    color: #64748b;
+    margin: 0 0 2.4rem;
+    line-height: 1.6;
+}
+
+.emp-modal-acoes {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ── Utilitários ── */
+.emp-mb-2 {
+    margin-bottom: 2rem;
+}
+
+.emp-mt-1 {
+    margin-top: 1.6rem;
+}
+
+.emp-hint-texto {
+    font-size: 1.3rem;
+    color: #64748b;
+    margin: 0 0 1.6rem;
+}
+
+/* ── Responsivo ── */
+@media (max-width: 1100px) {
+    .emp-painel-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .secao-empresa {
+        padding: 1.6rem;
+    }
+
+    .emp-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .emp-grid-3, .emp-grid-4 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .emp-col-2, .emp-col-3 {
+        grid-column: span 1;
+    }
+
+    .aliq-group {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .emp-tabs {
+        overflow-x: auto;
+    }
+}

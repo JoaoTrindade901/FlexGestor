@@ -60,6 +60,10 @@ builder.Services.AddScoped<FinanceiroService>();
 builder.Services.AddScoped<DespesaRepository>();
 builder.Services.AddScoped<DespesaService>();
 
+// Empresa
+builder.Services.AddScoped<EmpresaRepository>();
+builder.Services.AddScoped<EmpresaService>();
+
 // Permissão
 builder.Services.AddScoped<PermissaoRepository>();
 builder.Services.AddScoped<PermissaoService>();

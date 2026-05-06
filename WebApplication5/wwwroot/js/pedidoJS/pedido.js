@@ -1,4 +1,4 @@
-// ===== PEDIDO.JS — integrado com backend FlexGestor =====
+// ===== PEDIDO.JS — com pagamento integrado ao caixa =====
 
 const ITENS_POR_PAGINA = 10;
 let paginaAtual = 1;
@@ -6,6 +6,8 @@ let todosPedidos = [];
 let pedidosFiltrados = [];
 let clientesCache = [];
 let produtosCache = [];
+let formasPagamentoCache = [];
+let categoriaFinanceiraCache = [];
 let filtroStatusPedido = "todos";
 let filtroClienteStr = "";
 let itensPedidoAtual = [];
@@ -14,25 +16,27 @@ let _buscaClientePrefixo = null;
 let _buscaProdutoIdx = null;
 let _buscaProdutoPrefixo = null;
 let _pedidoEmEdicao = null;
+let _pedidoPagamentoAtual = null; // pedido sendo pago
 
 // IDs alinhados com tabela StatusPedido do banco:
-// 1=PENDENTE 2=CONFIRMADO 3=SEPARANDO 4=ENVIADO 5=ENTREGUE 6=CANCELADO
+// 1=PENDENTE 2=CONFIRMADO 3=SEPARANDO 4=ENVIADO 5=CONCLUÍDO 6=CANCELADO
 const STATUS_MAP = {
     1: { nome: "Pendente", classe: "pendente" },
     2: { nome: "Confirmado", classe: "confirmado" },
     3: { nome: "Separando", classe: "separando" },
     4: { nome: "Enviado", classe: "enviado" },
-    5: { nome: "Entregue", classe: "concluido" },
+    5: { nome: "Concluído", classe: "concluido" },
     6: { nome: "Cancelado", classe: "cancelado" },
 };
 
-// Fallback: resolve statusPedidoId a partir do nome textual que a SP pode retornar
 const STATUS_NOME_PARA_ID = {
     "PENDENTE": 1,
     "CONFIRMADO": 2,
     "SEPARANDO": 3,
     "ENVIADO": 4,
     "ENTREGUE": 5,
+    "CONCLUÍDO": 5,
+    "CONCLUIDO": 5,
     "CANCELADO": 6,
 };
 
@@ -43,7 +47,6 @@ function resolverStatusId(pedido) {
     return 0;
 }
 
-// Mapa: valor do filtro → IDs de status que ele abrange
 const FILTRO_STATUS_IDS = {
     todos: [1, 2, 3, 4, 5, 6],
     pendente: [1],
@@ -80,14 +83,94 @@ async function apiPost(url, body) {
     });
     if (!res.ok) {
         const txt = await res.text().catch(() => "");
-        throw new Error(txt || `POST ${url} → ${res.status}`);
+        let msg = txt;
+        try { msg = JSON.parse(txt).mensagem ?? txt; } catch { }
+        throw new Error(msg || `POST ${url} → ${res.status}`);
     }
-    return res;
+    return res.json().catch(() => null);
+}
+
+function flexToast(msg, tipo = "sucesso") {
+    const cores = { sucesso: "#15803d", erro: "#dc2626", aviso: "#d97706" };
+    const icones = { sucesso: "bi-check-circle-fill", erro: "bi-x-circle-fill", aviso: "bi-exclamation-triangle-fill" };
+    const t = document.createElement("div");
+    t.style.cssText = `position:fixed;top:2rem;right:2rem;background:${cores[tipo]};color:#fff;
+        padding:1.2rem 1.8rem;border-radius:.8rem;font-size:1.4rem;font-family:'Segoe UI',sans-serif;
+        display:flex;align-items:center;gap:.8rem;box-shadow:0 .6rem 2rem rgba(0,0,0,.2);
+        z-index:9999;opacity:0;transform:translateY(-1rem);transition:all .3s ease;max-width:40rem;`;
+    t.innerHTML = `<i class="bi ${icones[tipo]}"></i><span>${msg}</span>`;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => { t.style.opacity = "1"; t.style.transform = "translateY(0)"; });
+    setTimeout(() => {
+        t.style.opacity = "0"; t.style.transform = "translateY(-1rem)";
+        setTimeout(() => t.remove(), 350);
+    }, 3500);
 }
 
 // ──────────────────────────────────────────
-// FORMATTERS
+// CARREGAR DADOS
 // ──────────────────────────────────────────
+async function carregarPedidos() {
+    try {
+        const raw = await apiGet("/Pedido/Listar");
+        todosPedidos = raw.map(p => ({ ...p, statusPedidoId: resolverStatusId(p) }));
+        aplicarFiltros();
+    } catch (err) {
+        flexToast("Erro ao carregar pedidos: " + err.message, "erro");
+    }
+}
+
+async function carregarClientes() {
+    try { clientesCache = await apiGet("/Cliente/Listar"); }
+    catch (err) { console.warn("Clientes:", err.message); }
+}
+
+async function carregarProdutos() {
+    try { produtosCache = await apiGet("/Produto/Listar"); }
+    catch (err) { console.warn("Produtos:", err.message); }
+}
+
+async function carregarFormasPagamento() {
+    try { formasPagamentoCache = await apiGet("/Caixa/FormasPagamento"); }
+    catch { formasPagamentoCache = FORMAS_PAGAMENTO; }
+}
+
+async function carregarCategorias() {
+    try { categoriaFinanceiraCache = await apiGet("/Caixa/Categorias"); }
+    catch { categoriaFinanceiraCache = []; }
+}
+
+// ──────────────────────────────────────────
+// FILTROS E TABELA
+// ──────────────────────────────────────────
+function aplicarFiltros() {
+    const idsPermitidos = FILTRO_STATUS_IDS[filtroStatusPedido] ?? FILTRO_STATUS_IDS.todos;
+    pedidosFiltrados = todosPedidos.filter(p => {
+        if (!idsPermitidos.includes(p.statusPedidoId)) return false;
+        if (filtroClienteStr) {
+            const q = filtroClienteStr.toLowerCase();
+            if (!p.nomeCliente?.toLowerCase().includes(q) &&
+                !String(p.numeroPedido).includes(q)) return false;
+        }
+        return true;
+    });
+    paginaAtual = 1;
+    renderizarTabela();
+}
+
+function filtrarCliente() {
+    filtroClienteStr = document.getElementById("input-busca-cliente").value.trim();
+    aplicarFiltros();
+}
+
+function setFiltroStatus(valor) {
+    filtroStatusPedido = valor;
+    document.querySelectorAll(".btn-status-filtro").forEach(b =>
+        b.className = b.className.replace(/\bsel-\S+/g, "").trim());
+    document.getElementById(`btn-f-${valor}`)?.classList.add(`sel-${valor}`);
+    aplicarFiltros();
+}
+
 function fmtMoeda(v) {
     return `R$ ${Number(v || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
@@ -109,94 +192,46 @@ function highlight(texto, busca) {
     return texto.replace(re, "<mark>$1</mark>");
 }
 
-// ──────────────────────────────────────────
-// CARREGAR DADOS
-// ──────────────────────────────────────────
-async function carregarPedidos() {
-    try {
-        const raw = await apiGet("/Pedido/Listar");
-        // Normaliza statusPedidoId para garantir que sempre seja número
-        todosPedidos = raw.map(p => ({
-            ...p,
-            statusPedidoId: resolverStatusId(p)
-        }));
-        aplicarFiltros();
-    } catch (err) {
-        flexToast("Erro ao carregar pedidos: " + err.message, "erro");
-    }
-}
-
-async function carregarClientes() {
-    try { clientesCache = await apiGet("/Cliente/Listar"); }
-    catch (err) { console.warn("Clientes indisponíveis:", err.message); }
-}
-
-async function carregarProdutos() {
-    try { produtosCache = await apiGet("/Produto/Listar"); }
-    catch (err) { console.warn("Produtos indisponíveis:", err.message); }
-}
-
-// ──────────────────────────────────────────
-// FILTROS
-// ──────────────────────────────────────────
-function aplicarFiltros() {
-    const idsPermitidos = FILTRO_STATUS_IDS[filtroStatusPedido] ?? FILTRO_STATUS_IDS.todos;
-
-    pedidosFiltrados = todosPedidos.filter(p => {
-        if (!idsPermitidos.includes(p.statusPedidoId)) return false;
-        if (filtroClienteStr) {
-            const q = filtroClienteStr.toLowerCase();
-            if (!p.nomeCliente?.toLowerCase().includes(q) &&
-                !String(p.numeroPedido).includes(q)) return false;
-        }
-        return true;
-    });
-    paginaAtual = 1;
-    renderizarTabela();
-}
-
-function filtrarCliente() {
-    filtroClienteStr = document.getElementById("input-busca-cliente").value.trim();
-    aplicarFiltros();
-}
-
-function setFiltroStatus(valor) {
-    filtroStatusPedido = valor;
-
-    document.querySelectorAll(".btn-status-filtro").forEach(b =>
-        b.className = b.className.replace(/\bsel-\S+/g, "").trim()
-    );
-
-    const btn = document.getElementById(`btn-f-${valor}`);
-    if (btn) btn.classList.add(`sel-${valor}`);
-
-    aplicarFiltros();
-}
-
-// ──────────────────────────────────────────
-// TABELA
-// ──────────────────────────────────────────
 function renderizarTabela() {
     const tbody = document.querySelector("#tabela-pedidos tbody");
     const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
     const pagina = pedidosFiltrados.slice(inicio, inicio + ITENS_POR_PAGINA);
 
-    if (pagina.length === 0) {
+    if (!pagina.length) {
         tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Nenhum pedido encontrado.</td></tr>`;
     } else {
         tbody.innerHTML = pagina.map(p => {
-            const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status ?? "Desconhecido", classe: "pendente" };
+            const st = STATUS_MAP[p.statusPedidoId] ?? { nome: "Desconhecido", classe: "pendente" };
+            const finalizado = p.statusPedidoId === 5 || p.statusPedidoId === 6;
             const cancelado = p.statusPedidoId === 6;
+            const concluido = p.statusPedidoId === 5;
+
             return `<tr>
                 <td class="area-acoes">
-                    <button class="btn-acao btn-ver" title="Detalhes" onclick="abrirDetalhes(${p.idPedido})">
+                    <!-- Ver detalhes — sempre disponível -->
+                    <button class="btn-acao btn-ver" title="Detalhes"
+                        onclick="abrirDetalhes(${p.idPedido})">
                         <i class="bi bi-eye-fill"></i>
                     </button>
-                    ${!cancelado ? `
-                    <button class="btn-acao btn-editar" title="Editar" onclick="abrirEdicao(${p.idPedido})">
+
+                    <!-- Registrar pagamento — apenas status que não são finais -->
+                    ${!finalizado ? `
+                    <button class="btn-acao btn-pagar" title="Registrar pagamento"
+                        onclick="abrirModalPagamento(${p.idPedido})">
+                        <i class="bi bi-cash-coin"></i>
+                    </button>` : ""}
+
+                    <!-- Editar — apenas status não finais -->
+                    ${!finalizado ? `
+                    <button class="btn-acao btn-editar" title="Editar"
+                        onclick="abrirEdicao(${p.idPedido})">
                         <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn-acao btn-cancelar" title="Cancelar" onclick="confirmarCancelamento(${p.idPedido})">
+                    </button>` : ""}
+
+                    <!-- Cancelar — apenas status não finais -->
+                    ${!finalizado ? `
+                    <button class="btn-acao btn-cancelar" title="Cancelar"
+                        onclick="confirmarCancelamento(${p.idPedido})">
                         <i class="bi bi-x-circle-fill"></i>
                     </button>` : ""}
                 </td>
@@ -226,7 +261,7 @@ function renderizarTabela() {
         if (i === paginaAtual) btn.classList.add("ativo");
         controles.appendChild(btn);
     }
-    controles.appendChild(criarBtn("›", paginaAtual >= totalPaginas || totalPaginas === 0,
+    controles.appendChild(criarBtn("›", paginaAtual >= totalPaginas || !totalPaginas,
         () => { paginaAtual++; renderizarTabela(); }));
 }
 
@@ -237,6 +272,100 @@ function criarBtn(label, disabled, onClick) {
     btn.disabled = disabled;
     btn.addEventListener("click", onClick);
     return btn;
+}
+
+// ──────────────────────────────────────────
+// MODAL PAGAMENTO DO PEDIDO
+// ──────────────────────────────────────────
+async function abrirModalPagamento(idPedido) {
+    const p = todosPedidos.find(x => x.idPedido === idPedido);
+    if (!p) return;
+    _pedidoPagamentoAtual = p;
+
+    // Carrega formas de pagamento e categorias se ainda não carregou
+    if (!formasPagamentoCache.length) await carregarFormasPagamento();
+    if (!categoriaFinanceiraCache.length) await carregarCategorias();
+
+    // Busca total já pago via caixa
+    let totalPago = 0;
+    try {
+        const res = await apiGet(`/Pedido/TotalPago?idPedido=${idPedido}`);
+        totalPago = res.totalPago ?? 0;
+    } catch { }
+
+    const valorRestante = Math.max(p.valorTotal - totalPago, 0);
+
+    // Preenche cabeçalho
+    document.getElementById("pag-pedido-numero").textContent = `#${p.numeroPedido}`;
+    document.getElementById("pag-pedido-cliente").textContent = p.nomeCliente;
+    document.getElementById("pag-total-pedido").textContent = fmtMoeda(p.valorTotal);
+    document.getElementById("pag-total-pago").textContent = fmtMoeda(totalPago);
+    document.getElementById("pag-valor-restante").textContent = fmtMoeda(valorRestante);
+
+    // Pré-preenche valor com o restante
+    document.getElementById("pag-valor").value = valorRestante > 0 ? valorRestante.toFixed(2) : "";
+
+    // Popula formas de pagamento
+    const selFP = document.getElementById("pag-forma-pagamento");
+    selFP.innerHTML = formasPagamentoCache.map(f =>
+        `<option value="${f.idFormaPagamento}">${f.nome}</option>`).join("");
+
+    // Popula categorias (só entradas)
+    const cats = categoriaFinanceiraCache.filter(c => Number(c.tipo) === 1);
+    const selCat = document.getElementById("pag-categoria");
+    selCat.innerHTML = cats.length
+        ? cats.map(c => `<option value="${c.idCategoriaFinanceira}">${c.nome}</option>`).join("")
+        : `<option value="">Nenhuma categoria de entrada</option>`;
+
+    document.getElementById("modal-pagamento-pedido").classList.add("open");
+}
+
+function fecharModalPagamento() {
+    document.getElementById("modal-pagamento-pedido").classList.remove("open");
+    _pedidoPagamentoAtual = null;
+}
+
+async function confirmarPagamento() {
+    if (!_pedidoPagamentoAtual) return;
+
+    const valor = Number(document.getElementById("pag-valor").value);
+    const idFP = Number(document.getElementById("pag-forma-pagamento").value);
+    const idCat = Number(document.getElementById("pag-categoria").value);
+    const desc = document.getElementById("pag-descricao").value || null;
+
+    if (!valor || valor <= 0) { flexToast("Informe um valor válido.", "aviso"); return; }
+    if (!idFP) { flexToast("Selecione a forma de pagamento.", "aviso"); return; }
+    if (!idCat) { flexToast("Selecione a categoria.", "aviso"); return; }
+
+    const btn = document.getElementById("btn-confirmar-pagamento");
+    btn.disabled = true;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processando...';
+
+    try {
+        const resultado = await apiPost("/Pedido/Pagar", {
+            IdPedido: _pedidoPagamentoAtual.idPedido,
+            IdFormaPagamento: idFP,
+            IdCategoriaFinanceira: idCat,
+            Valor: valor,
+            Descricao: desc
+        });
+
+        fecharModalPagamento();
+        await carregarPedidos();
+
+        if (resultado?.concluido) {
+            flexToast(`🎉 Pedido #${_pedidoPagamentoAtual?.numeroPedido ?? ""} CONCLUÍDO! Pagamento total registrado no caixa.`, "sucesso");
+        } else {
+            const restante = resultado?.valorRestante ?? 0;
+            flexToast(`Pagamento de ${fmtMoeda(valor)} registrado. Restante: ${fmtMoeda(restante)}`, "sucesso");
+        }
+    } catch (err) {
+        flexToast(err.message, "erro");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
 }
 
 // ──────────────────────────────────────────
@@ -252,16 +381,14 @@ function mudarAba(prefixo, aba) {
 }
 
 // ──────────────────────────────────────────
-// PAGAMENTOS
+// PAGAMENTOS DO MODAL DE PEDIDO
 // ──────────────────────────────────────────
 function calcularTotalPedido(prefixo) {
-    const subtotal = itensPedidoAtual.reduce((acc, i) => acc + (i.Qtde * i.precoUnit), 0);
-    const descontoItens = itensPedidoAtual.reduce((acc, i) => acc + i.Desconto, 0);
+    const subtotal = itensPedidoAtual.reduce((a, i) => a + (i.Qtde * i.precoUnit), 0);
+    const descontoItens = itensPedidoAtual.reduce((a, i) => a + i.Desconto, 0);
     const descontoGeral = Number(document.getElementById(`${prefixo}-desconto`)?.value || 0);
-    const frete = Number(
-        document.getElementById(`${prefixo}-frete`)?.value ||
-        document.getElementById("novo-frete")?.value || 0
-    );
+    const frete = Number(document.getElementById(`${prefixo}-frete`)?.value ||
+        document.getElementById("novo-frete")?.value || 0);
     return Math.max(subtotal - descontoItens - descontoGeral + frete, 0);
 }
 
@@ -271,17 +398,20 @@ function renderizarPagamentos(prefixo) {
     if (!lista || !resumo) return;
 
     const totalPedido = calcularTotalPedido(prefixo);
-    const totalPago = pagamentosPedidoAtual.reduce((acc, p) => acc + p.valor, 0);
+    const totalPago = pagamentosPedidoAtual.reduce((a, p) => a + p.valor, 0);
     const restante = +(totalPedido - totalPago).toFixed(2);
 
-    lista.innerHTML = pagamentosPedidoAtual.length === 0
-        ? `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Nenhum pagamento. Clique em "Adicionar Pagamento".</span></div>`
+    lista.innerHTML = !pagamentosPedidoAtual.length
+        ? `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Clique em "Adicionar Pagamento".</span></div>`
         : pagamentosPedidoAtual.map((pag, idx) => `
             <div class="pagamento-item">
                 <div>
                     <label class="pagamento-label">Forma de Pagamento</label>
-                    <select class="pagamento-select" onchange="atualizarPagamento(${idx},'formaPagamento_id',this.value,'${prefixo}')">
-                        ${FORMAS_PAGAMENTO.map(f => `<option value="${f.id}" ${pag.formaPagamento_id === f.id ? "selected" : ""}>${f.nome}</option>`).join("")}
+                    <select class="pagamento-select"
+                        onchange="atualizarPagamento(${idx},'formaPagamento_id',this.value,'${prefixo}')">
+                        ${FORMAS_PAGAMENTO.map(f =>
+            `<option value="${f.id}" ${pag.formaPagamento_id === f.id ? "selected" : ""}>${f.nome}</option>`
+        ).join("")}
                     </select>
                 </div>
                 <div>
@@ -294,7 +424,8 @@ function renderizarPagamentos(prefixo) {
                     </div>
                 </div>
                 <div class="pagamento-item-del">
-                    <button type="button" class="btn-del-item" onclick="removerPagamento(${idx},'${prefixo}')">
+                    <button type="button" class="btn-del-item"
+                        onclick="removerPagamento(${idx},'${prefixo}')">
                         <i class="bi bi-trash3-fill"></i>
                     </button>
                 </div>
@@ -308,11 +439,11 @@ function renderizarPagamentos(prefixo) {
     resumo.innerHTML = `
         <div class="pagamentos-resumo-grid">
             <div class="pag-resumo-item">
-                <span class="pag-resumo-label">Total do pedido</span>
+                <span class="pag-resumo-label">Total</span>
                 <span class="pag-resumo-valor">${fmtMoeda(totalPedido)}</span>
             </div>
             <div class="pag-resumo-item">
-                <span class="pag-resumo-label">Total pago</span>
+                <span class="pag-resumo-label">Pago</span>
                 <span class="pag-resumo-valor">${fmtMoeda(totalPago)}</span>
             </div>
             <div class="pag-resumo-item pag-resumo-${stClass}">
@@ -323,11 +454,11 @@ function renderizarPagamentos(prefixo) {
 }
 
 function adicionarPagamento(prefixo) {
-    const totalPedido = calcularTotalPedido(prefixo);
-    const totalPago = pagamentosPedidoAtual.reduce((acc, p) => acc + p.valor, 0);
+    const total = calcularTotalPedido(prefixo);
+    const totalPago = pagamentosPedidoAtual.reduce((a, p) => a + p.valor, 0);
     pagamentosPedidoAtual.push({
         formaPagamento_id: 4,
-        valor: Math.max(+(totalPedido - totalPago).toFixed(2), 0)
+        valor: Math.max(+(total - totalPago).toFixed(2), 0)
     });
     renderizarPagamentos(prefixo);
 }
@@ -339,7 +470,7 @@ function removerPagamento(idx, prefixo) {
 
 function atualizarPagamento(idx, campo, valor, prefixo) {
     pagamentosPedidoAtual[idx][campo] =
-        campo === "valor" || campo === "formaPagamento_id" ? Number(valor) : valor;
+        (campo === "valor" || campo === "formaPagamento_id") ? Number(valor) : valor;
     renderizarPagamentos(prefixo);
 }
 
@@ -359,25 +490,20 @@ function fecharBuscaCliente() {
 }
 function filtrarListaClientes(q) {
     const filtrado = q
-        ? clientesCache.filter(c =>
-            c.nome?.toLowerCase().includes(q.toLowerCase()) ||
-            c.cpfCNPJ?.includes(q))
+        ? clientesCache.filter(c => c.nome?.toLowerCase().includes(q.toLowerCase()) || c.cpfCNPJ?.includes(q))
         : clientesCache;
     renderListaClientes(filtrado, q);
 }
 function renderListaClientes(lista, q) {
     const el = document.getElementById("lista-busca-clientes");
-    if (!lista.length) {
-        el.innerHTML = `<div class="busca-vazia"><i class="bi bi-person-x"></i>Nenhum cliente encontrado</div>`;
-        return;
-    }
+    if (!lista.length) { el.innerHTML = `<div class="busca-vazia"><i class="bi bi-person-x"></i>Nenhum cliente encontrado</div>`; return; }
     el.innerHTML = lista.map(c => `
         <div class="busca-item" onclick="selecionarCliente(${c.idCliente})">
             <div class="busca-item-info">
                 <span class="busca-item-nome">${highlight(c.nome, q)}</span>
                 <span class="busca-item-sub">${highlight(c.cpfCNPJ || "", q)}</span>
             </div>
-            <i class="bi bi-chevron-right" style="color:#9ca3af;font-size:1.4rem"></i>
+            <i class="bi bi-chevron-right" style="color:#9ca3af"></i>
         </div>`).join("");
 }
 function selecionarCliente(id) {
@@ -410,25 +536,18 @@ function fecharBuscaProduto() {
             renderizarItens(_buscaProdutoPrefixo);
         }
     }
-    _buscaProdutoIdx = null;
-    _buscaProdutoPrefixo = null;
+    _buscaProdutoIdx = null; _buscaProdutoPrefixo = null;
 }
 function filtrarListaProdutos(q) {
     const filtrado = q
-        ? produtosCache.filter(p =>
-            p.nome?.toLowerCase().includes(q.toLowerCase()) ||
-            p.codigoBarras?.includes(q) ||
-            p.sku?.toLowerCase().includes(q.toLowerCase()))
+        ? produtosCache.filter(p => p.nome?.toLowerCase().includes(q.toLowerCase()) || p.sku?.toLowerCase().includes(q.toLowerCase()))
         : produtosCache;
     renderListaProdutos(filtrado, q);
 }
 function renderListaProdutos(lista, q) {
     const el = document.getElementById("lista-busca-produtos");
     const ativos = lista.filter(p => p.fAtivo);
-    if (!ativos.length) {
-        el.innerHTML = `<div class="busca-vazia"><i class="bi bi-box-seam"></i>Nenhum produto encontrado</div>`;
-        return;
-    }
+    if (!ativos.length) { el.innerHTML = `<div class="busca-vazia"><i class="bi bi-box-seam"></i>Nenhum produto</div>`; return; }
     el.innerHTML = ativos.map(p => `
         <div class="busca-item" onclick="selecionarProduto(${p.idProduto})">
             <div class="busca-item-info">
@@ -442,13 +561,11 @@ function selecionarProduto(id) {
     const p = produtosCache.find(p => p.idProduto === id);
     if (!p || _buscaProdutoIdx === null) return;
     const item = itensPedidoAtual[_buscaProdutoIdx];
-    item.produto_id = p.idProduto;
-    item.nomeProduto = p.nome;
+    item.produto_id = p.idProduto; item.nomeProduto = p.nome;
     item.precoUnit = p.precoVenda;
     item.Subtotal = (item.Qtde * item.precoUnit) - item.Desconto;
     const prefixo = _buscaProdutoPrefixo;
-    _buscaProdutoIdx = null;
-    _buscaProdutoPrefixo = null;
+    _buscaProdutoIdx = null; _buscaProdutoPrefixo = null;
     document.getElementById("modal-busca-produto").classList.remove("open");
     renderizarItens(prefixo);
 }
@@ -465,9 +582,9 @@ function renderizarItens(prefixo) {
                 <div class="produto-cell">
                     <input type="text" readonly value="${item.nomeProduto || ""}"
                         placeholder="Selecionar produto..."
-                        onclick="abrirBuscaProduto(${idx}, '${prefixo}')">
+                        onclick="abrirBuscaProduto(${idx},'${prefixo}')">
                     <button type="button" class="btn-buscar-produto"
-                        onclick="abrirBuscaProduto(${idx}, '${prefixo}')">
+                        onclick="abrirBuscaProduto(${idx},'${prefixo}')">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
@@ -500,19 +617,16 @@ function atualizarItem(idx, campo, valor, prefixo) {
         (itensPedidoAtual[idx].Qtde * itensPedidoAtual[idx].precoUnit) - itensPedidoAtual[idx].Desconto;
     renderizarItens(prefixo);
 }
-
 function adicionarItem(prefixo) {
     const idx = itensPedidoAtual.length;
     itensPedidoAtual.push({ produto_id: null, nomeProduto: "", Qtde: 1, precoUnit: 0, Desconto: 0, Subtotal: 0 });
     renderizarItens(prefixo);
     abrirBuscaProduto(idx, prefixo);
 }
-
 function removerItem(idx, prefixo) {
     itensPedidoAtual.splice(idx, 1);
     renderizarItens(prefixo);
 }
-
 function atualizarResumo(prefixo) {
     const subtotal = itensPedidoAtual.reduce((a, i) => a + (i.Qtde * i.precoUnit), 0);
     const descontoItens = itensPedidoAtual.reduce((a, i) => a + i.Desconto, 0);
@@ -527,13 +641,10 @@ function atualizarResumo(prefixo) {
     if (el("total")) el("total").textContent = fmtMoeda(Math.max(total, 0));
 }
 
-// ──────────────────────────────────────────
-// HELPER: monta <select> de status para modal de edição
-// Exclui "Cancelado" — cancelamento é feito pelo botão dedicado
-// ──────────────────────────────────────────
+// Select de status — exclui Concluído e Cancelado (não editáveis manualmente)
 function montarSelectStatus(statusAtualId) {
     return Object.entries(STATUS_MAP)
-        .filter(([id]) => Number(id) !== 6)   // Cancelado não aparece no select de edição
+        .filter(([id]) => Number(id) !== 5 && Number(id) !== 6)
         .map(([id, s]) =>
             `<option value="${id}" ${Number(id) === statusAtualId ? "selected" : ""}>${s.nome}</option>`
         ).join("");
@@ -547,57 +658,44 @@ async function abrirModal() {
     document.getElementById("novo-cliente-nome").value = "";
     document.getElementById("novo-cliente-id").value = "";
     document.getElementById("novo-cliente-endereco").value = "";
-    itensPedidoAtual = [];
-    pagamentosPedidoAtual = [];
+    itensPedidoAtual = []; pagamentosPedidoAtual = [];
     mudarAba("novo", "pedido");
     renderizarItens("novo");
     renderizarPagamentos("novo");
     await Promise.all([carregarClientes(), carregarProdutos()]);
     document.getElementById("modal-novo-pedido").classList.add("open");
 }
-
-function fecharModal() {
-    document.getElementById("modal-novo-pedido").classList.remove("open");
-}
+function fecharModal() { document.getElementById("modal-novo-pedido").classList.remove("open"); }
 
 document.getElementById("form-pedido").addEventListener("submit", async function (e) {
     e.preventDefault();
     const clienteId = Number(document.getElementById("novo-cliente-id").value);
     const enderecoId = Number(document.getElementById("novo-cliente-endereco").value) || 1;
     if (!clienteId) { flexToast("Selecione um cliente.", "aviso"); return; }
-
     const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
     if (!itensValidos.length) { flexToast("Adicione pelo menos um item.", "aviso"); return; }
-
     const desconto = Number(document.getElementById("novo-desconto").value) || 0;
     const frete = Number(document.getElementById("novo-frete")?.value || 0);
-    const btnSalvar = this.querySelector('[type="submit"]');
-    btnSalvar.disabled = true;
-
+    const btn = this.querySelector('[type="submit"]');
+    btn.disabled = true;
     try {
         await apiPost("/Pedido/Criar", {
             Pedido: {
-                IdCliente: clienteId, EnderecoId: enderecoId,
-                Canal: "PROPRIO", NumeroExterno: null,
-                Observacao: document.getElementById("novo-obs").value || null,
+                IdCliente: clienteId, EnderecoId: enderecoId, Canal: "PROPRIO",
+                NumeroExterno: null, Observacao: document.getElementById("novo-obs").value || null,
                 ValorFrete: frete, Desconto: desconto, ValorTotal: 0
             },
             Itens: itensValidos.map(i => ({
                 IdProduto: i.produto_id, Quantidade: i.Qtde,
                 ValorUnitario: i.precoUnit, Desconto: i.Desconto, ValorTotal: i.Subtotal
             })),
-            Pagamentos: pagamentosPedidoAtual.map(p => ({
-                FormaPagamento_id: p.formaPagamento_id, Valor: p.valor
-            }))
+            Pagamentos: pagamentosPedidoAtual.map(p => ({ FormaPagamento_id: p.formaPagamento_id, Valor: p.valor }))
         });
         fecharModal();
         await carregarPedidos();
         flexToast("Pedido criado com sucesso!", "sucesso");
-    } catch (err) {
-        flexToast("Erro ao salvar pedido: " + err.message, "erro");
-    } finally {
-        btnSalvar.disabled = false;
-    }
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+    finally { btn.disabled = false; }
 });
 
 // ──────────────────────────────────────────
@@ -606,21 +704,14 @@ document.getElementById("form-pedido").addEventListener("submit", async function
 async function abrirEdicao(idPedido) {
     _pedidoEmEdicao = todosPedidos.find(x => x.idPedido === idPedido);
     if (!_pedidoEmEdicao) return;
-
     await Promise.all([carregarClientes(), carregarProdutos()]);
-
-    document.getElementById("edit-numero").value =
-        `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
+    document.getElementById("edit-numero").value = `PED-${String(_pedidoEmEdicao.numeroPedido).padStart(3, "0")}`;
     document.getElementById("edit-cliente-nome").value = _pedidoEmEdicao.nomeCliente;
     document.getElementById("edit-cliente-id").value = _pedidoEmEdicao.idCliente ?? "";
     document.getElementById("edit-desconto").value = _pedidoEmEdicao.desconto ?? 0;
     document.getElementById("edit-obs").value = _pedidoEmEdicao.observacao ?? "";
     document.getElementById("novo-frete").value = _pedidoEmEdicao.valorFrete ?? 0;
-
-    // Popula select de status (sem Cancelado)
-    document.getElementById("edit-status").innerHTML =
-        montarSelectStatus(_pedidoEmEdicao.statusPedidoId);
-
+    document.getElementById("edit-status").innerHTML = montarSelectStatus(_pedidoEmEdicao.statusPedidoId);
     try {
         const itensBackend = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
         itensPedidoAtual = itensBackend.map(i => ({
@@ -629,43 +720,32 @@ async function abrirEdicao(idPedido) {
             Desconto: i.desconto ?? 0, Subtotal: i.valorTotal
         }));
     } catch { itensPedidoAtual = []; }
-
     try {
-        const pagamentosBackend = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
-        pagamentosPedidoAtual = pagamentosBackend.map(p => ({
-            formaPagamento_id: p.formaPagamento_id, valor: p.valor
-        }));
+        const pags = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
+        pagamentosPedidoAtual = pags.map(p => ({ formaPagamento_id: p.formaPagamento_id, valor: p.valor }));
     } catch { pagamentosPedidoAtual = []; }
-
     mudarAba("edit", "pedido");
     renderizarItens("edit");
     renderizarPagamentos("edit");
     document.getElementById("modal-edicao").classList.add("open");
 }
-
 function fecharEdicao() {
     document.getElementById("modal-edicao").classList.remove("open");
-    _pedidoEmEdicao = null;
-    itensPedidoAtual = [];
-    pagamentosPedidoAtual = [];
+    _pedidoEmEdicao = null; itensPedidoAtual = []; pagamentosPedidoAtual = [];
 }
 
 document.getElementById("form-edicao").addEventListener("submit", async function (e) {
     e.preventDefault();
     if (!_pedidoEmEdicao) return;
-
     const clienteId = Number(document.getElementById("edit-cliente-id").value);
     if (!clienteId) { flexToast("Selecione um cliente.", "aviso"); return; }
-
     const itensValidos = itensPedidoAtual.filter(i => i.produto_id !== null);
     if (!itensValidos.length) { flexToast("Adicione pelo menos um item.", "aviso"); return; }
-
     const statusId = Number(document.getElementById("edit-status").value);
     const desconto = Number(document.getElementById("edit-desconto").value) || 0;
     const frete = Number(document.getElementById("novo-frete")?.value || 0);
-    const btnSalvar = this.querySelector('[type="submit"]');
-    btnSalvar.disabled = true;
-
+    const btn = this.querySelector('[type="submit"]');
+    btn.disabled = true;
     try {
         await apiPost("/Pedido/Editar", {
             IdPedido: _pedidoEmEdicao.idPedido, StatusPedidoId: statusId,
@@ -675,18 +755,12 @@ document.getElementById("form-edicao").addEventListener("submit", async function
                 IdProduto: i.produto_id, Quantidade: i.Qtde,
                 ValorUnitario: i.precoUnit, Desconto: i.Desconto, ValorTotal: i.Subtotal
             })),
-            Pagamentos: pagamentosPedidoAtual.map(p => ({
-                FormaPagamento_id: p.formaPagamento_id, Valor: p.valor
-            }))
+            Pagamentos: pagamentosPedidoAtual.map(p => ({ FormaPagamento_id: p.formaPagamento_id, Valor: p.valor }))
         });
-        fecharEdicao();
-        await carregarPedidos();
-        flexToast("Pedido atualizado com sucesso!", "sucesso");
-    } catch (err) {
-        flexToast("Erro ao salvar pedido: " + err.message, "erro");
-    } finally {
-        btnSalvar.disabled = false;
-    }
+        fecharEdicao(); await carregarPedidos();
+        flexToast("Pedido atualizado!", "sucesso");
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+    finally { btn.disabled = false; }
 });
 
 // ──────────────────────────────────────────
@@ -695,17 +769,14 @@ document.getElementById("form-edicao").addEventListener("submit", async function
 async function abrirDetalhes(idPedido) {
     const p = todosPedidos.find(x => x.idPedido === idPedido);
     if (!p) return;
-    const st = STATUS_MAP[p.statusPedidoId] ?? { nome: p.status ?? "Desconhecido", classe: "pendente" };
-
+    const st = STATUS_MAP[p.statusPedidoId] ?? { nome: "Desconhecido", classe: "pendente" };
     document.getElementById("det-numero").textContent = `#${p.numeroPedido}`;
-    document.getElementById("det-status").innerHTML =
-        `<span class="status-pill status-${st.classe}">${st.nome}</span>`;
+    document.getElementById("det-status").innerHTML = `<span class="status-pill status-${st.classe}">${st.nome}</span>`;
     document.getElementById("det-cliente").textContent = p.nomeCliente;
     document.getElementById("det-data").textContent = fmtData(p.dthCriacao);
     document.getElementById("det-desconto").textContent = p.desconto > 0 ? fmtMoeda(p.desconto) : "—";
     document.getElementById("det-total").textContent = fmtMoeda(p.valorTotal);
     document.getElementById("det-obs").textContent = p.observacao || "—";
-
     try {
         const itens = await apiGet(`/Pedido/ListarItens?idPedido=${idPedido}`);
         document.getElementById("det-itens-body").innerHTML = itens.map(i => `
@@ -716,32 +787,21 @@ async function abrirDetalhes(idPedido) {
                 <td>${i.desconto > 0 ? fmtMoeda(i.desconto) : "—"}</td>
                 <td style="font-weight:700">${fmtMoeda(i.valorTotal)}</td>
             </tr>`).join("");
-    } catch {
-        document.getElementById("det-itens-body").innerHTML =
-            `<tr><td colspan="5" class="empty-state">Erro ao carregar itens.</td></tr>`;
-    }
-
+    } catch { document.getElementById("det-itens-body").innerHTML = `<tr><td colspan="5" class="empty-state">Erro.</td></tr>`; }
     try {
-        const pagamentos = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
-        if (!pagamentos.length) {
+        const pags = await apiGet(`/Pedido/ListarPagamentos?idPedido=${idPedido}`);
+        if (!pags.length) {
             document.getElementById("det-pagamentos").innerHTML =
                 `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Nenhum pagamento registrado.</span></div>`;
         } else {
-            const totalPago = pagamentos.reduce((acc, pg) => acc + pg.valor, 0);
+            const totalPago = pags.reduce((a, pg) => a + pg.valor, 0);
             document.getElementById("det-pagamentos").innerHTML = `
                 <table class="table-itens" style="margin-bottom:1rem">
-                    <thead>
-                        <tr><th>Forma de Pagamento</th><th>Valor</th><th>Data</th></tr>
-                    </thead>
+                    <thead><tr><th>Forma de Pagamento</th><th>Valor</th><th>Data</th></tr></thead>
                     <tbody>
-                        ${pagamentos.map(pg => {
-                const forma = FORMAS_PAGAMENTO.find(f => f.id === pg.formaPagamento_id)?.nome
-                    ?? `#${pg.formaPagamento_id}`;
-                return `<tr>
-                                <td>${forma}</td>
-                                <td style="font-weight:700">${fmtMoeda(pg.valor)}</td>
-                                <td>${fmtData(pg.dthPagamento)}</td>
-                            </tr>`;
+                        ${pags.map(pg => {
+                const forma = FORMAS_PAGAMENTO.find(f => f.id === pg.formaPagamento_id)?.nome ?? `#${pg.formaPagamento_id}`;
+                return `<tr><td>${forma}</td><td style="font-weight:700">${fmtMoeda(pg.valor)}</td><td>${fmtData(pg.dthPagamento)}</td></tr>`;
             }).join("")}
                         <tr style="border-top:2px solid #eaecf0">
                             <td style="font-weight:700">Total pago</td>
@@ -751,49 +811,31 @@ async function abrirDetalhes(idPedido) {
                     </tbody>
                 </table>`;
         }
-    } catch {
-        document.getElementById("det-pagamentos").innerHTML =
-            `<div class="pagamentos-empty"><i class="bi bi-credit-card"></i><span>Erro ao carregar pagamentos.</span></div>`;
-    }
-
+    } catch { document.getElementById("det-pagamentos").innerHTML = `<div class="pagamentos-empty"><span>Erro.</span></div>`; }
     try {
-        const historico = await apiGet(`/Pedido/ListarHistoricoStatus?idPedido=${idPedido}`);
-        if (!historico.length) {
-            document.getElementById("det-historico").innerHTML =
-                `<div class="empty-state">Nenhum histórico registrado.</div>`;
-        } else {
-            document.getElementById("det-historico").innerHTML = historico.map(h => {
-                const stH = STATUS_MAP[h.statusPedido_id] ??
-                    { nome: `Status ${h.statusPedido_id}`, classe: "pendente" };
+        const hist = await apiGet(`/Pedido/ListarHistoricoStatus?idPedido=${idPedido}`);
+        document.getElementById("det-historico").innerHTML = !hist.length
+            ? `<div class="empty-state">Nenhum histórico.</div>`
+            : hist.map(h => {
+                const stH = STATUS_MAP[h.statusPedido_id] ?? { nome: `Status ${h.statusPedido_id}`, classe: "pendente" };
                 return `<div class="historico-item">
                     <div class="historico-dot"><i class="bi bi-check-lg"></i></div>
                     <div class="historico-conteudo">
-                        <div class="historico-status">
-                            <span class="status-pill status-${stH.classe}">${stH.nome}</span>
-                        </div>
+                        <div class="historico-status"><span class="status-pill status-${stH.classe}">${stH.nome}</span></div>
                         <div class="historico-data">${fmtDataHora(h.dthAlteracao)} — ${h.nomeUsuario}</div>
                         ${h.observacao ? `<div class="historico-obs">${h.observacao}</div>` : ""}
                     </div>
                 </div>`;
             }).join("");
-        }
-    } catch {
-        document.getElementById("det-historico").innerHTML =
-            `<div class="empty-state">Erro ao carregar histórico.</div>`;
-    }
-
+    } catch { document.getElementById("det-historico").innerHTML = `<div class="empty-state">Erro.</div>`; }
     document.getElementById("modal-detalhes").classList.add("open");
 }
-
-function fecharDetalhes() {
-    document.getElementById("modal-detalhes").classList.remove("open");
-}
+function fecharDetalhes() { document.getElementById("modal-detalhes").classList.remove("open"); }
 
 // ──────────────────────────────────────────
 // CANCELAMENTO
 // ──────────────────────────────────────────
 let _pedidoParaCancelar = null;
-
 function confirmarCancelamento(idPedido) {
     _pedidoParaCancelar = idPedido;
     const p = todosPedidos.find(x => x.idPedido === idPedido);
@@ -801,44 +843,42 @@ function confirmarCancelamento(idPedido) {
         `Deseja <strong>cancelar</strong> o pedido <strong>#${p?.numeroPedido}</strong>?`;
     document.getElementById("modal-confirmar").classList.add("open");
 }
-
 function fecharConfirmar() {
     document.getElementById("modal-confirmar").classList.remove("open");
     _pedidoParaCancelar = null;
 }
-
 document.getElementById("confirm-btn-sim").addEventListener("click", async function () {
     if (!_pedidoParaCancelar) return;
     this.disabled = true;
     try {
         await apiPost("/Pedido/Cancelar", _pedidoParaCancelar);
-        fecharConfirmar();
-        await carregarPedidos();
+        fecharConfirmar(); await carregarPedidos();
         flexToast("Pedido cancelado.", "sucesso");
-    } catch (err) {
-        flexToast("Erro ao cancelar: " + err.message, "erro");
-    } finally {
-        this.disabled = false;
-    }
+    } catch (err) { flexToast("Erro: " + err.message, "erro"); }
+    finally { this.disabled = false; }
 });
 
 // ──────────────────────────────────────────
 // FECHAR CLICANDO FORA
 // ──────────────────────────────────────────
-["modal-novo-pedido", "modal-edicao", "modal-detalhes", "modal-confirmar"].forEach(id => {
-    document.getElementById(id)?.addEventListener("click", function (e) {
-        if (e.target !== this) return;
-        if (id === "modal-novo-pedido") fecharModal();
-        else if (id === "modal-edicao") fecharEdicao();
-        else if (id === "modal-detalhes") fecharDetalhes();
-        else fecharConfirmar();
+["modal-novo-pedido", "modal-edicao", "modal-detalhes", "modal-confirmar", "modal-pagamento-pedido"]
+    .forEach(id => {
+        document.getElementById(id)?.addEventListener("click", function (e) {
+            if (e.target !== this) return;
+            if (id === "modal-novo-pedido") fecharModal();
+            else if (id === "modal-edicao") fecharEdicao();
+            else if (id === "modal-detalhes") fecharDetalhes();
+            else if (id === "modal-confirmar") fecharConfirmar();
+            else if (id === "modal-pagamento-pedido") fecharModalPagamento();
+        });
     });
-});
-document.getElementById("modal-busca-cliente")?.addEventListener("click", function (e) {
-    if (e.target === this) fecharBuscaCliente();
-});
-document.getElementById("modal-busca-produto")?.addEventListener("click", function (e) {
-    if (e.target === this) fecharBuscaProduto();
+["modal-busca-cliente", "modal-busca-produto"].forEach(id => {
+    document.getElementById(id)?.addEventListener("click", function (e) {
+        if (e.target === this) {
+            if (id === "modal-busca-cliente") fecharBuscaCliente();
+            else fecharBuscaProduto();
+        }
+    });
 });
 
 // ──────────────────────────────────────────

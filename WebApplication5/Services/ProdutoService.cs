@@ -1,6 +1,4 @@
-﻿using Dapper;
-using MySql.Data.MySqlClient;
-using System.Data;
+﻿// ===== ProdutoService.cs =====
 using WebApplication5.Models;
 using WebApplication5.Repositories;
 
@@ -10,13 +8,10 @@ namespace WebApplication5.Services
     {
         private readonly ProdutoRepository _repo;
 
-        public ProdutoService(ProdutoRepository repo)
-        {
-            _repo = repo;
-        }
+        public ProdutoService(ProdutoRepository repo) => _repo = repo;
 
         public IEnumerable<ProdutoListaGridDto> Listar(int idEmpresa)
-            => (IEnumerable<ProdutoListaGridDto>)_repo.Listar(idEmpresa);
+            => _repo.Listar(idEmpresa);
 
         public IEnumerable<ProdutoListaGridDto> Filtrar(ProdutoFiltroDto filtro, int idEmpresa)
             => _repo.Filtrar(filtro, idEmpresa);
@@ -34,5 +29,9 @@ namespace WebApplication5.Services
 
         public void AlterarStatus(int idProduto)
             => _repo.AlterarStatus(idProduto);
+
+        // Salva SOMENTE os dados fiscais — não toca nos dados comerciais
+        public void SalvarDadosFiscais(ProdutoFiscalDto dto)
+            => _repo.SalvarDadosFiscais(dto);
     }
 }

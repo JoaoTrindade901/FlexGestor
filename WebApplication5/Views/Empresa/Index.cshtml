@@ -1,0 +1,326 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empresa - FlexGestor</title>
+    <link rel="stylesheet" href="/css/homeCSS/home.css">
+    <link rel="stylesheet" href="/css/menuCSS/menu.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/empresaCSS/empresa.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body data-rota="Empresa">
+    <div class="container">
+        <div id="menu"></div>
+        <main>
+            <section class="secao-empresa">
+
+                <div class="emp-cabecalho">
+                    <div class="emp-logo-wrap">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="emp-cabecalho-texto">
+                        <h2 id="emp-nome-topo">Carregando...</h2>
+                        <p id="emp-cnpj-topo"></p>
+                    </div>
+                </div>
+
+                <div class="emp-tabs">
+                    <button id="tab-btn-dados" class="emp-tab-btn ativo" data-aba="dados">
+                        <i class="bi bi-building-gear"></i> Dados da Empresa
+                    </button>
+                    <button id="tab-btn-fiscal" class="emp-tab-btn" data-aba="fiscal">
+                        <i class="bi bi-receipt"></i> Configuracao Fiscal
+                    </button>
+                </div>
+
+                <!-- ABA DADOS -->
+                <div id="tab-dados" class="emp-tab-painel ativo">
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-info-circle"></i> Informacoes Basicas
+                        </h3>
+                        <div class="emp-grid">
+                            <div class="emp-campo emp-col-2">
+                                <label>Razao Social <span class="obrig">*</span></label>
+                                <input type="text" id="emp-nome" placeholder="Nome da empresa..." maxlength="200">
+                            </div>
+                            <div class="emp-campo">
+                                <label>CNPJ <span class="obrig">*</span></label>
+                                <input type="text" id="emp-cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Telefone</label>
+                                <input type="text" id="emp-tel" placeholder="(00) 00000-0000" maxlength="15">
+                            </div>
+                            <div class="emp-campo">
+                                <label>E-mail</label>
+                                <input type="email" id="emp-email" placeholder="contato da empresa" maxlength="100">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Codigo do Municipio IBGE</label>
+                                <input type="text" id="emp-codmun" placeholder="Ex: 4205407" maxlength="7">
+                                <span class="campo-hint">Necessario para emissao de NF-e</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-geo-alt"></i> Endereco
+                        </h3>
+                        <div class="emp-grid emp-grid-3">
+                            <div class="emp-campo">
+                                <label>CEP <span class="obrig">*</span></label>
+                                <div class="emp-cep-wrap">
+                                    <input type="text" id="emp-cep" placeholder="00000-000" maxlength="9">
+                                    <button class="btn-buscar-cep" id="btn-buscar-cep" type="button">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="emp-campo emp-col-2">
+                                <label>Logradouro <span class="obrig">*</span></label>
+                                <input type="text" id="emp-logradouro" placeholder="Rua, Avenida..." maxlength="200">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Numero</label>
+                                <input type="text" id="emp-numero" placeholder="S/N" maxlength="20">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Complemento</label>
+                                <input type="text" id="emp-complemento" placeholder="Sala, Bloco..." maxlength="50">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Bairro</label>
+                                <input type="text" id="emp-bairro" placeholder="Bairro" maxlength="80">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Cidade <span class="obrig">*</span></label>
+                                <input type="text" id="emp-cidade" placeholder="Cidade" maxlength="60">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Estado <span class="obrig">*</span></label>
+                                <select id="emp-estado">
+                                    <option value="">Selecione...</option>
+                                    <option value="AC">AC</option>
+                                    <option value="AL">AL</option>
+                                    <option value="AP">AP</option>
+                                    <option value="AM">AM</option>
+                                    <option value="BA">BA</option>
+                                    <option value="CE">CE</option>
+                                    <option value="DF">DF</option>
+                                    <option value="ES">ES</option>
+                                    <option value="GO">GO</option>
+                                    <option value="MA">MA</option>
+                                    <option value="MT">MT</option>
+                                    <option value="MS">MS</option>
+                                    <option value="MG">MG</option>
+                                    <option value="PA">PA</option>
+                                    <option value="PB">PB</option>
+                                    <option value="PR">PR</option>
+                                    <option value="PE">PE</option>
+                                    <option value="PI">PI</option>
+                                    <option value="RJ">RJ</option>
+                                    <option value="RN">RN</option>
+                                    <option value="RS">RS</option>
+                                    <option value="RO">RO</option>
+                                    <option value="RR">RR</option>
+                                    <option value="SC">SC</option>
+                                    <option value="SP">SP</option>
+                                    <option value="SE">SE</option>
+                                    <option value="TO">TO</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-acoes">
+                        <button class="btn-emp-primario" id="btn-salvar-empresa">
+                            <i class="bi bi-check-lg"></i> Salvar Dados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ABA FISCAL -->
+                <div id="tab-fiscal" class="emp-tab-painel">
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-card-text"></i> Identificacao Fiscal
+                        </h3>
+                        <div class="emp-grid emp-grid-3">
+                            <div class="emp-campo emp-col-2">
+                                <label>CNPJ Fiscal</label>
+                                <input type="text" id="fisc-cnpj" placeholder="Igual ao CNPJ da empresa se nao houver filial" maxlength="18">
+                                <span class="campo-hint">Deixe em branco para usar o CNPJ principal</span>
+                            </div>
+                            <div class="emp-campo">
+                                <label>Regime Tributario</label>
+                                <select id="fisc-regime">
+                                    <option value="">Selecione...</option>
+                                    <option value="1">1 - Simples Nacional</option>
+                                    <option value="2">2 - Lucro Presumido</option>
+                                    <option value="3">3 - Lucro Real</option>
+                                </select>
+                            </div>
+                            <div class="emp-campo">
+                                <label>Inscricao Estadual IE</label>
+                                <input type="text" id="fisc-ie" placeholder="000.000.000.000" maxlength="20">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Inscricao Municipal IM</label>
+                                <input type="text" id="fisc-im" placeholder="Somente para NFS-e" maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-diagram-3"></i> Ambiente e Numeracao
+                        </h3>
+                        <div class="emp-campo emp-mb-2">
+                            <label>Ambiente de Emissao</label>
+                            <div class="emp-ambiente-wrap">
+                                <button type="button" id="btn-amb-homolog" class="emp-amb-btn sel-homolog" data-amb="2">
+                                    <i class="bi bi-cone-striped"></i> Homologacao (Testes)
+                                </button>
+                                <button type="button" id="btn-amb-prod" class="emp-amb-btn" data-amb="1">
+                                    <i class="bi bi-lightning-charge-fill"></i> Producao (Real)
+                                </button>
+                            </div>
+                            <span class="campo-hint" id="amb-hint">
+                                Homologacao: notas enviadas ao ambiente de testes da SEFAZ, sem valor fiscal.
+                            </span>
+                        </div>
+                        <div class="emp-grid emp-grid-4">
+                            <div class="emp-campo">
+                                <label>Serie NF-e</label>
+                                <input type="text" id="fisc-serie-nfe" value="1" maxlength="3">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Proximo Nr NF-e</label>
+                                <input type="number" id="fisc-num-nfe" value="1" min="1">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Serie NFC-e</label>
+                                <input type="text" id="fisc-serie-nfce" value="1" maxlength="3">
+                            </div>
+                            <div class="emp-campo">
+                                <label>Proximo Nr NFC-e</label>
+                                <input type="number" id="fisc-num-nfce" value="1" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-percent"></i> Aliquotas Padrao
+                        </h3>
+                        <p class="emp-hint-texto">
+                            Usadas como padrao ao cadastrar novos produtos. Podem ser sobrescritas individualmente.
+                        </p>
+                        <div class="aliq-group">
+                            <div class="aliq-item">
+                                <label>ICMS</label>
+                                <div class="aliq-input-wrap">
+                                    <input type="number" id="fisc-icms" value="0" min="0" max="100" step="0.01">
+                                    <span class="aliq-sufixo">%</span>
+                                </div>
+                            </div>
+                            <div class="aliq-item">
+                                <label>PIS</label>
+                                <div class="aliq-input-wrap">
+                                    <input type="number" id="fisc-pis" value="0.65" min="0" max="100" step="0.01">
+                                    <span class="aliq-sufixo">%</span>
+                                </div>
+                            </div>
+                            <div class="aliq-item">
+                                <label>COFINS</label>
+                                <div class="aliq-input-wrap">
+                                    <input type="number" id="fisc-cofins" value="3.00" min="0" max="100" step="0.01">
+                                    <span class="aliq-sufixo">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-secao">
+                        <h3 class="emp-secao-titulo">
+                            <i class="bi bi-shield-lock"></i> Certificado Digital A1
+                        </h3>
+
+                        <div id="cert-status" class="emp-cert-status sem-cert">
+                            <i class="bi bi-shield-x"></i>
+                            <span>Nenhum certificado cadastrado.</span>
+                        </div>
+
+                        <div class="emp-cert-area emp-mt-1" id="cert-upload-area">
+                            <input type="file" id="cert-input" accept=".pfx,.p12">
+                            <div class="emp-cert-icone">
+                                <i class="bi bi-file-earmark-lock2"></i>
+                            </div>
+                            <p>Arraste o arquivo .pfx aqui ou clique para selecionar</p>
+                            <small>Formatos aceitos: .pfx, .p12 - maximo 5 MB</small>
+                        </div>
+
+                        <div class="emp-campo emp-campo-senha emp-mt-1">
+                            <label>Senha do Certificado <span class="obrig">*</span></label>
+                            <div class="emp-senha-wrap">
+                                <input type="password" id="cert-senha" placeholder="Senha do arquivo .pfx">
+                                <button type="button" id="btn-toggle-senha" class="btn-toggle-senha">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span class="campo-hint">A senha e usada para validar e assinar os XMLs da NF-e.</span>
+                        </div>
+
+                        <div class="emp-acoes emp-cert-acoes">
+                            <button class="btn-emp-primario btn-emp-success" id="btn-salvar-cert">
+                                <i class="bi bi-shield-check"></i> Salvar Certificado
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="emp-acoes">
+                        <button class="btn-emp-primario" id="btn-salvar-fiscal">
+                            <i class="bi bi-check-lg"></i> Salvar Configuracao Fiscal
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <div id="modal-amb-prod" class="emp-modal-overlay emp-modal-hidden">
+        <div class="emp-modal-box">
+            <div class="emp-modal-icon-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h3 class="emp-modal-titulo">Ativar Ambiente de Producao?</h3>
+            <p class="emp-modal-texto">
+                Em producao, as notas emitidas tem <strong>valor fiscal real</strong>
+                e sao enviadas oficialmente a SEFAZ.
+                Certifique-se de que o certificado esta valido antes de prosseguir.
+            </p>
+            <div class="emp-modal-acoes">
+                <button type="button" id="btn-modal-cancelar-prod" class="btn-emp-secundario">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-modal-confirmar-prod" class="btn-emp-perigo">
+                    <i class="bi bi-lightning-charge-fill"></i> Sim, ativar producao
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/menuJS/menu.js"></script>
+    <script src="/js/empresaJS/empresa.js"></script>
+</body>
+</html>

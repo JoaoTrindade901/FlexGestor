@@ -1,3 +1,4 @@
+// ===== PedidoRepository.cs =====
 using Dapper;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -10,9 +11,7 @@ namespace WebApplication5.Repositories
         private readonly string _connectionString;
 
         public PedidoRepository(IConfiguration config)
-        {
-            _connectionString = config.GetConnectionString("Default")!;
-        }
+            => _connectionString = config.GetConnectionString("Default")!;
 
         public IEnumerable<PedidoListaGridDto> Listar(int idEmpresa)
         {
@@ -32,12 +31,20 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void AtualizarCabecalho(int idPedido, decimal valorTotal, decimal desconto, decimal valorFrete, string? observacao)
+        public void AtualizarCabecalho(int idPedido, decimal valorTotal,
+            decimal desconto, decimal valorFrete, string? observacao)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
                 "sp_AtualizarCabecalhoPedido",
-                new { p_idPedido = idPedido, p_valorTotal = valorTotal, p_Desconto = desconto, p_valorFrete = valorFrete, p_Observacao = observacao },
+                new
+                {
+                    p_idPedido = idPedido,
+                    p_valorTotal = valorTotal,
+                    p_Desconto = desconto,
+                    p_valorFrete = valorFrete,
+                    p_Observacao = observacao
+                },
                 commandType: CommandType.StoredProcedure);
         }
 
@@ -89,7 +96,8 @@ namespace WebApplication5.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario, string? observacao = null)
+        public void AtualizarStatus(int idPedido, int statusPedidoId,
+            int idUsuario, string? observacao = null)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Execute(
@@ -151,6 +159,45 @@ namespace WebApplication5.Repositories
                 "sp_ListarHistoricoStatus",
                 new { p_idPedido = idPedido },
                 commandType: CommandType.StoredProcedure);
+        }
+
+        // ── NOVO: total pago via caixa para um pedido ──
+        public decimal BuscarTotalPago(int idPedido)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            return conn.ExecuteScalar<decimal>(
+                "sp_BuscarTotalPagoPedido",
+                new { p_idPedido = idPedido },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        // ── NOVO: registra pagamento no caixa via SP e retorna resultado ──
+        public PagarPedidoResultado PagarPedido(PagarPedidoDto dto, int idEmpresa, int idUsuario)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            try
+            {
+                var result = conn.QueryFirstOrDefault<PagarPedidoResultado>(
+                    "sp_PagarPedido",
+                    new
+                    {
+                        p_idPedido = dto.IdPedido,
+                        p_idEmpresa = idEmpresa,
+                        p_idUsuario = idUsuario,
+                        p_idFormaPagamento = dto.IdFormaPagamento,
+                        p_idCategoriaFinanceira = dto.IdCategoriaFinanceira,
+                        p_valor = dto.Valor,
+                        p_descricao = dto.Descricao
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return result ?? throw new InvalidOperationException("Erro ao processar pagamento.");
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+                when (ex.Message.Contains("Nenhum caixa aberto"))
+            {
+                throw new InvalidOperationException(ex.Message);
+            }
         }
     }
 }

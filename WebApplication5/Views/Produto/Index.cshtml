@@ -6,8 +6,7 @@
     <title>Produtos - FlexGestor</title>
     <link rel="stylesheet" href="/css/homeCSS/home.css">
     <link rel="stylesheet" href="/css/menuCSS/menu.css">
-    <link rel="stylesheet" href="/css/global.css">
-    <link rel="stylesheet" href="/css/estoqueCSS/estoque.css">
+    <link rel="stylesheet" href="/css/produtoCSS/produto.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body data-rota="Produto">
@@ -33,7 +32,7 @@
                         </div>
                     </div>
 
-                    <table class="table-estoque" id="tabela-estoque">
+                    <table class="table-estoque" id="tabela-produtos">
                         <thead>
                             <tr>
                                 <th>Ações</th>
@@ -43,7 +42,7 @@
                                 <th>Categoria</th>
                                 <th>Preço Custo</th>
                                 <th>Preço Venda</th>
-                                <th>Unidade</th>
+                                <th>Fiscal</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -58,16 +57,19 @@
         </main>
     </div>
 
-    <!-- MODAL: NOVO / EDITAR PRODUTO -->
-    <div id="modalEstoque" class="modal">
-        <div class="modal-content" style="width:58rem">
+    <!-- ══════════════════════════════════════════
+         MODAL: NOVO / EDITAR PRODUTO (dados comerciais)
+    ══════════════════════════════════════════ -->
+    <div id="modal-produto" class="modal">
+        <div class="modal-content" style="width:62rem; max-height:90vh;">
             <div class="modal-header">
-                <h3><i class="bi bi-plus-circle-fill"></i> Novo Produto</h3>
+                <h3 id="modal-produto-titulo"><i class="bi bi-plus-circle-fill"></i> Novo Produto</h3>
                 <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="mensagemErro" class="alerta-erro" style="display:none;"></div>
-                <form id="formEstoque">
+                <form id="formProduto">
+                    <p class="form-secao">Informações Gerais</p>
                     <div class="form-grid">
                         <div class="form-group form-col-2">
                             <label>Nome <span class="obrigatorio">*</span></label>
@@ -91,6 +93,10 @@
                                 <option value="">Selecione...</option>
                             </select>
                         </div>
+                    </div>
+
+                    <p class="form-secao">Preços</p>
+                    <div class="form-grid">
                         <div class="form-group">
                             <label>Preço de Custo (R$)</label>
                             <input type="number" id="precoCusto" step="0.01" min="0" placeholder="0,00">
@@ -111,6 +117,295 @@
                 <button type="button" class="btn-primario" id="btnSalvar">
                     <i class="bi bi-check-lg"></i> Salvar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MODAL: DADOS FISCAIS DO PRODUTO
+    ══════════════════════════════════════════ -->
+    <div id="modal-fiscal" class="modal">
+        <div class="modal-content" style="width:66rem; max-height:92vh;">
+            <div class="modal-header">
+                <div>
+                    <h3><i class="bi bi-file-earmark-text-fill" style="color:#d97706"></i> Dados Fiscais</h3>
+                    <p class="modal-sub" id="fiscal-produto-nome" style="margin-top:4px;font-size:13px;color:#6b7280;"></p>
+                </div>
+                <button class="btn-fechar-modal" onclick="fecharModalFiscal()">&times;</button>
+            </div>
+
+            <!-- AVISO INFORMATIVO -->
+            <div class="fiscal-aviso">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>
+                    Estes dados são necessários apenas para emissão de Nota Fiscal Eletrônica (NF-e / NFC-e).
+                    Se você não emite notas fiscais, pode ignorar esta seção.
+                </span>
+            </div>
+
+            <div class="modal-body" style="padding-top:8px;">
+                <form id="formFiscal">
+                    <!-- BLOCO: CLASSIFICAÇÃO -->
+                    <p class="form-secao">
+                        <i class="bi bi-tag-fill" style="color:#1e3c72;margin-right:6px;"></i>
+                        Classificação Fiscal
+                    </p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>
+                                NCM <span class="obrigatorio">*</span>
+                                <span class="fiscal-hint" onclick="abrirAjudaNCM()">
+                                    <i class="bi bi-question-circle"></i> O que é?
+                                </span>
+                            </label>
+                            <input type="text" id="fiscal-ncm" maxlength="8"
+                                   placeholder="ex: 94036000 (cadeira)"
+                                   oninput="this.value=this.value.replace(/\D/g,'').substring(0,8)">
+                            <span class="field-hint">Código de 8 dígitos — Nomenclatura Comum do Mercosul</span>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                CFOP <span class="obrigatorio">*</span>
+                                <span class="fiscal-hint" onclick="abrirAjudaCFOP()">
+                                    <i class="bi bi-question-circle"></i> O que é?
+                                </span>
+                            </label>
+                            <select id="fiscal-cfop">
+                                <option value="">Selecione...</option>
+                                <optgroup label="Vendas dentro do estado (SP → SP)">
+                                    <option value="5101">5101 — Venda de produto industrializado</option>
+                                    <option value="5102" selected>5102 — Venda de mercadoria adquirida</option>
+                                    <option value="5405">5405 — Venda de mercadoria (substituição tributária)</option>
+                                </optgroup>
+                                <optgroup label="Vendas para outro estado">
+                                    <option value="6101">6101 — Venda de produto industrializado (outro estado)</option>
+                                    <option value="6102">6102 — Venda de mercadoria adquirida (outro estado)</option>
+                                </optgroup>
+                                <optgroup label="Venda para consumidor final">
+                                    <option value="5103">5103 — Venda de produto industrializado ao consumidor</option>
+                                    <option value="5405">5405 — Substituição tributária ao consumidor</option>
+                                </optgroup>
+                            </select>
+                            <span class="field-hint">Para a maioria das lojas: 5102 (dentro do estado)</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Origem da Mercadoria</label>
+                            <select id="fiscal-origem">
+                                <option value="0" selected>0 — Nacional</option>
+                                <option value="1">1 — Estrangeira (importação direta)</option>
+                                <option value="2">2 — Estrangeira (mercado interno)</option>
+                                <option value="3">3 — Nacional com + 40% conteúdo importado</option>
+                                <option value="4">4 — Nacional (processos produtivos básicos)</option>
+                                <option value="5">5 — Nacional com até 40% conteúdo importado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- BLOCO: ICMS -->
+                    <p class="form-secao">
+                        <i class="bi bi-percent" style="color:#1e3c72;margin-right:6px;"></i>
+                        ICMS — Imposto sobre Circulação de Mercadorias
+                    </p>
+
+                    <!-- ALERTA CRT SIMPLES -->
+                    <div class="fiscal-crt-info" id="bloco-csosn">
+                        <div class="fiscal-crt-titulo">
+                            <i class="bi bi-building"></i>
+                            Regime: <strong>Simples Nacional</strong> — use CSOSN
+                        </div>
+                        <div class="form-grid" style="margin-top:12px;">
+                            <div class="form-group form-col-2">
+                                <label>
+                                    CSOSN
+                                    <span class="fiscal-hint" onclick="abrirAjudaCSN()">
+                                        <i class="bi bi-question-circle"></i> Qual usar?
+                                    </span>
+                                </label>
+                                <select id="fiscal-csosn">
+                                    <option value="">Selecione...</option>
+                                    <option value="102" selected>102 — Simples Nacional, sem permissão de crédito (mais comum)</option>
+                                    <option value="400">400 — Não tributado pelo Simples (isento)</option>
+                                    <option value="500">500 — ICMS cobrado por substituição tributária</option>
+                                    <option value="900">900 — Outros (Simples Nacional)</option>
+                                </select>
+                                <span class="field-hint">Para a maioria dos produtos: CSOSN 102</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BLOCO: PIS / COFINS -->
+                    <p class="form-secao">
+                        <i class="bi bi-percent" style="color:#1e3c72;margin-right:6px;"></i>
+                        PIS / COFINS — Contribuições Federais
+                    </p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>CST PIS</label>
+                            <select id="fiscal-cst-pis">
+                                <option value="07" selected>07 — Isento (mais comum no Simples)</option>
+                                <option value="01">01 — Tributado com alíquota básica</option>
+                                <option value="49">49 — Outras operações</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Alíquota PIS (%)</label>
+                            <input type="number" id="fiscal-aliq-pis" step="0.01" min="0" max="100"
+                                   placeholder="0,65" value="0.65">
+                        </div>
+                        <div class="form-group">
+                            <label>CST COFINS</label>
+                            <select id="fiscal-cst-cofins">
+                                <option value="07" selected>07 — Isento (mais comum no Simples)</option>
+                                <option value="01">01 — Tributado com alíquota básica</option>
+                                <option value="49">49 — Outras operações</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Alíquota COFINS (%)</label>
+                            <input type="number" id="fiscal-aliq-cofins" step="0.01" min="0" max="100"
+                                   placeholder="3,00" value="3.00">
+                        </div>
+                    </div>
+
+                    <!-- STATUS FISCAL -->
+                    <div class="fiscal-status-bar" id="fiscal-status-bar">
+                        <div class="fiscal-status-item" id="fst-ncm">
+                            <i class="bi bi-circle"></i> NCM
+                        </div>
+                        <div class="fiscal-status-item" id="fst-cfop">
+                            <i class="bi bi-circle"></i> CFOP
+                        </div>
+                        <div class="fiscal-status-item" id="fst-csosn">
+                            <i class="bi bi-circle"></i> CSOSN
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secundario" onclick="fecharModalFiscal()">Cancelar</button>
+                <button type="button" class="btn-primario btn-fiscal-salvar" id="btnSalvarFiscal">
+                    <i class="bi bi-check-lg"></i> Salvar Dados Fiscais
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AJUDA NCM -->
+    <div id="modal-ajuda-ncm" class="modal modal-ajuda">
+        <div class="modal-content" style="width:52rem;">
+            <div class="modal-header">
+                <h3><i class="bi bi-info-circle-fill" style="color:#2563eb"></i> O que é NCM?</h3>
+                <button class="btn-fechar-modal" onclick="document.getElementById('modal-ajuda-ncm').classList.remove('open')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;">
+                    <strong>NCM</strong> significa <em>Nomenclatura Comum do Mercosul</em>. É um código de 8 dígitos
+                    que classifica o tipo de mercadoria para fins fiscais. Cada tipo de produto tem um NCM específico.
+                </p>
+                <p class="form-secao">Exemplos comuns</p>
+                <div class="ajuda-exemplos">
+                    <div class="ajuda-ex-item" onclick="preencherNCM('94036000')">
+                        <span class="ajuda-ex-codigo">94036000</span>
+                        <span class="ajuda-ex-desc">Móveis e assentos (cadeiras, mesas, estantes)</span>
+                    </div>
+                    <div class="ajuda-ex-item" onclick="preencherNCM('84713012')">
+                        <span class="ajuda-ex-codigo">84713012</span>
+                        <span class="ajuda-ex-desc">Computadores portáteis (notebooks, tablets)</span>
+                    </div>
+                    <div class="ajuda-ex-item" onclick="preencherNCM('84716070')">
+                        <span class="ajuda-ex-codigo">84716070</span>
+                        <span class="ajuda-ex-desc">Teclados, mouses e periféricos</span>
+                    </div>
+                    <div class="ajuda-ex-item" onclick="preencherNCM('62034200')">
+                        <span class="ajuda-ex-codigo">62034200</span>
+                        <span class="ajuda-ex-desc">Roupas e vestuário masculino (algodão)</span>
+                    </div>
+                    <div class="ajuda-ex-item" onclick="preencherNCM('64041900')">
+                        <span class="ajuda-ex-codigo">64041900</span>
+                        <span class="ajuda-ex-desc">Calçados com sola de borracha</span>
+                    </div>
+                    <div class="ajuda-ex-item" onclick="preencherNCM('48025590')">
+                        <span class="ajuda-ex-codigo">48025590</span>
+                        <span class="ajuda-ex-desc">Papel (resmas, folhas, papelaria)</span>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#9ca3af;margin-top:16px;">
+                    💡 Clique em um exemplo para preencher automaticamente. Para produtos específicos,
+                    consulte seu contador ou acesse <strong>ncm.receita.fazenda.gov.br</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AJUDA CFOP -->
+    <div id="modal-ajuda-cfop" class="modal modal-ajuda">
+        <div class="modal-content" style="width:52rem;">
+            <div class="modal-header">
+                <h3><i class="bi bi-info-circle-fill" style="color:#2563eb"></i> O que é CFOP?</h3>
+                <button class="btn-fechar-modal" onclick="document.getElementById('modal-ajuda-cfop').classList.remove('open')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;">
+                    <strong>CFOP</strong> significa <em>Código Fiscal de Operações e Prestações</em>. Indica
+                    a natureza da operação comercial na nota fiscal.
+                </p>
+                <div class="ajuda-exemplos">
+                    <div class="ajuda-ex-item recomendado">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="ajuda-ex-codigo">5102</span>
+                            <span class="badge-recomendado">Mais usado</span>
+                        </div>
+                        <span class="ajuda-ex-desc">Venda de mercadoria comprada para revenda — mesmo estado</span>
+                    </div>
+                    <div class="ajuda-ex-item">
+                        <span class="ajuda-ex-codigo">6102</span>
+                        <span class="ajuda-ex-desc">Venda de mercadoria comprada para revenda — outro estado</span>
+                    </div>
+                    <div class="ajuda-ex-item">
+                        <span class="ajuda-ex-codigo">5405</span>
+                        <span class="ajuda-ex-desc">Venda com substituição tributária (ST) — mesmo estado</span>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#9ca3af;margin-top:16px;">
+                    💡 Se você compra produtos prontos e revende, use <strong>5102</strong> para vendas no mesmo estado.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AJUDA CSOSN -->
+    <div id="modal-ajuda-csn" class="modal modal-ajuda">
+        <div class="modal-content" style="width:52rem;">
+            <div class="modal-header">
+                <h3><i class="bi bi-info-circle-fill" style="color:#2563eb"></i> Qual CSOSN usar?</h3>
+                <button class="btn-fechar-modal" onclick="document.getElementById('modal-ajuda-csn').classList.remove('open')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;">
+                    O <strong>CSOSN</strong> (Código de Situação da Operação no Simples Nacional) indica
+                    como o ICMS é tratado na operação.
+                </p>
+                <div class="ajuda-exemplos">
+                    <div class="ajuda-ex-item recomendado">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="ajuda-ex-codigo">102</span>
+                            <span class="badge-recomendado">Mais usado</span>
+                        </div>
+                        <span class="ajuda-ex-desc">Simples Nacional, sem direito a crédito de ICMS — para a maioria dos produtos</span>
+                    </div>
+                    <div class="ajuda-ex-item">
+                        <span class="ajuda-ex-codigo">400</span>
+                        <span class="ajuda-ex-desc">Não tributado — produtos isentos de ICMS</span>
+                    </div>
+                    <div class="ajuda-ex-item">
+                        <span class="ajuda-ex-codigo">500</span>
+                        <span class="ajuda-ex-desc">ICMS cobrado por substituição tributária — produto já veio com ST</span>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#9ca3af;margin-top:16px;">
+                    💡 Na dúvida, use <strong>102</strong>. Consulte seu contador para casos específicos.
+                </p>
             </div>
         </div>
     </div>

@@ -1,62 +1,310 @@
+@{
+    Layout = null;
+}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos - FlexGestor</title>
+    <title>Empresa - FlexGestor</title>
     <link rel="stylesheet" href="/css/homeCSS/home.css">
     <link rel="stylesheet" href="/css/menuCSS/menu.css">
     <link rel="stylesheet" href="/css/global.css">
-    <link rel="stylesheet" href="/css/pedidoCSS/pedido.css">
+    <link rel="stylesheet" href="/css/empresaCSS/empresa.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body>
+<body data-rota="Empresa">
     <div class="container">
         <div id="menu"></div>
         <main>
-            <section class="secao-pedidos">
+            <section class="secao-empresa">
 
-                <div class="cabecalho-tela">
-                    <h2>Gerenciamento de Pedidos</h2>
-                    <button class="btn-novo-pedido" onclick="abrirModal()">
-                        <i class="bi bi-plus-circle-fill"></i> Novo Pedido
+                <!-- Cabecalho -->
+                <div class="emp-cabecalho">
+                    <div class="emp-logo-wrap">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="emp-cabecalho-texto">
+                        <h2 id="emp-nome-topo">Carregando...</h2>
+                        <p id="emp-cnpj-topo">Configuracoes da empresa</p>
+                    </div>
+                </div>
+
+                <!-- Abas -->
+                <div class="emp-tabs">
+                    <button id="tab-btn-dados" class="emp-tab-btn ativo" data-aba="dados">
+                        <i class="bi bi-building-gear"></i> Dados da Empresa
+                    </button>
+                    <button id="tab-btn-fiscal" class="emp-tab-btn" data-aba="fiscal">
+                        <i class="bi bi-receipt"></i> Configuracao Fiscal
                     </button>
                 </div>
 
-                <div class="table-container">
-                    <div class="area-filtro">
-                        <input type="text" id="input-busca-cliente" class="input-filtro"
-                               placeholder="Buscar por cliente ou número..." oninput="filtrarCliente()">
-                        <div class="filtro-status">
-                            <button id="btn-f-todos" class="btn-status-filtro" onclick="setFiltroStatus('todos')">Todos</button>
-                            <button id="btn-f-pendente" class="btn-status-filtro" onclick="setFiltroStatus('pendente')">Pendente</button>
-                            <button id="btn-f-confirmado" class="btn-status-filtro" onclick="setFiltroStatus('confirmado')">Confirmado</button>
-                            <button id="btn-f-separando" class="btn-status-filtro" onclick="setFiltroStatus('separando')">Separando</button>
-                            <button id="btn-f-enviado" class="btn-status-filtro" onclick="setFiltroStatus('enviado')">Enviado</button>
-                            <button id="btn-f-concluido" class="btn-status-filtro" onclick="setFiltroStatus('concluido')">Entregue</button>
-                            <button id="btn-f-cancelado" class="btn-status-filtro" onclick="setFiltroStatus('cancelado')">Cancelado</button>
+                <!-- ABA DADOS: layout 2 colunas -->
+                <div id="tab-dados" class="emp-tab-painel ativo">
+                    <div class="emp-painel-layout">
+
+                        <!-- Coluna esquerda -->
+                        <div class="emp-painel-col">
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-info-circle"></i> Informacoes Basicas
+                                </h3>
+                                <div class="emp-grid emp-grid-1">
+                                    <div class="emp-campo">
+                                        <label>Razao Social <span class="obrig">*</span></label>
+                                        <input type="text" id="emp-nome" placeholder="Nome da empresa..." maxlength="200">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>CNPJ <span class="obrig">*</span></label>
+                                        <input type="text" id="emp-cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Telefone</label>
+                                        <input type="text" id="emp-tel" placeholder="(00) 00000-0000" maxlength="15">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>E-mail</label>
+                                        <input type="email" id="emp-email" placeholder="contato da empresa" maxlength="100">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Codigo do Municipio IBGE</label>
+                                        <input type="text" id="emp-codmun" placeholder="Ex: 4205407" maxlength="7">
+                                        <span class="campo-hint">Necessario para emissao de NF-e</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna direita -->
+                        <div class="emp-painel-col">
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-geo-alt"></i> Endereco
+                                </h3>
+                                <div class="emp-grid">
+                                    <div class="emp-campo emp-col-2">
+                                        <label>CEP <span class="obrig">*</span></label>
+                                        <div class="emp-cep-wrap">
+                                            <input type="text" id="emp-cep" placeholder="00000-000" maxlength="9">
+                                            <button class="btn-buscar-cep" id="btn-buscar-cep" type="button">
+                                                <i class="bi bi-search"></i> Buscar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="emp-campo emp-col-2">
+                                        <label>Logradouro <span class="obrig">*</span></label>
+                                        <input type="text" id="emp-logradouro" placeholder="Rua, Avenida..." maxlength="200">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Numero</label>
+                                        <input type="text" id="emp-numero" placeholder="S/N" maxlength="20">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Complemento</label>
+                                        <input type="text" id="emp-complemento" placeholder="Sala, Bloco..." maxlength="50">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Bairro</label>
+                                        <input type="text" id="emp-bairro" placeholder="Bairro" maxlength="80">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Cidade <span class="obrig">*</span></label>
+                                        <input type="text" id="emp-cidade" placeholder="Cidade" maxlength="60">
+                                    </div>
+                                    <div class="emp-campo emp-col-2">
+                                        <label>Estado <span class="obrig">*</span></label>
+                                        <select id="emp-estado">
+                                            <option value="">Selecione...</option>
+                                            <option value="AC">AC - Acre</option>
+                                            <option value="AL">AL - Alagoas</option>
+                                            <option value="AP">AP - Amapa</option>
+                                            <option value="AM">AM - Amazonas</option>
+                                            <option value="BA">BA - Bahia</option>
+                                            <option value="CE">CE - Ceara</option>
+                                            <option value="DF">DF - Distrito Federal</option>
+                                            <option value="ES">ES - Espirito Santo</option>
+                                            <option value="GO">GO - Goias</option>
+                                            <option value="MA">MA - Maranhao</option>
+                                            <option value="MT">MT - Mato Grosso</option>
+                                            <option value="MS">MS - Mato Grosso do Sul</option>
+                                            <option value="MG">MG - Minas Gerais</option>
+                                            <option value="PA">PA - Para</option>
+                                            <option value="PB">PB - Paraiba</option>
+                                            <option value="PR">PR - Parana</option>
+                                            <option value="PE">PE - Pernambuco</option>
+                                            <option value="PI">PI - Piaui</option>
+                                            <option value="RJ">RJ - Rio de Janeiro</option>
+                                            <option value="RN">RN - Rio Grande do Norte</option>
+                                            <option value="RS">RS - Rio Grande do Sul</option>
+                                            <option value="RO">RO - Rondonia</option>
+                                            <option value="RR">RR - Roraima</option>
+                                            <option value="SC">SC - Santa Catarina</option>
+                                            <option value="SP">SP - Sao Paulo</option>
+                                            <option value="SE">SE - Sergipe</option>
+                                            <option value="TO">TO - Tocantins</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <table class="table-pedidos" id="tabela-pedidos">
-                        <thead>
-                            <tr>
-                                <th>Ações</th> 
-                                <th>Nº Pedido</th>
-                                <th>Status</th>
-                                <th>Cliente</th>
-                                <th>Data</th>
-                                <th>Desconto</th>
-                                <th>Total</th>
-                                <th>Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="emp-acoes">
+                        <button class="btn-emp-primario" id="btn-salvar-empresa">
+                            <i class="bi bi-check-lg"></i> Salvar Dados da Empresa
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="paginacao">
-                        <span class="paginacao-info"></span>
-                        <div class="paginacao-controles"></div>
+                <!-- ABA FISCAL: layout 2 colunas -->
+                <div id="tab-fiscal" class="emp-tab-painel">
+                    <div class="emp-painel-layout">
+
+                        <!-- Coluna esquerda -->
+                        <div class="emp-painel-col">
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-card-text"></i> Identificacao Fiscal
+                                </h3>
+                                <div class="emp-grid emp-grid-1">
+                                    <div class="emp-campo">
+                                        <label>CNPJ Fiscal</label>
+                                        <input type="text" id="fisc-cnpj" placeholder="Igual ao CNPJ da empresa se nao houver filial" maxlength="18">
+                                        <span class="campo-hint">Deixe em branco para usar o CNPJ principal</span>
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Regime Tributario</label>
+                                        <select id="fisc-regime">
+                                            <option value="">Selecione...</option>
+                                            <option value="1">1 - Simples Nacional</option>
+                                            <option value="2">2 - Lucro Presumido</option>
+                                            <option value="3">3 - Lucro Real</option>
+                                        </select>
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Inscricao Estadual (IE)</label>
+                                        <input type="text" id="fisc-ie" placeholder="000.000.000.000" maxlength="20">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Inscricao Municipal (IM)</label>
+                                        <input type="text" id="fisc-im" placeholder="Somente para NFS-e" maxlength="20">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-percent"></i> Aliquotas Padrao
+                                </h3>
+                                <p class="emp-hint-texto">
+                                    Usadas ao cadastrar produtos. Podem ser sobrescritas por produto.
+                                </p>
+                                <div class="aliq-group">
+                                    <div class="aliq-item">
+                                        <label>ICMS</label>
+                                        <div class="aliq-input-wrap">
+                                            <input type="number" id="fisc-icms" value="0" min="0" max="100" step="0.01">
+                                            <span class="aliq-sufixo">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="aliq-item">
+                                        <label>PIS</label>
+                                        <div class="aliq-input-wrap">
+                                            <input type="number" id="fisc-pis" value="0.65" min="0" max="100" step="0.01">
+                                            <span class="aliq-sufixo">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="aliq-item">
+                                        <label>COFINS</label>
+                                        <div class="aliq-input-wrap">
+                                            <input type="number" id="fisc-cofins" value="3.00" min="0" max="100" step="0.01">
+                                            <span class="aliq-sufixo">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna direita -->
+                        <div class="emp-painel-col">
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-diagram-3"></i> Ambiente e Numeracao
+                                </h3>
+                                <div class="emp-campo emp-mb-2">
+                                    <label>Ambiente de Emissao</label>
+                                    <div class="emp-ambiente-wrap">
+                                        <button type="button" id="btn-amb-homolog" class="emp-amb-btn sel-homolog" data-amb="2">
+                                            <i class="bi bi-cone-striped"></i> Homologacao (Testes)
+                                        </button>
+                                        <button type="button" id="btn-amb-prod" class="emp-amb-btn" data-amb="1">
+                                            <i class="bi bi-lightning-charge-fill"></i> Producao (Real)
+                                        </button>
+                                    </div>
+                                    <span class="campo-hint" id="amb-hint">
+                                        Homologacao: notas enviadas ao ambiente de testes da SEFAZ, sem valor fiscal.
+                                    </span>
+                                </div>
+                                <div class="emp-grid">
+                                    <div class="emp-campo">
+                                        <label>Serie NF-e</label>
+                                        <input type="text" id="fisc-serie-nfe" value="1" maxlength="3">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Proximo Nr NF-e</label>
+                                        <input type="number" id="fisc-num-nfe" value="1" min="1">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Serie NFC-e</label>
+                                        <input type="text" id="fisc-serie-nfce" value="1" maxlength="3">
+                                    </div>
+                                    <div class="emp-campo">
+                                        <label>Proximo Nr NFC-e</label>
+                                        <input type="number" id="fisc-num-nfce" value="1" min="1">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="emp-secao">
+                                <h3 class="emp-secao-titulo">
+                                    <i class="bi bi-shield-lock"></i> Certificado Digital A1
+                                </h3>
+                                <div id="cert-status" class="emp-cert-status sem-cert">
+                                    <i class="bi bi-shield-x"></i>
+                                    <span>Nenhum certificado cadastrado.</span>
+                                </div>
+                                <div class="emp-cert-area" id="cert-upload-area">
+                                    <input type="file" id="cert-input" accept=".pfx,.p12">
+                                    <div class="emp-cert-icone">
+                                        <i class="bi bi-file-earmark-lock2"></i>
+                                    </div>
+                                    <p>Arraste o arquivo .pfx aqui ou clique para selecionar</p>
+                                    <small>Formatos aceitos: .pfx, .p12 - maximo 5 MB</small>
+                                </div>
+                                <div class="emp-campo emp-campo-senha emp-mt-1">
+                                    <label>Senha do Certificado <span class="obrig">*</span></label>
+                                    <div class="emp-senha-wrap">
+                                        <input type="password" id="cert-senha" placeholder="Senha do arquivo .pfx">
+                                        <button type="button" id="btn-toggle-senha" class="btn-toggle-senha">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span class="campo-hint">A senha e usada para validar e assinar os XMLs da NF-e.</span>
+                                </div>
+                                <div class="emp-cert-acoes">
+                                    <button class="btn-emp-primario btn-emp-success" id="btn-salvar-cert">
+                                        <i class="bi bi-shield-check"></i> Salvar Certificado
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emp-acoes">
+                        <button class="btn-emp-primario" id="btn-salvar-fiscal">
+                            <i class="bi bi-check-lg"></i> Salvar Configuracao Fiscal
+                        </button>
                     </div>
                 </div>
 
@@ -64,375 +312,30 @@
         </main>
     </div>
 
-    <!-- ════════════════════════════════════════
-         MODAL: NOVO PEDIDO
-    ════════════════════════════════════════ -->
-    <div class="modal" id="modal-novo-pedido">
-        <div class="modal-content modal-xl">
-            <div class="modal-header">
-                <h3><i class="bi bi-plus-circle-fill"></i> Novo Pedido</h3>
-                <button class="btn-fechar-modal" onclick="fecharModal()">&times;</button>
+    <!-- Modal producao -->
+    <div id="modal-amb-prod" class="emp-modal-overlay emp-modal-hidden">
+        <div class="emp-modal-box">
+            <div class="emp-modal-icon-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
-
-            <!-- ABAS -->
-            <div class="modal-tabs">
-                <button id="tab-btn-novo-pedido" class="tab-btn ativo" onclick="mudarAba('novo','pedido')">
-                    <i class="bi bi-bag-fill"></i> Pedido
+            <h3 class="emp-modal-titulo">Ativar Producao?</h3>
+            <p class="emp-modal-texto">
+                Em producao, as notas emitidas tem <strong>valor fiscal real</strong>
+                e sao enviadas oficialmente a SEFAZ.
+                Certifique-se de que o certificado esta valido antes de prosseguir.
+            </p>
+            <div class="emp-modal-acoes">
+                <button type="button" id="btn-modal-cancelar-prod" class="btn-emp-secundario">
+                    Cancelar
                 </button>
-                <button id="tab-btn-novo-pagamento" class="tab-btn" onclick="mudarAba('novo','pagamento')">
-                    <i class="bi bi-credit-card-fill"></i> Pagamentos
-                </button>
-            </div>
-
-            <div class="modal-body">
-                <form id="form-pedido">
-
-                    <!-- PAINEL: PEDIDO -->
-                    <div id="tab-novo-pedido" class="tab-painel ativo">
-                        <p class="form-secao">Informações do Pedido</p>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Cliente <span class="obrigatorio">*</span></label>
-                                <div class="cliente-selecionado-wrap">
-                                    <input type="text" id="novo-cliente-nome" readonly placeholder="Nenhum cliente selecionado">
-                                    <input type="hidden" id="novo-cliente-id">
-                                    <input type="hidden" id="novo-cliente-endereco">
-                                    <button type="button" class="btn-buscar-cliente" onclick="abrirBuscaCliente('novo')">
-                                        <i class="bi bi-search"></i> Buscar
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Desconto Geral (R$)</label>
-                                <input type="number" id="novo-desconto" min="0" step="0.01"
-                                       placeholder="0,00" oninput="atualizarResumo('novo')">
-                            </div>
-                            <div class="form-group form-col-2">
-                                <label>Observação</label>
-                                <textarea id="novo-obs" placeholder="Observações sobre o pedido..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="itens-header">
-                            <span>Itens do Pedido</span>
-                            <button type="button" class="btn-add-item" onclick="adicionarItem('novo')">
-                                <i class="bi bi-plus-lg"></i> Adicionar Item
-                            </button>
-                        </div>
-
-                        <table class="table-itens">
-                            <thead>
-                                <tr>
-                                    <th class="col-produto">Produto</th>
-                                    <th class="col-qtde">Qtde</th>
-                                    <th class="col-preco">Preço Unit.</th>
-                                    <th class="col-desc">Desconto</th>
-                                    <th class="col-sub">Subtotal</th>
-                                    <th class="col-del"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="novo-itens-body"></tbody>
-                        </table>
-
-                        <div class="pedido-resumo">
-                            <div class="pedido-resumo-linha">
-                                <span>Subtotal dos itens</span>
-                                <span id="novo-resumo-subtotal">R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha">
-                                <span>Descontos nos itens</span>
-                                <span id="novo-resumo-desc-itens">- R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha">
-                                <span>Desconto geral</span>
-                                <span id="novo-resumo-desc-geral">- R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha total">
-                                <span>Total do Pedido</span>
-                                <span id="novo-resumo-total">R$ 0,00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PAINEL: PAGAMENTOS -->
-                    <div id="tab-novo-pagamento" class="tab-painel">
-                        <div class="pag-header">
-                            <p class="form-secao" style="margin:0;border:none;padding:0">Pagamentos</p>
-                            <button type="button" class="btn-add-item" onclick="adicionarPagamento('novo')">
-                                <i class="bi bi-plus-lg"></i> Adicionar Pagamento
-                            </button>
-                        </div>
-
-                        <div id="novo-pagamentos-lista" class="pagamentos-lista"></div>
-
-                        <div id="novo-pagamentos-resumo" class="pagamentos-resumo"></div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
-                        <button type="submit" class="btn-primario"><i class="bi bi-check-lg"></i> Salvar Pedido</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: EDIÇÃO
-    ════════════════════════════════════════ -->
-    <div class="modal" id="modal-edicao">
-        <div class="modal-content modal-xl">
-            <div class="modal-header">
-                <h3><i class="bi bi-pencil-fill"></i> Editar Pedido</h3>
-                <button class="btn-fechar-modal" onclick="fecharEdicao()">&times;</button>
-            </div>
-
-            <!-- ABAS -->
-            <div class="modal-tabs">
-                <button id="tab-btn-edit-pedido" class="tab-btn ativo" onclick="mudarAba('edit','pedido')">
-                    <i class="bi bi-bag-fill"></i> Pedido
-                </button>
-                <button id="tab-btn-edit-pagamento" class="tab-btn" onclick="mudarAba('edit','pagamento')">
-                    <i class="bi bi-credit-card-fill"></i> Pagamentos
+                <button type="button" id="btn-modal-confirmar-prod" class="btn-emp-perigo">
+                    <i class="bi bi-lightning-charge-fill"></i> Sim, ativar producao
                 </button>
             </div>
-
-            <div class="modal-body">
-                <form id="form-edicao">
-
-                    <!-- PAINEL: PEDIDO -->
-                    <div id="tab-edit-pedido" class="tab-painel ativo">
-                        <p class="form-secao">Informações do Pedido</p>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Número</label>
-                                <input type="text" id="edit-numero" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Status <span class="obrigatorio">*</span></label>
-                                <select id="edit-status" required></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Cliente <span class="obrigatorio">*</span></label>
-                                <div class="cliente-selecionado-wrap">
-                                    <input type="text" id="edit-cliente-nome" readonly placeholder="Nenhum cliente selecionado">
-                                    <input type="hidden" id="edit-cliente-id">
-                                    <button type="button" class="btn-buscar-cliente" onclick="abrirBuscaCliente('edit')">
-                                        <i class="bi bi-search"></i> Buscar
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Desconto Geral (R$)</label>
-                                <input type="number" id="edit-desconto" min="0" step="0.01"
-                                       oninput="atualizarResumo('edit')">
-                            </div>
-                            <div class="form-group form-col-2">
-                                <label>Observação</label>
-                                <textarea id="edit-obs"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Frete (R$)</label>
-                                <input type="number" id="novo-frete" min="0" step="0.01"
-                                       placeholder="0,00" oninput="atualizarResumo('novo')">
-                            </div>
-                        </div>
-
-                        <div class="itens-header">
-                            <span>Itens do Pedido</span>
-                            <button type="button" class="btn-add-item" onclick="adicionarItem('edit')">
-                                <i class="bi bi-plus-lg"></i> Adicionar Item
-                            </button>
-                        </div>
-
-                        <table class="table-itens">
-                            <thead>
-                                <tr>
-                                    <th class="col-produto">Produto</th>
-                                    <th class="col-qtde">Qtde</th>
-                                    <th class="col-preco">Preço Unit.</th>
-                                    <th class="col-desc">Desconto</th>
-                                    <th class="col-sub">Subtotal</th>
-                                    <th class="col-del"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="edit-itens-body"></tbody>
-                        </table>
-
-                        <div class="pedido-resumo">
-                            <div class="pedido-resumo-linha">
-                                <span>Subtotal dos itens</span>
-                                <span id="edit-resumo-subtotal">R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha">
-                                <span>Descontos nos itens</span>
-                                <span id="edit-resumo-desc-itens">- R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha">
-                                <span>Desconto geral</span>
-                                <span id="edit-resumo-desc-geral">- R$ 0,00</span>
-                            </div>
-                            <div class="pedido-resumo-linha total">
-                                <span>Total do Pedido</span>
-                                <span id="edit-resumo-total">R$ 0,00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PAINEL: PAGAMENTOS -->
-                    <div id="tab-edit-pagamento" class="tab-painel">
-                        <div class="pag-header">
-                            <p class="form-secao" style="margin:0;border:none;padding:0">Pagamentos</p>
-                            <button type="button" class="btn-add-item" onclick="adicionarPagamento('edit')">
-                                <i class="bi bi-plus-lg"></i> Adicionar Pagamento
-                            </button>
-                        </div>
-
-                        <div id="edit-pagamentos-lista" class="pagamentos-lista"></div>
-
-                        <div id="edit-pagamentos-resumo" class="pagamentos-resumo"></div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secundario" onclick="fecharEdicao()">Cancelar</button>
-                        <button type="submit" class="btn-primario"><i class="bi bi-check-lg"></i> Salvar Alterações</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: DETALHES
-    ════════════════════════════════════════ -->
-    <div class="modal" id="modal-detalhes">
-        <div class="modal-content modal-xl">
-            <div class="modal-header">
-                <h3><i class="bi bi-eye-fill"></i> Detalhes do Pedido</h3>
-                <button class="btn-fechar-modal" onclick="fecharDetalhes()">&times;</button>
-            </div>
-            <div class="modal-body">
-
-                <div class="detalhe-grid">
-                    <div class="detalhe-item">
-                        <label>Número</label>
-                        <span id="det-numero">—</span>
-                    </div>
-                    <div class="detalhe-item">
-                        <label>Status</label>
-                        <span id="det-status">—</span>
-                    </div>
-                    <div class="detalhe-item">
-                        <label>Cliente</label>
-                        <span id="det-cliente">—</span>
-                    </div>
-                    <div class="detalhe-item">
-                        <label>Data do Pedido</label>
-                        <span id="det-data">—</span>
-                    </div>
-                    <div class="detalhe-item">
-                        <label>Desconto</label>
-                        <span id="det-desconto">—</span>
-                    </div>
-                    <div class="detalhe-item">
-                        <label>Total</label>
-                        <span id="det-total" style="font-size:1.8rem;font-weight:700;color:#1e3c72">—</span>
-                    </div>
-                    <div class="detalhe-item" style="grid-column:span 2">
-                        <label>Observação</label>
-                        <span id="det-obs">—</span>
-                    </div>
-                </div>
-
-                <p class="form-secao">Itens do Pedido</p>
-                <table class="table-itens" style="margin-bottom:2rem">
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th style="text-align:center">Qtde</th>
-                            <th>Preço Unit.</th>
-                            <th>Desconto</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="det-itens-body"></tbody>
-                </table>
-
-                <p class="form-secao">Pagamentos</p>
-                <div id="det-pagamentos"></div>
-
-                <p class="form-secao">Histórico de Status</p>
-                <div class="historico-timeline" id="det-historico"></div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn-secundario" onclick="fecharDetalhes()">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: CONFIRMAÇÃO CANCELAMENTO
-    ════════════════════════════════════════ -->
-    <div class="modal" id="modal-confirmar">
-        <div class="modal-content" style="width:44rem">
-            <div class="modal-header">
-                <h3><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i> Cancelar Pedido</h3>
-                <button class="btn-fechar-modal" onclick="fecharConfirmar()">&times;</button>
-            </div>
-            <div class="confirm-body">
-                <div class="confirm-icone"><i class="bi bi-x-circle-fill"></i></div>
-                <p id="confirm-mensagem">Deseja cancelar este pedido?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secundario" onclick="fecharConfirmar()">Não, voltar</button>
-                <button type="button" class="btn-perigo" id="confirm-btn-sim">
-                    <i class="bi bi-x-circle-fill"></i> Sim, cancelar pedido
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: BUSCA DE CLIENTE
-    ════════════════════════════════════════ -->
-    <div class="modal modal-busca" id="modal-busca-cliente">
-        <div class="busca-modal-content">
-            <div class="modal-header">
-                <h3><i class="bi bi-person-search"></i> Buscar Cliente</h3>
-                <button class="btn-fechar-modal" onclick="fecharBuscaCliente()">&times;</button>
-            </div>
-            <div class="busca-input-wrap">
-                <i class="bi bi-search"></i>
-                <input type="text" id="input-busca-cliente-modal"
-                       placeholder="Buscar por nome ou documento..."
-                       oninput="filtrarListaClientes(this.value)">
-            </div>
-            <div class="busca-lista" id="lista-busca-clientes"></div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════
-         MODAL: BUSCA DE PRODUTO
-    ════════════════════════════════════════ -->
-    <div class="modal modal-busca" id="modal-busca-produto">
-        <div class="busca-modal-content">
-            <div class="modal-header">
-                <h3><i class="bi bi-box-seam"></i> Buscar Produto</h3>
-                <button class="btn-fechar-modal" onclick="fecharBuscaProduto()">&times;</button>
-            </div>
-            <div class="busca-input-wrap">
-                <i class="bi bi-search"></i>
-                <input type="text" id="input-busca-produto-modal"
-                       placeholder="Buscar por nome ou código..."
-                       oninput="filtrarListaProdutos(this.value)">
-            </div>
-            <div class="busca-lista" id="lista-busca-produtos"></div>
         </div>
     </div>
 
     <script src="/js/menuJS/menu.js"></script>
-    <script src="/js/shared/flexValidation.js"></script>
-    <script src="/js/pedidoJS/pedido.js"></script>
+    <script src="/js/empresaJS/empresa.js"></script>
 </body>
 </html>

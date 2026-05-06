@@ -1,4 +1,5 @@
-﻿using WebApplication5.Models;
+﻿// ===== PedidoService.cs =====
+using WebApplication5.Models;
 using WebApplication5.Repositories;
 
 namespace WebApplication5.Services
@@ -29,11 +30,9 @@ namespace WebApplication5.Services
             pedido.DthCriacao = DateTime.Now;
             _estoqueService.ValidarEstoque(dto.Itens, idEmpresa);
 
-            // Recalcula totais no servidor
             pedido.ValorTotal =
                 dto.Itens.Sum(i => i.ValorTotal) + pedido.ValorFrete - pedido.Desconto;
 
-            // endereco_id: usa o do cliente se não informado
             if (pedido.EnderecoId == 0) pedido.EnderecoId = 1;
 
             var idPedido = _repo.Inserir(pedido);
@@ -43,18 +42,17 @@ namespace WebApplication5.Services
                 item.IdPedido = idPedido;
                 item.ValorTotal = (item.ValorUnitario * item.Quantidade) - item.Desconto;
                 _repo.InserirItem(item);
-
-                // Desconta estoque automaticamente
-                _estoqueService.DescontarEstoque(
-                    item.IdProduto, item.Quantidade, idEmpresa, idUsuario);
+                _estoqueService.DescontarEstoque(item.IdProduto, item.Quantidade, idEmpresa, idUsuario);
             }
 
             return idPedido;
         }
 
-        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario) => _repo.AtualizarStatus(idPedido, statusPedidoId, idUsuario);
+        public void AtualizarStatus(int idPedido, int statusPedidoId, int idUsuario)
+            => _repo.AtualizarStatus(idPedido, statusPedidoId, idUsuario);
 
-        public void Cancelar(int idPedido, int idUsuario) => _repo.Cancelar(idPedido, idUsuario);
+        public void Cancelar(int idPedido, int idUsuario)
+            => _repo.Cancelar(idPedido, idUsuario);
 
         public void Editar(PedidoEditarDto dto, int idEmpresa, int idUsuario)
         {
@@ -70,7 +68,6 @@ namespace WebApplication5.Services
                 }, idEmpresa, idUsuario);
 
             _estoqueService.ValidarEstoque(dto.Itens, idEmpresa);
-
             _repo.AtualizarStatus(dto.IdPedido, dto.StatusPedidoId, idUsuario, dto.Observacao);
             _repo.DeletarItens(dto.IdPedido);
 
@@ -87,7 +84,6 @@ namespace WebApplication5.Services
             valorTotal = valorTotal + dto.ValorFrete - dto.Desconto;
             _repo.AtualizarCabecalho(dto.IdPedido, valorTotal, dto.Desconto, dto.ValorFrete, dto.Observacao);
 
-            // Salva pagamentos
             _repo.DeletarPagamentos(dto.IdPedido);
             foreach (var pag in dto.Pagamentos)
             {
@@ -100,6 +96,14 @@ namespace WebApplication5.Services
             => _repo.ListarPagamentos(idPedido);
 
         public IEnumerable<dynamic> ListarHistoricoStatus(int idPedido)
-             => _repo.ListarHistoricoStatus(idPedido);
+            => _repo.ListarHistoricoStatus(idPedido);
+
+        // ── NOVO: total pago via caixa para um pedido ──
+        public decimal BuscarTotalPago(int idPedido)
+            => _repo.BuscarTotalPago(idPedido);
+
+        // ── NOVO: registra pagamento no caixa e conclui se quitado ──
+        public PagarPedidoResultado PagarPedido(PagarPedidoDto dto, int idEmpresa, int idUsuario)
+            => _repo.PagarPedido(dto, idEmpresa, idUsuario);
     }
 }

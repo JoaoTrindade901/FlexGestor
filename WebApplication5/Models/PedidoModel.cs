@@ -1,4 +1,4 @@
-namespace WebApplication5.Models
+ï»¿namespace WebApplication5.Models
 {
     public class PedidoModel
     {
@@ -8,7 +8,7 @@ namespace WebApplication5.Models
         public int IdUsuario { get; set; }
         public int IdEmpresa { get; set; }
         public int EnderecoId { get; set; }
-        public int StatusPedidoId { get; set; } 
+        public int StatusPedidoId { get; set; }
         public string? Canal { get; set; } = "PROPRIO";
         public string? NumeroExterno { get; set; }
         public string? Observacao { get; set; }
@@ -35,19 +35,14 @@ namespace WebApplication5.Models
         public int numeroPedido { get; set; }
         public int idCliente { get; set; }
         public string nomeCliente { get; set; } = string.Empty;
-
-        // Aceita tanto statusPedidoId quanto statusPedido_id vindo da SP
         public int statusPedidoId { get; set; }
-
-        // Campo auxiliar: Dapper mapeia statusPedido_id aqui se vier com underscore
         public int statusPedido_id
         {
             set { if (statusPedidoId == 0) statusPedidoId = value; }
         }
-
         public string? canal { get; set; }
         public string? numeroExterno { get; set; }
-        public string? status { get; set; }         // nome textual vindo da SP (ex: "PENDENTE")
+        public string? status { get; set; }
         public int idUsuario { get; set; }
         public string? observacao { get; set; }
         public decimal valorTotal { get; set; }
@@ -57,8 +52,6 @@ namespace WebApplication5.Models
         public int idEmpresa { get; set; }
     }
 
-    // DTO separado para o histórico de status (retornado como dynamic no repo,
-    // mas tipado aqui para facilitar serialização futura se necessário)
     public class PedidoStatusHistoricoDto
     {
         public int idHistorico { get; set; }
@@ -88,6 +81,17 @@ namespace WebApplication5.Models
         public List<PedidoItemModel> Itens { get; set; } = new();
     }
 
+    public class PedidoEditarDto
+    {
+        public int IdPedido { get; set; }
+        public int StatusPedidoId { get; set; }
+        public decimal Desconto { get; set; }
+        public decimal ValorFrete { get; set; }
+        public string? Observacao { get; set; }
+        public List<PedidoItemModel> Itens { get; set; } = new();
+        public List<PedidoPagamentoModel> Pagamentos { get; set; } = new();
+    }
+
     public class AtualizarStatusPedidoDto
     {
         public int IdPedido { get; set; }
@@ -101,5 +105,23 @@ namespace WebApplication5.Models
         public int FormaPagamento_id { get; set; }
         public decimal Valor { get; set; }
         public DateTime DthPagamento { get; set; }
+    }
+
+    // â”€â”€ Pagamento de pedido integrado ao caixa â”€â”€
+    public class PagarPedidoDto
+    {
+        public int IdPedido { get; set; }
+        public int IdFormaPagamento { get; set; }
+        public int IdCategoriaFinanceira { get; set; }
+        public decimal Valor { get; set; }
+        public string? Descricao { get; set; }
+    }
+
+    public class PagarPedidoResultado
+    {
+        public decimal TotalPago { get; set; }
+        public decimal ValorTotal { get; set; }
+        public decimal ValorRestante { get; set; }
+        public bool Concluido { get; set; }
     }
 }

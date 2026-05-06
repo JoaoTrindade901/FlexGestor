@@ -44,8 +44,14 @@ const menuItens = [
         ]
     },
     { label: "Auditoria", icone: "bi-shield-check", rota: "Auditoria" },
-    { label: "Usuarios", icone: "bi-person-gear", rota: "Usuario" },
-    { label: "Permissoes", icone: "bi-shield-lock-fill", rota: "Permissao" }
+    {
+        label: "Configurações", icone: "bi-gear-fill", rota: "Empresa",
+        filhos: [
+            { label: "Empresa", rota: "Empresa" },
+            { label: "Usuários", rota: "Usuario" },
+            { label: "Permissões", rota: "Permissao" }
+        ]
+    }
 ];
 
 let notifCarregadas = false;
@@ -128,7 +134,10 @@ async function inicializarMenu() {
     var ul = document.createElement("ul");
 
     menuItens.forEach(function (item) {
-        if (item.rota === "Permissao" && !isAdmin) return;
+        // Configurações: só admin vê Usuários e Permissões, mas Empresa é acessível se tiver permissão
+        if (item.label === "Configurações") {
+            if (!isAdmin && !temAcesso("Empresa")) return;
+        }
 
         var paiAcessivel = item.futuro ? false
             : item.filhos
@@ -158,7 +167,10 @@ async function inicializarMenu() {
 
             var submenu = li.querySelector(".submenu");
             item.filhos.forEach(function (filho) {
+                // Usuários e Permissões: só admin
+                if ((filho.rota === "Usuario" || filho.rota === "Permissao") && !isAdmin) return;
                 if (!filho.futuro && !temAcesso(filho.rota)) return;
+
                 var liFilho = document.createElement("li");
                 liFilho.innerHTML = filho.futuro
                     ? '<span class="menu-item-futuro">' + filho.label + '</span>'

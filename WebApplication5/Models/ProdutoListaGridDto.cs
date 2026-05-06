@@ -1,3 +1,5 @@
+// ===== ProdutoListaGridDto.cs =====
+// Substitui o arquivo existente — adiciona campos fiscais no final
 namespace WebApplication5.Models
 {
     public class ProdutoListaGridDto
@@ -16,5 +18,17 @@ namespace WebApplication5.Models
         public int qtdEstoque { get; set; }
         public bool fAtivo { get; set; }
         public DateTime dthCadastro { get; set; }
+
+        // ── Campos fiscais — preenchidos pelo sp_ListarProduto atualizado ──
+        // Usados para exibir o badge "Configurado / Pendente" na tabela
+        // e para pré-preencher o modal de dados fiscais
+        public string? ncm { get; set; }
+        public string? cfop { get; set; }
+        public byte origem { get; set; }
+        public string? csosn { get; set; }
+        public string? cstPis { get; set; }
+        public decimal aliqPis { get; set; }
+        public string? cstCofins { get; set; }
+        public decimal aliqCofins { get; set; }
     }
 }
