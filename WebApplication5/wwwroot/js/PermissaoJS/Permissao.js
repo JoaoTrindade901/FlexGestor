@@ -1,8 +1,9 @@
-﻿let listalistaCargos = [];
-let listaMenus = [];
-let listaCampos = [];
-let cargoAtual = null;
+﻿let listalistaCargos = []; // Lista de cargos disponíveis no sistema
+let listaMenus = []; // Lista de menus com permissões do cargo
+let listaCampos = []; // Lista de campos com permissões do cargo
+let cargoAtual = null; // Armazena o cargo atualmente selecionado
 
+// Mapeamento de rotas para ícones (usando Bootstrap Icons)
 const MENU_ICONES = {
     'Home': 'bi-house-fill',
     'Usuario': 'bi-person-fill',
@@ -17,15 +18,14 @@ const MENU_ICONES = {
     'Permissao': 'bi-shield-lock-fill',
 };
 
-// ──────────────────────────────────────────
-// HELPERS
-// ──────────────────────────────────────────
+// Função genérica para requisições GET
 async function apiGet(url) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
     return res.json();
 }
 
+// Função genérica para requisições POST
 async function apiPost(url, body) {
     const res = await fetch(url, {
         method: 'POST',
@@ -39,6 +39,7 @@ async function apiPost(url, body) {
     return res;
 }
 
+// Função para exibir notificações visuais (toast)
 function flexToast(msg, tipo = 'sucesso') {
     const cores = { sucesso: '#15803d', erro: '#dc2626', aviso: '#d97706' };
     const icones = { sucesso: 'bi-check-circle-fill', erro: 'bi-x-circle-fill', aviso: 'bi-exclamation-triangle-fill' };
@@ -56,9 +57,7 @@ function flexToast(msg, tipo = 'sucesso') {
     }, 3200);
 }
 
-// ──────────────────────────────────────────
-// INIT
-// ──────────────────────────────────────────
+// Função inicial que carrega os cargos no select
 async function inicializar() {
     try {
         listaCargos = await apiGet('/Usuario/ListarCargos');
@@ -74,13 +73,12 @@ async function inicializar() {
     }
 }
 
-// ──────────────────────────────────────────
-// CARREGAR PERMISSÕES DO CARGO
-// ──────────────────────────────────────────
+// Carrega permissões (menus + campos) do cargo selecionado
 async function carregarPermissoes() {
     const sel = document.getElementById('select-cargo');
     const idCargo = Number(sel.value);
 
+    // Se não selecionou cargo, mostra estado vazio
     if (!idCargo) {
         document.getElementById('permissao-conteudo').style.display = 'none';
         document.getElementById('permissao-vazio').style.display = 'flex';
@@ -91,12 +89,13 @@ async function carregarPermissoes() {
     cargoAtual = idCargo;
     const nomeCargo = sel.options[sel.selectedIndex].text;
 
-    // Badge
+    // Atualiza badge com nome do cargo
     const badge = document.getElementById('cargo-badge');
     badge.innerHTML = `<i class="bi bi-person-badge-fill"></i> ${nomeCargo}`;
     badge.style.display = 'inline-flex';
 
     try {
+        // Busca menus e campos em paralelo
         [listaMenus, listaCampos] = await Promise.all([
             apiGet(`/Permissao/ListarMenus?idCargo=${idCargo}`),
             apiGet(`/Permissao/ListarCampos?idCargo=${idCargo}`)
@@ -105,6 +104,7 @@ async function carregarPermissoes() {
         renderizarMenus();
         renderizarCampos();
 
+        // Atualiza UI
         document.getElementById('permissao-vazio').style.display = 'none';
         document.getElementById('permissao-conteudo').style.display = 'block';
         document.getElementById('status-salvamento').textContent = '';
@@ -115,17 +115,13 @@ async function carregarPermissoes() {
     }
 }
 
-// ──────────────────────────────────────────
-// RENDERIZAR MENUS
-// ──────────────────────────────────────────
+// Renderiza menus agrupando por menuPai
 function renderizarMenus() {
     const container = document.getElementById('lista-menus');
 
-    // Agrupa por menuPai
     const raiz = listaMenus.filter(m => !m.menuPai);
     const filhos = listaMenus.filter(m => m.menuPai);
 
-    // Monta itens raiz + filhos agrupados
     const grupos = {};
     filhos.forEach(f => {
         if (!grupos[f.menuPai]) grupos[f.menuPai] = [];
@@ -137,7 +133,6 @@ function renderizarMenus() {
     raiz.forEach(m => {
         html += renderizarItemMenu(m);
 
-        // Se tem filhos, renderiza com indentação
         if (grupos[m.nome]) {
             grupos[m.nome].forEach(filho => {
                 html += renderizarItemMenu(filho, true);
@@ -145,7 +140,7 @@ function renderizarMenus() {
         }
     });
 
-    // Filhos órfãos (menuPai não está na raiz como nome)
+    // Trata filhos órfãos
     filhos.forEach(f => {
         const paiExiste = raiz.some(r => r.nome === f.menuPai);
         if (!paiExiste) html += renderizarItemMenu(f, true);
@@ -154,6 +149,7 @@ function renderizarMenus() {
     container.innerHTML = html;
 }
 
+// Renderiza um item de menu
 function renderizarItemMenu(m, filho = false) {
     const icone = MENU_ICONES[m.rota] ?? 'bi-circle';
     const ativo = m.temAcesso;
@@ -189,34 +185,31 @@ function renderizarItemMenu(m, filho = false) {
     </div>`;
 }
 
+// Alterna permissão de um menu
 function toggleMenu(el, idMenu) {
     const item = document.getElementById(`menu-item-${idMenu}`);
     const labelEl = item.querySelector('.toggle-label');
     const ativo = el.checked;
 
-    // Atualiza no array
     const m = listaMenus.find(x => x.idMenu === idMenu);
     if (m) m.temAcesso = ativo;
 
-    // Atualiza visual
     item.classList.toggle('ativo', ativo);
     item.classList.toggle('inativo', !ativo);
     labelEl.textContent = ativo ? 'Permitido' : 'Bloqueado';
     labelEl.className = `toggle-label ${ativo ? 'ativo' : ''}`;
 }
 
+// Marca/desmarca todos menus
 function marcarTodosMenus(valor) {
     listaMenus.forEach(m => { m.temAcesso = valor; });
     renderizarMenus();
 }
 
-// ──────────────────────────────────────────
-// RENDERIZAR CAMPOS
-// ──────────────────────────────────────────
+// Renderiza campos agrupados por seção
 function renderizarCampos() {
     const container = document.getElementById('lista-campos');
 
-    // Agrupa por seção
     const secoes = {};
     listaCampos.forEach(c => {
         if (!secoes[c.secao]) secoes[c.secao] = [];
@@ -236,7 +229,6 @@ function renderizarCampos() {
                     <div class="campo-item-chave">${c.chave}</div>
                 </div>
 
-                <!-- VISÍVEL -->
                 <div class="campo-controles">
                     <div class="campo-controle">
                         <span class="campo-controle-label">Visível</span>
@@ -250,7 +242,6 @@ function renderizarCampos() {
                         </label>
                     </div>
 
-                    <!-- EDITÁVEL -->
                     <div class="campo-controle">
                         <span class="campo-controle-label">Editável</span>
                         <label class="toggle">
@@ -273,6 +264,7 @@ function renderizarCampos() {
     container.innerHTML = html;
 }
 
+// Alterna visibilidade/editabilidade de um campo
 function toggleCampo(el, idCampo, tipo) {
     const c = listaCampos.find(x => x.idCampo === idCampo);
     if (!c) return;
@@ -281,7 +273,6 @@ function toggleCampo(el, idCampo, tipo) {
 
     const item = document.getElementById(`campo-item-${idCampo}`);
 
-    // Se ocultar o campo, desabilita o toggle de editável também
     if (tipo === 'visivel') {
         const editavelToggle = item.querySelector('[data-tipo="editavel"]');
         if (!el.checked) {
@@ -296,6 +287,7 @@ function toggleCampo(el, idCampo, tipo) {
     }
 }
 
+// Marca/desmarca todos campos
 function marcarTodosCampos(tipo, valor) {
     listaCampos.forEach(c => {
         c[tipo] = valor;
@@ -304,9 +296,7 @@ function marcarTodosCampos(tipo, valor) {
     renderizarCampos();
 }
 
-// ──────────────────────────────────────────
-// ABAS
-// ──────────────────────────────────────────
+// Controle de abas da interface
 function mudarAba(aba) {
     document.querySelectorAll('.permissao-aba').forEach(b => b.classList.remove('ativa'));
     document.querySelectorAll('.aba-conteudo').forEach(p => p.classList.remove('ativa'));
@@ -314,9 +304,7 @@ function mudarAba(aba) {
     document.getElementById(`aba-${aba}`).classList.add('ativa');
 }
 
-// ──────────────────────────────────────────
-// SALVAR
-// ──────────────────────────────────────────
+// Salva permissões no backend
 async function salvarPermissoes() {
     if (!cargoAtual) return;
 
@@ -361,7 +349,5 @@ async function salvarPermissoes() {
     }
 }
 
-// ──────────────────────────────────────────
-// INIT
-// ──────────────────────────────────────────
+// Inicializa ao carregar a página
 document.addEventListener('DOMContentLoaded', inicializar);
