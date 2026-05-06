@@ -26,8 +26,7 @@ public class CaixaController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        var caixa = _service.BuscarAberto(idEmpresa, idUsuario);
+        var caixa = _service.BuscarAberto(idEmpresa);
         return Json(new { caixaAberto = caixa != null, caixa });
     }
 
@@ -35,24 +34,21 @@ public class CaixaController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        return Json(_service.ListarHistorico(idEmpresa, idUsuario));
+        return Json(_service.ListarHistorico(idEmpresa));
     }
 
     public IActionResult Lancamentos()
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        return Json(_service.ListarLancamentos(idEmpresa, idUsuario));
+        return Json(_service.ListarLancamentos(idEmpresa));
     }
 
     public IActionResult Breakdown()
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        return Json(_service.Breakdown(idEmpresa, idUsuario));
+        return Json(_service.Breakdown(idEmpresa));
     }
 
     public IActionResult FormasPagamento()
@@ -73,8 +69,7 @@ public class CaixaController : BaseController
     {
         var r = VerificarSessaoApi(); if (r != null) return r;
         var idEmpresa = HttpContext.Session.GetInt32("IdEmpresa")!.Value;
-        var idUsuario = HttpContext.Session.GetInt32("idUsuario")!.Value;
-        var saldo = _service.BuscarSaldoUltimoCaixa(idEmpresa, idUsuario);
+        var saldo = _service.BuscarSaldoUltimoCaixa(idEmpresa);
         return Json(new { saldo });
     }
 
@@ -105,8 +100,8 @@ public class CaixaController : BaseController
         if (idEmpresa == null || idUsuario == null)
             return BadRequest("Sessão inválida.");
 
-        if (_service.BuscarAberto(idEmpresa.Value, idUsuario.Value) != null)
-            return BadRequest("Você já possui um caixa aberto.");
+        if (_service.BuscarAberto(idEmpresa.Value) != null)
+            return BadRequest("Já existe um caixa aberto para esta empresa.");
 
         var idCaixa = _service.Abrir(idEmpresa.Value, idUsuario.Value, dto.SaldoInicial, nomeUsuario);
         Auditar("CAIXA", "ABRIR_CAIXA", $"Caixa #{idCaixa} aberto com saldo inicial R$ {dto.SaldoInicial:F2}");

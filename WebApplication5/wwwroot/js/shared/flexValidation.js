@@ -279,28 +279,37 @@ async function preencherEnderecoPorCEP(inputCep, prefixo) {
     inputCep.placeholder = "00000-000";
 }
 
-// ──────────────────────────────────────────
-// FORMATAÇÃO AUTOMÁTICA (máscaras leves)
-// ──────────────────────────────────────────
 function aplicarMascaraCPF(inputEl) {
-    inputEl.addEventListener("input", () => {
+    if (inputEl._maskHandler) {
+        inputEl.removeEventListener("input", inputEl._maskHandler);
+    }
+
+    inputEl._maskHandler = () => {
         let v = inputEl.value.replace(/\D/g, "").substring(0, 11);
-        v = v.replace(/(\d{3})(\d)/, "$1.$2");
-        v = v.replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
-        v = v.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+        if (v.length > 9) v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+        else if (v.length > 6) v = v.replace(/^(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+        else if (v.length > 3) v = v.replace(/^(\d{3})(\d{0,3})/, "$1.$2");
         inputEl.value = v;
-    });
+    };
+
+    inputEl.addEventListener("input", inputEl._maskHandler);
 }
 
 function aplicarMascaraCNPJ(inputEl) {
-    inputEl.addEventListener("input", () => {
+    if (inputEl._maskHandler) {
+        inputEl.removeEventListener("input", inputEl._maskHandler);
+    }
+
+    inputEl._maskHandler = () => {
         let v = inputEl.value.replace(/\D/g, "").substring(0, 14);
-        v = v.replace(/(\d{2})(\d)/, "$1.$2");
-        v = v.replace(/(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
-        v = v.replace(/\.(\d{3})\.(\d{3})(\d)/, ".$1.$2/$3");
-        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        if (v.length > 12) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, "$1.$2.$3/$4-$5");
+        else if (v.length > 8) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4})/, "$1.$2.$3/$4");
+        else if (v.length > 5) v = v.replace(/^(\d{2})(\d{3})(\d{0,3})/, "$1.$2.$3");
+        else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,3})/, "$1.$2");
         inputEl.value = v;
-    });
+    };
+
+    inputEl.addEventListener("input", inputEl._maskHandler);
 }
 
 function aplicarMascaraTelefone(inputEl) {

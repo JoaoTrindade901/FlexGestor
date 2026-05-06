@@ -208,10 +208,13 @@ async function inicializarMenu() {
                 submenu.appendChild(liFilho);
             });
 
-            // Toggle abrir/fechar submenu
-            li.querySelector("span").addEventListener("click", function () {
-                li.classList.toggle("active");
-            });
+            if (!item.futuro) {
+                li.querySelector("span").addEventListener("click", function () {
+                    var aberto = li.classList.contains("active");
+                    li.classList.toggle("active", !aberto);
+                    submenu.style.maxHeight = aberto ? "" : "40rem";
+                });
+            }
         }
 
         ul.appendChild(li);
@@ -230,7 +233,6 @@ async function inicializarMenu() {
         }
     });
 
-    // Se já veio cache do dashboard, usa direto
     if (window.__dashboardCache) {
         processarDashboardCache(window.__dashboardCache);
     }

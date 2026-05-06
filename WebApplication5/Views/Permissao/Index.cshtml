@@ -1,130 +1,642 @@
-﻿<!-- Views/Permissao/Index.cshtml -->
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permissões - FlexGestor</title>
     <link rel="stylesheet" href="/css/homeCSS/home.css">
     <link rel="stylesheet" href="/css/menuCSS/menu.css">
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/permissaoCSS/permissao.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* ── LAYOUT MELHORADO ── */
+        .perm-layout {
+            display: grid;
+            grid-template-columns: 28rem 1fr;
+            gap: 2.4rem;
+            align-items: start;
+        }
+
+        /* Painel lateral de cargos */
+        .perm-sidebar {
+            background: #fff;
+            border-radius: 1.2rem;
+            box-shadow: 0 .1rem .4rem rgba(0,0,0,.07), 0 .4rem 1.6rem rgba(0,0,0,.05);
+            overflow: hidden;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .perm-sidebar-header {
+            padding: 1.6rem 2rem;
+            background: #1e3c72;
+            color: #fff;
+        }
+
+            .perm-sidebar-header h3 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: .6rem;
+            }
+
+            .perm-sidebar-header p {
+                font-size: 1.1rem;
+                opacity: .7;
+                margin: .4rem 0 0;
+            }
+
+        .perm-cargo-item {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1.4rem 2rem;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+            .perm-cargo-item:hover {
+                background: #f8fafc;
+            }
+
+            .perm-cargo-item.ativo {
+                background: #eff6ff;
+                border-left: 3px solid #1e3c72;
+            }
+
+        .perm-cargo-avatar {
+            width: 3.8rem;
+            height: 3.8rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .perm-cargo-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .perm-cargo-nome {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .perm-cargo-desc {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            margin-top: .2rem;
+        }
+
+        .perm-cargo-seta {
+            color: #9ca3af;
+            font-size: 1.4rem;
+        }
+
+        /* Área principal */
+        .perm-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Tabs melhoradas */
+        .perm-tabs {
+            display: flex;
+            background: #fff;
+            border-radius: 1.2rem;
+            box-shadow: 0 .1rem .4rem rgba(0,0,0,.07);
+            padding: .5rem;
+            gap: .5rem;
+        }
+
+        .perm-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .8rem;
+            padding: 1.1rem;
+            border-radius: .8rem;
+            border: none;
+            background: none;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+            .perm-tab:hover {
+                background: #f8fafc;
+                color: #1e3c72;
+            }
+
+            .perm-tab.ativa {
+                background: #1e3c72;
+                color: #fff;
+            }
+
+            .perm-tab i {
+                font-size: 1.6rem;
+            }
+
+        /* Cards de menu */
+        .perm-menus-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .perm-menu-card {
+            background: #fff;
+            border: 2px solid #f0f2f5;
+            border-radius: 1rem;
+            padding: 1.4rem 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+            .perm-menu-card:hover {
+                border-color: #bfdbfe;
+            }
+
+            .perm-menu-card.permitido {
+                border-color: #bbf7d0;
+                background: #f0fdf4;
+            }
+
+            .perm-menu-card.bloqueado {
+                border-color: #f0f2f5;
+                background: #fafbfc;
+                opacity: .7;
+            }
+
+        .perm-menu-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: .8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .permitido .perm-menu-icon {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .bloqueado .perm-menu-icon {
+            background: #f3f4f6;
+            color: #9ca3af;
+        }
+
+        .perm-menu-info {
+            flex: 1;
+        }
+
+        .perm-menu-nome {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .perm-menu-rota {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            margin-top: .2rem;
+        }
+
+        /* Switch moderno */
+        .perm-switch {
+            position: relative;
+            width: 5rem;
+            height: 2.8rem;
+            flex-shrink: 0;
+        }
+
+            .perm-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        /* Switch com estado OFF visível */
+        .perm-switch-slider {
+            background: #d1d5db; /* cinza visível quando OFF */
+        }
+
+        .perm-switch input:checked + .perm-switch-slider {
+            background: #15803d; /* verde quando ON */
+        }
+
+        /* Editável bloqueado quando campo invisível */
+        .perm-switch input:disabled + .perm-switch-slider {
+            background: #f3f4f6;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+            .perm-switch input:disabled + .perm-switch-slider::before {
+                background: #e5e7eb;
+            }
+
+        /* Tabela de campos */
+        .perm-campos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .perm-campos-table thead th {
+                text-align: left;
+                padding: 1.2rem 1.6rem;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: .05rem;
+                border-bottom: 2px solid #f0f2f5;
+                background: #fafbfc;
+            }
+
+                .perm-campos-table thead th:last-child,
+                .perm-campos-table thead th:nth-last-child(2) {
+                    text-align: center;
+                }
+
+            .perm-campos-table tbody td {
+                padding: 1.2rem 1.6rem;
+                border-bottom: 1px solid #f8fafc;
+                font-size: 1.3rem;
+                color: #374151;
+            }
+
+            .perm-campos-table tbody tr:hover td {
+                background: #f8fafc;
+            }
+
+        .perm-secao-label {
+            padding: .8rem 1.6rem;
+            background: #f8fafc;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .06rem;
+        }
+
+        /* Estado vazio */
+        .perm-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.6rem;
+            padding: 8rem 2rem;
+            text-align: center;
+            background: #fff;
+            border-radius: 1.2rem;
+            box-shadow: 0 .1rem .4rem rgba(0,0,0,.07);
+        }
+
+            .perm-empty i {
+                font-size: 5rem;
+                color: #e5e7eb;
+            }
+
+            .perm-empty h3 {
+                font-size: 1.8rem;
+                color: #374151;
+                margin: 0;
+            }
+
+            .perm-empty p {
+                font-size: 1.4rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+        /* Rodapé de salvar */
+        .perm-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 1.2rem;
+            padding: 1.6rem 2rem;
+            box-shadow: 0 .1rem .4rem rgba(0,0,0,.07);
+        }
+
+        .perm-footer-info {
+            font-size: 1.3rem;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+            .perm-footer-info.sucesso {
+                color: #15803d;
+                font-weight: 600;
+            }
+
+            .perm-footer-info.erro {
+                color: #dc2626;
+                font-weight: 600;
+            }
+
+        .btn-salvar-perm {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            background: #1e3c72;
+            color: #fff;
+            border: none;
+            padding: 1.1rem 2.4rem;
+            border-radius: .8rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            transition: background .2s, transform .15s;
+            box-shadow: 0 .2rem .8rem rgba(30,60,114,.25);
+        }
+
+            .btn-salvar-perm:hover {
+                background: #254a8f;
+                transform: translateY(-.1rem);
+            }
+
+            .btn-salvar-perm:disabled {
+                opacity: .6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        /* Ações rápidas */
+        .perm-acoes-rapidas {
+            display: flex;
+            gap: .6rem;
+        }
+
+        .btn-acao-rapida-sm {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .6rem 1.2rem;
+            border: 1px solid #e5e7eb;
+            border-radius: .6rem;
+            background: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all .2s;
+        }
+
+            .btn-acao-rapida-sm:hover {
+                background: #1e3c72;
+                color: #fff;
+                border-color: #1e3c72;
+            }
+
+            .btn-acao-rapida-sm.danger:hover {
+                background: #dc2626;
+                border-color: #dc2626;
+            }
+
+        /* Cores dos cargos */
+        .cargo-cor-1 {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .cargo-cor-2 {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .cargo-cor-3 {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .cargo-cor-4 {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .cargo-cor-5 {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .perm-switch {
+            position: relative;
+            display: inline-block;
+            width: 5rem;
+            height: 2.8rem;
+            flex-shrink: 0;
+        }
+
+            .perm-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+                position: absolute;
+            }
+
+        .perm-switch-slider {
+            position: absolute;
+            inset: 0;
+            background: #9ca3af;
+            border-radius: 2.8rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+            .perm-switch-slider::before {
+                content: '';
+                position: absolute;
+                height: 2.2rem;
+                width: 2.2rem;
+                left: .3rem;
+                bottom: .3rem;
+                background: #fff;
+                border-radius: 50%;
+                transition: transform .2s;
+                box-shadow: 0 .1rem .4rem rgba(0,0,0,.3);
+            }
+
+        .perm-switch input:checked + .perm-switch-slider {
+            background: #15803d;
+        }
+
+            .perm-switch input:checked + .perm-switch-slider::before {
+                transform: translateX(2.2rem);
+            }
+
+        .perm-switch input:disabled + .perm-switch-slider {
+            background: #e5e7eb;
+            cursor: not-allowed;
+        }
+
+            .perm-switch input:disabled + .perm-switch-slider::before {
+                background: #d1d5db;
+            }
+    </style>
 </head>
 <body data-rota="Permissao">
     <div class="container">
         <div id="menu"></div>
         <main>
-            <section class="secao-permissao">
+            <section class="secao-pagina">
 
                 <div class="cabecalho-tela">
                     <h2><i class="bi bi-shield-lock-fill"></i> Controle de Permissões</h2>
                 </div>
 
-                <!-- SELETOR DE CARGO -->
-                <div class="permissao-topo">
-                    <div class="cargo-selector">
-                        <label><i class="bi bi-people-fill"></i> Cargo</label>
-                        <select id="select-cargo" onchange="carregarPermissoes()">
-                            <option value="">Selecione um cargo...</option>
-                        </select>
-                    </div>
-                    <div id="cargo-badge" class="cargo-badge" style="display:none"></div>
-                </div>
+                <div class="perm-layout">
 
-                <!-- CONTEÚDO -->
-                <div id="permissao-conteudo" style="display:none">
-
-                    <!-- ABAS -->
-                    <div class="permissao-abas">
-                        <button id="aba-btn-menus" class="permissao-aba ativa" onclick="mudarAba('menus')">
-                            <i class="bi bi-layout-sidebar"></i> Menus e Rotas
-                        </button>
-                        <button id="aba-btn-campos" class="permissao-aba" onclick="mudarAba('campos')">
-                            <i class="bi bi-person-lines-fill"></i> Campos do Cliente
-                        </button>
-                    </div>
-
-                    <!-- ABA MENUS -->
-                    <div id="aba-menus" class="aba-conteudo ativa">
-                        <div class="permissao-card">
-                            <div class="permissao-card-header">
-                                <div>
-                                    <h3>Acesso aos Menus</h3>
-                                    <p>Defina quais menus este cargo pode visualizar e acessar</p>
-                                </div>
-                                <div class="acoes-rapidas">
-                                    <button class="btn-acao-rapida" onclick="marcarTodosMenus(true)">
-                                        <i class="bi bi-check-all"></i> Marcar todos
-                                    </button>
-                                    <button class="btn-acao-rapida vermelho" onclick="marcarTodosMenus(false)">
-                                        <i class="bi bi-x-lg"></i> Desmarcar todos
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="lista-menus" class="lista-permissoes">
-                                <!-- preenchido por JS -->
+                    <!-- ── SIDEBAR DE CARGOS ── -->
+                    <aside class="perm-sidebar">
+                        <div class="perm-sidebar-header">
+                            <h3><i class="bi bi-people-fill"></i> Cargos</h3>
+                            <p>Selecione um cargo para editar</p>
+                        </div>
+                        <div id="lista-cargos">
+                            <div style="padding:2rem;text-align:center;color:#9ca3af;font-size:1.3rem">
+                                Carregando...
                             </div>
                         </div>
-                    </div>
+                    </aside>
 
-                    <!-- ABA CAMPOS -->
-                    <div id="aba-campos" class="aba-conteudo">
-                        <div class="permissao-card">
-                            <div class="permissao-card-header">
-                                <div>
-                                    <h3>Campos do Cadastro de Cliente</h3>
-                                    <p>Controle a visibilidade e edição de cada campo por cargo</p>
+                    <!-- ── ÁREA PRINCIPAL ── -->
+                    <div class="perm-main" id="perm-conteudo">
+
+                        <!-- Estado vazio inicial -->
+                        <div class="perm-empty" id="perm-vazio">
+                            <i class="bi bi-shield-lock"></i>
+                            <h3>Selecione um cargo</h3>
+                            <p>Escolha um cargo na lista ao lado para gerenciar suas permissões</p>
+                        </div>
+
+                        <!-- Conteúdo (oculto até selecionar cargo) -->
+                        <div id="perm-editor" style="display:none">
+
+                            <!-- Tabs -->
+                            <div class="perm-tabs">
+                                <button class="perm-tab ativa" id="tab-menus-btn" onclick="mudarAba('menus')">
+                                    <i class="bi bi-layout-sidebar"></i> Menus e Rotas
+                                </button>
+                                <button class="perm-tab" id="tab-campos-btn" onclick="mudarAba('campos')">
+                                    <i class="bi bi-person-lines-fill"></i> Campos do Cliente
+                                </button>
+                            </div>
+
+                            <!-- ABA MENUS -->
+                            <div id="aba-menus">
+                                <div class="permissao-card">
+                                    <div class="permissao-card-header">
+                                        <div>
+                                            <h3>Acesso aos Menus</h3>
+                                            <p>Defina quais telas este cargo pode acessar</p>
+                                        </div>
+                                        <div class="perm-acoes-rapidas">
+                                            <button class="btn-acao-rapida-sm" onclick="marcarTodosMenus(true)">
+                                                <i class="bi bi-check-all"></i> Liberar todos
+                                            </button>
+                                            <button class="btn-acao-rapida-sm danger" onclick="marcarTodosMenus(false)">
+                                                <i class="bi bi-slash-circle"></i> Bloquear todos
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="lista-menus" class="perm-menus-grid" style="padding:1.6rem">
+                                    </div>
                                 </div>
-                                <div class="acoes-rapidas">
-                                    <button class="btn-acao-rapida" onclick="marcarTodosCampos('visivel', true)">
-                                        <i class="bi bi-eye-fill"></i> Todos visíveis
-                                    </button>
-                                    <button class="btn-acao-rapida" onclick="marcarTodosCampos('editavel', true)">
-                                        <i class="bi bi-pencil-fill"></i> Todos editáveis
-                                    </button>
-                                    <button class="btn-acao-rapida vermelho" onclick="marcarTodosCampos('visivel', false)">
-                                        <i class="bi bi-eye-slash-fill"></i> Ocultar todos
-                                    </button>
+                            </div>
+
+                            <!-- ABA CAMPOS -->
+                            <div id="aba-campos" style="display:none">
+                                <div class="permissao-card">
+                                    <div class="permissao-card-header">
+                                        <div>
+                                            <h3>Campos do Cadastro de Cliente</h3>
+                                            <p>Controle visibilidade e edição por campo</p>
+                                        </div>
+                                        <div class="perm-acoes-rapidas">
+                                            <button class="btn-acao-rapida-sm" onclick="marcarTodosCampos('visivel',true)">
+                                                <i class="bi bi-eye-fill"></i> Todos visíveis
+                                            </button>
+                                            <button class="btn-acao-rapida-sm" onclick="marcarTodosCampos('editavel',true)">
+                                                <i class="bi bi-pencil-fill"></i> Todos editáveis
+                                            </button>
+                                            <button class="btn-acao-rapida-sm danger" onclick="marcarTodosCampos('visivel',false)">
+                                                <i class="bi bi-eye-slash-fill"></i> Ocultar todos
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Legenda -->
+                                    <div style="display:flex;gap:2rem;padding:.8rem 1.6rem;
+                                    background:#f8fafc;border-bottom:1px solid #f0f2f5;
+                                    font-size:1.2rem;color:#6b7280">
+                                        <span style="display:flex;align-items:center;gap:.4rem">
+                                            <i class="bi bi-eye-fill" style="color:#15803d"></i> Visível
+                                        </span>
+                                        <span style="display:flex;align-items:center;gap:.4rem">
+                                            <i class="bi bi-eye-slash-fill" style="color:#dc2626"></i> Oculto
+                                        </span>
+                                        <span style="display:flex;align-items:center;gap:.4rem">
+                                            <i class="bi bi-pencil-fill" style="color:#2563eb"></i> Editável
+                                        </span>
+                                        <span style="display:flex;align-items:center;gap:.4rem">
+                                            <i class="bi bi-lock-fill" style="color:#d97706"></i> Somente leitura
+                                        </span>
+                                    </div>
+
+                                    <table class="perm-campos-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Campo</th>
+                                                <th>Chave</th>
+                                                <th style="text-align:center">Visível</th>
+                                                <th style="text-align:center">Editável</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lista-campos"></tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            <!-- LEGENDA -->
-                            <div class="campos-legenda">
-                                <span class="legenda-item">
-                                    <i class="bi bi-eye-fill" style="color:#15803d"></i> Visível
+                            <!-- Rodapé -->
+                            <div class="perm-footer">
+                                <span class="perm-footer-info" id="status-salvamento">
+                                    <i class="bi bi-info-circle"></i>
+                                    As alterações só são aplicadas após salvar.
                                 </span>
-                                <span class="legenda-item">
-                                    <i class="bi bi-eye-slash-fill" style="color:#dc2626"></i> Oculto
-                                </span>
-                                <span class="legenda-item">
-                                    <i class="bi bi-pencil-fill" style="color:#2563eb"></i> Editável
-                                </span>
-                                <span class="legenda-item">
-                                    <i class="bi bi-lock-fill" style="color:#d97706"></i> Somente leitura
-                                </span>
+                                <button class="btn-salvar-perm" onclick="salvarPermissoes()">
+                                    <i class="bi bi-check-lg"></i> Salvar Permissões
+                                </button>
                             </div>
 
-                            <div id="lista-campos" class="lista-campos">
-                                <!-- preenchido por JS -->
-                            </div>
                         </div>
                     </div>
-
-                    <!-- RODAPÉ -->
-                    <div class="permissao-footer">
-                        <span id="status-salvamento" class="status-salvamento"></span>
-                        <button class="btn-salvar" onclick="salvarPermissoes()">
-                            <i class="bi bi-check-lg"></i> Salvar Permissões
-                        </button>
-                    </div>
-
-                </div>
-
-                <!-- ESTADO VAZIO -->
-                <div id="permissao-vazio" class="permissao-vazio">
-                    <i class="bi bi-shield-lock"></i>
-                    <p>Selecione um cargo para gerenciar as permissões</p>
                 </div>
 
             </section>

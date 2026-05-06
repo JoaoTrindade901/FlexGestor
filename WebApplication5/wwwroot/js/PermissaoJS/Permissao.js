@@ -1,24 +1,23 @@
-﻿let listalistaCargos = []; // Lista de cargos disponíveis no sistema
-let listaMenus = []; // Lista de menus com permissões do cargo
-let listaCampos = []; // Lista de campos com permissões do cargo
-let cargoAtual = null; // Armazena o cargo atualmente selecionado
+﻿let listalistaCargos = [];
+let listaMenus = [];
+let listaCampos = [];
+let cargoAtual = null;
 
 // Mapeamento de rotas para ícones (usando Bootstrap Icons)
 const MENU_ICONES = {
-    'Home': 'bi-house-fill',
-    'Usuario': 'bi-person-fill',
-    'Cliente': 'bi-people-fill',
-    'Pedido': 'bi-bag-fill',
-    'Caixa': 'bi-cash-coin',
-    'Estoque': 'bi-box-seam-fill',
-    'Auditoria': 'bi-shield-check',
-    'Fornecedor': 'bi-building',
-    'CategoriaProduto': 'bi-tag-fill',
-    'ML': 'bi-graph-up-arrow',
-    'Permissao': 'bi-shield-lock-fill',
+    'Home': 'bi-house-fill', 'Usuario': 'bi-person-fill',
+    'Cliente': 'bi-people-fill', 'Pedido': 'bi-bag-fill',
+    'Caixa': 'bi-cash-coin', 'Estoque': 'bi-boxes',
+    'Auditoria': 'bi-shield-check', 'Fornecedor': 'bi-building',
+    'CategoriaProduto': 'bi-tag-fill', 'ML': 'bi-graph-up-arrow',
+    'Permissao': 'bi-shield-lock-fill', 'Financeiro': 'bi-bank',
+    'Despesa': 'bi-receipt', 'Produto': 'bi-box-seam',
+    'EstoqueHistorico': 'bi-clock-history',
 };
 
-// Função genérica para requisições GET
+// ──────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────
 async function apiGet(url) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
@@ -32,23 +31,19 @@ async function apiPost(url, body) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(t || `POST ${url} → ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`POST ${url} → ${res.status}`);
     return res;
 }
 
 // Função para exibir notificações visuais (toast)
 function flexToast(msg, tipo = 'sucesso') {
     const cores = { sucesso: '#15803d', erro: '#dc2626', aviso: '#d97706' };
-    const icones = { sucesso: 'bi-check-circle-fill', erro: 'bi-x-circle-fill', aviso: 'bi-exclamation-triangle-fill' };
     const t = document.createElement('div');
     t.style.cssText = `position:fixed;top:2rem;right:2rem;background:${cores[tipo]};color:#fff;
         padding:1.2rem 1.8rem;border-radius:.8rem;font-size:1.4rem;font-family:'Segoe UI',sans-serif;
         display:flex;align-items:center;gap:.8rem;box-shadow:0 .6rem 2rem rgba(0,0,0,.2);
         z-index:9999;opacity:0;transform:translateY(-1rem);transition:all .3s ease;`;
-    t.innerHTML = `<i class="bi ${icones[tipo]}"></i><span>${msg}</span>`;
+    t.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>${msg}</span>`;
     document.body.appendChild(t);
     requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
     setTimeout(() => {
@@ -57,28 +52,25 @@ function flexToast(msg, tipo = 'sucesso') {
     }, 3200);
 }
 
-// Função inicial que carrega os cargos no select
+// ──────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────
 async function inicializar() {
     try {
         listaCargos = await apiGet('/Usuario/ListarCargos');
-        const sel = document.getElementById('select-cargo');
-        listaCargos.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.idCargo;
-            opt.textContent = c.nome ?? c.Nome;
-            sel.appendChild(opt);
-        });
+        renderizarCargos();
     } catch (err) {
-        flexToast('Erro ao carregar cargos: ' + err.message, 'erro');
+        flexToast('Erro ao carregar cargos', 'erro');
     }
 }
 
-// Carrega permissões (menus + campos) do cargo selecionado
+// ──────────────────────────────────────────
+// CARREGAR PERMISSÕES DO CARGO
+// ──────────────────────────────────────────
 async function carregarPermissoes() {
     const sel = document.getElementById('select-cargo');
     const idCargo = Number(sel.value);
 
-    // Se não selecionou cargo, mostra estado vazio
     if (!idCargo) {
         document.getElementById('permissao-conteudo').style.display = 'none';
         document.getElementById('permissao-vazio').style.display = 'flex';
@@ -86,13 +78,19 @@ async function carregarPermissoes() {
         return;
     }
 
+async function selecionarCargo(idCargo) {
     cargoAtual = idCargo;
-    const nomeCargo = sel.options[sel.selectedIndex].text;
 
-    // Atualiza badge com nome do cargo
+    // Badge
     const badge = document.getElementById('cargo-badge');
     badge.innerHTML = `<i class="bi bi-person-badge-fill"></i> ${nomeCargo}`;
     badge.style.display = 'inline-flex';
+
+    // Mostra editor
+    document.getElementById('perm-vazio').style.display = 'none';
+    document.getElementById('perm-editor').style.display = 'flex';
+    document.getElementById('perm-editor').style.flexDirection = 'column';
+    document.getElementById('perm-editor').style.gap = '2rem';
 
     try {
         // Busca menus e campos em paralelo
@@ -100,28 +98,30 @@ async function carregarPermissoes() {
             apiGet(`/Permissao/ListarMenus?idCargo=${idCargo}`),
             apiGet(`/Permissao/ListarCampos?idCargo=${idCargo}`)
         ]);
-
         renderizarMenus();
         renderizarCampos();
 
-        // Atualiza UI
         document.getElementById('permissao-vazio').style.display = 'none';
         document.getElementById('permissao-conteudo').style.display = 'block';
         document.getElementById('status-salvamento').textContent = '';
         document.getElementById('status-salvamento').className = 'status-salvamento';
 
     } catch (err) {
-        flexToast('Erro ao carregar permissões: ' + err.message, 'erro');
+        flexToast('Erro ao carregar permissões', 'erro');
     }
 }
 
-// Renderiza menus agrupando por menuPai
+// ──────────────────────────────────────────
+// RENDERIZAR MENUS
+// ──────────────────────────────────────────
 function renderizarMenus() {
     const container = document.getElementById('lista-menus');
 
+    // Agrupa por menuPai
     const raiz = listaMenus.filter(m => !m.menuPai);
     const filhos = listaMenus.filter(m => m.menuPai);
 
+    // Monta itens raiz + filhos agrupados
     const grupos = {};
     filhos.forEach(f => {
         if (!grupos[f.menuPai]) grupos[f.menuPai] = [];
@@ -133,6 +133,7 @@ function renderizarMenus() {
     raiz.forEach(m => {
         html += renderizarItemMenu(m);
 
+        // Se tem filhos, renderiza com indentação
         if (grupos[m.nome]) {
             grupos[m.nome].forEach(filho => {
                 html += renderizarItemMenu(filho, true);
@@ -140,7 +141,7 @@ function renderizarMenus() {
         }
     });
 
-    // Trata filhos órfãos
+    // Filhos órfãos (menuPai não está na raiz como nome)
     filhos.forEach(f => {
         const paiExiste = raiz.some(r => r.nome === f.menuPai);
         if (!paiExiste) html += renderizarItemMenu(f, true);
@@ -149,7 +150,6 @@ function renderizarMenus() {
     container.innerHTML = html;
 }
 
-// Renderiza um item de menu
 function renderizarItemMenu(m, filho = false) {
     const icone = MENU_ICONES[m.rota] ?? 'bi-circle';
     const ativo = m.temAcesso;
@@ -162,38 +162,30 @@ function renderizarItemMenu(m, filho = false) {
             <div class="permissao-item-icone">
                 <i class="bi ${icone}"></i>
             </div>
-            <div>
-                <div class="permissao-item-nome">
-                    ${filho ? '<i class="bi bi-arrow-return-right" style="color:#9ca3af;font-size:1.1rem;margin-right:.4rem"></i>' : ''}
-                    ${m.nome}
-                </div>
-                <div class="permissao-item-rota">/${m.rota}</div>
+            <div class="perm-menu-info">
+                <div class="perm-menu-nome">${m.nome}</div>
+                <div class="perm-menu-rota">/${m.rota}</div>
             </div>
-        </div>
-        <div class="toggle-wrap">
-            <span class="toggle-label ${ativo ? 'ativo' : ''}">
-                ${ativo ? 'Permitido' : 'Bloqueado'}
-            </span>
-            <label class="toggle">
-                <input type="checkbox"
-                    data-menu-id="${m.idMenu}"
-                    ${ativo ? 'checked' : ''}
-                    onchange="toggleMenu(this, ${m.idMenu})">
-                <span class="toggle-slider"></span>
+            <label class="perm-switch" onclick="event.stopPropagation()">
+                <input type="checkbox" data-menu-id="${m.idMenu}"
+                    ${m.temAcesso ? 'checked' : ''}
+                    onchange="toggleMenu(${m.idMenu})">
+                <span class="perm-switch-slider"></span>
             </label>
-        </div>
-    </div>`;
+        </div>`;
+    }).join('');
 }
 
-// Alterna permissão de um menu
 function toggleMenu(el, idMenu) {
     const item = document.getElementById(`menu-item-${idMenu}`);
     const labelEl = item.querySelector('.toggle-label');
     const ativo = el.checked;
 
+    // Atualiza no array
     const m = listaMenus.find(x => x.idMenu === idMenu);
     if (m) m.temAcesso = ativo;
 
+    // Atualiza visual
     item.classList.toggle('ativo', ativo);
     item.classList.toggle('inativo', !ativo);
     labelEl.textContent = ativo ? 'Permitido' : 'Bloqueado';
@@ -202,14 +194,17 @@ function toggleMenu(el, idMenu) {
 
 // Marca/desmarca todos menus
 function marcarTodosMenus(valor) {
-    listaMenus.forEach(m => { m.temAcesso = valor; });
+    listaMenus.forEach(m => m.temAcesso = valor);
     renderizarMenus();
 }
 
-// Renderiza campos agrupados por seção
+// ──────────────────────────────────────────
+// RENDERIZAR CAMPOS
+// ──────────────────────────────────────────
 function renderizarCampos() {
     const container = document.getElementById('lista-campos');
 
+    // Agrupa por seção
     const secoes = {};
     listaCampos.forEach(c => {
         if (!secoes[c.secao]) secoes[c.secao] = [];
@@ -218,10 +213,9 @@ function renderizarCampos() {
 
     let html = '';
     Object.entries(secoes).forEach(([secao, itens]) => {
-        html += `<div class="campos-secao">
-            <div class="campos-secao-titulo">${secao}</div>`;
-
+        html += `<tr><td colspan="4" class="perm-secao-label">${secao}</td></tr>`;
         itens.forEach(c => {
+            const editBloqueado = !c.visivel;
             html += `
             <div class="campo-item ${!c.visivel ? 'oculto' : ''}" id="campo-item-${c.idCampo}">
                 <div>
@@ -229,6 +223,7 @@ function renderizarCampos() {
                     <div class="campo-item-chave">${c.chave}</div>
                 </div>
 
+                <!-- VISÍVEL -->
                 <div class="campo-controles">
                     <div class="campo-controle">
                         <span class="campo-controle-label">Visível</span>
@@ -242,6 +237,7 @@ function renderizarCampos() {
                         </label>
                     </div>
 
+                    <!-- EDITÁVEL -->
                     <div class="campo-controle">
                         <span class="campo-controle-label">Editável</span>
                         <label class="toggle">
@@ -257,14 +253,10 @@ function renderizarCampos() {
                 </div>
             </div>`;
         });
-
-        html += `</div>`;
     });
-
-    container.innerHTML = html;
+    tbody.innerHTML = html;
 }
 
-// Alterna visibilidade/editabilidade de um campo
 function toggleCampo(el, idCampo, tipo) {
     const c = listaCampos.find(x => x.idCampo === idCampo);
     if (!c) return;
@@ -273,6 +265,7 @@ function toggleCampo(el, idCampo, tipo) {
 
     const item = document.getElementById(`campo-item-${idCampo}`);
 
+    // Se ocultar o campo, desabilita o toggle de editável também
     if (tipo === 'visivel') {
         const editavelToggle = item.querySelector('[data-tipo="editavel"]');
         if (!el.checked) {
@@ -296,52 +289,41 @@ function marcarTodosCampos(tipo, valor) {
     renderizarCampos();
 }
 
-// Controle de abas da interface
+// ──────────────────────────────────────────
+// ABAS
+// ──────────────────────────────────────────
 function mudarAba(aba) {
-    document.querySelectorAll('.permissao-aba').forEach(b => b.classList.remove('ativa'));
-    document.querySelectorAll('.aba-conteudo').forEach(p => p.classList.remove('ativa'));
-    document.getElementById(`aba-btn-${aba}`).classList.add('ativa');
-    document.getElementById(`aba-${aba}`).classList.add('ativa');
+    document.getElementById('aba-menus').style.display = aba === 'menus' ? '' : 'none';
+    document.getElementById('aba-campos').style.display = aba === 'campos' ? '' : 'none';
+    document.getElementById('tab-menus-btn').classList.toggle('ativa', aba === 'menus');
+    document.getElementById('tab-campos-btn').classList.toggle('ativa', aba === 'campos');
 }
 
-// Salva permissões no backend
+// ──────────────────────────────────────────
+// SALVAR
+// ──────────────────────────────────────────
 async function salvarPermissoes() {
     if (!cargoAtual) return;
-
-    const btn = document.querySelector('.btn-salvar');
-    const status = document.getElementById('status-salvamento');
+    const btn = document.querySelector('.btn-salvar-perm');
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
-    status.textContent = '';
-    status.className = 'status-salvamento';
-
-    const payload = {
-        IdCargo: cargoAtual,
-        Menus: listaMenus.map(m => ({
-            IdCargo: cargoAtual,
-            IdMenu: m.idMenu,
-            FAtivo: m.temAcesso
-        })),
-        Campos: listaCampos.map(c => ({
-            IdCargo: cargoAtual,
-            IdCampo: c.idCampo,
-            Visivel: c.visivel,
-            Editavel: c.editavel
-        }))
-    };
+    setStatus('');
 
     try {
-        await apiPost('/Permissao/Salvar', payload);
-        status.textContent = '✓ Permissões salvas com sucesso';
-        status.className = 'status-salvamento sucesso';
-        flexToast('Permissões salvas!', 'sucesso');
-        setTimeout(() => {
-            status.textContent = '';
-            status.className = 'status-salvamento';
-        }, 4000);
+        await apiPost('/Permissao/Salvar', {
+            IdCargo: cargoAtual,
+            Menus: listaMenus.map(m => ({
+                IdCargo: cargoAtual, IdMenu: m.idMenu, FAtivo: m.temAcesso
+            })),
+            Campos: listaCampos.map(c => ({
+                IdCargo: cargoAtual, IdCampo: c.idCampo,
+                Visivel: c.visivel, Editavel: c.editavel
+            }))
+        });
+        setStatus('sucesso');
+        flexToast('Permissões salvas com sucesso!', 'sucesso');
     } catch (err) {
-        status.textContent = '✗ Erro ao salvar';
-        status.className = 'status-salvamento erro';
+        setStatus('erro');
         flexToast('Erro ao salvar: ' + err.message, 'erro');
     } finally {
         btn.disabled = false;
@@ -349,5 +331,7 @@ async function salvarPermissoes() {
     }
 }
 
-// Inicializa ao carregar a página
+// ──────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', inicializar);

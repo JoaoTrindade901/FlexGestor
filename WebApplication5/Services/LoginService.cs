@@ -22,13 +22,15 @@ namespace WebApplication5.Services
             {
                 return null;
             }
-                
+
+            Console.WriteLine($"Senha digitada: {senha}");
+            Console.WriteLine($"Hash no banco: {user.Senha}");
+            Console.WriteLine($"Verify: {_password.Verify(senha, user.Senha)}");
 
             if (!_password.Verify(senha, user.Senha))
             {
                 return null;
             }
-
 
             return user;
         }

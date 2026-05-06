@@ -496,3 +496,24 @@ main {
     .aba-conteudo.ativa {
         display: block;
     }
+
+
+
+.perm-switch-slider {
+    background: #d1d5db; 
+}
+
+.perm-switch input:checked + .perm-switch-slider {
+    background: #15803d; 
+}
+
+
+.perm-switch input:disabled + .perm-switch-slider {
+    background: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+    .perm-switch input:disabled + .perm-switch-slider::before {
+        background: #e5e7eb;
+    }

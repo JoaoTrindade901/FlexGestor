@@ -8,7 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDbConnection>(sp =>
     new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<PermissaoFilter>();
+});
 
 // Usuário / Auth
 builder.Services.AddScoped<UsuarioRepository>();
@@ -19,6 +22,7 @@ builder.Services.AddScoped<SenhaService>();
 builder.Services.AddScoped<TokenResetRepository>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<SenhaResetService>();
+builder.Services.AddScoped<PermissaoFilter>();
 
 // Cliente
 builder.Services.AddScoped<EnderecoRepository>();
